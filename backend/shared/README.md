@@ -54,3 +54,27 @@ Use Atlas TLS defaults, a least-privilege database user and an IP access list.
 Do not disable TLS verification or commit credentials. Configure
 `MONGODB_DB_NAME` and positive `MONGODB_TIMEOUT_MS` (default 5000). Health routes
 remain process liveness checks and do not connect to MongoDB.
+
+## GridFS persistence (Prompt 4.2)
+
+After index initialization, use `store_pdf(database, filename, content)` to
+persist bytes and metadata. It returns a validated `StoredPdfResult` with
+`document` and `is_duplicate`. `get_document`, `find_document_by_hash` and
+`read_pdf` retrieve stored metadata and original bytes. BSON IDs become strings
+in Python models; MongoDB stores document/file IDs as ObjectIds.
+
+Each write computes its actual SHA-256. The unique index resolves races: a
+losing upload removes only its own GridFS file and returns the winning record.
+No processing jobs are created yet. Upload MIME/content/size validation and HTTP
+routes belong to Prompt 5; these internal helpers assume validated PDF bytes.
+Downloads currently read the file into memory.
+
+GridFS and metadata writes are not atomic together. A process crash or ambiguous
+network failure can leave orphan files. On an uncertain metadata insert, the
+helper retains the candidate file to avoid deleting a potentially committed
+document's original. Failures are surfaced, not reported as successful writes.
+GridFS `metadata.document_id` and `metadata.sha256` support operator inspection:
+compare `fs.files._id` with `documents.gridfs_file_id` after operations have
+settled, back up data, and review unreferenced files before manual cleanup.
+Never delete files merely because a request timed out. A cleanup failure also
+requires reconciliation. No automatic destructive reconciliation is provided.
