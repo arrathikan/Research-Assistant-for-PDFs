@@ -176,3 +176,17 @@ This roadmap breaks down the complete development of **ResearchAI — AI Researc
 - [ ] **Increment 9.2: Complete Documentation & Deployment Polish**
   - Verify Docker Compose full-stack startup (`docker-compose up --build`).
   - Finalize README setup instructions, troubleshooting guide, and demo video / screenshots guide.
+
+## Development prompt tracking (original 0–15 plan)
+
+The stage numbers above group the architecture differently from the original
+development prompts. Prompts 0–2 are the existing rules, scaffolding and frontend.
+
+- [x] Prompt 3.1: Gateway contracts, errors, JSON logging, CORS and backend tests.
+- [ ] Prompt 3.2: Frontend health connection indicator.
+- [ ] Prompt 4: MongoDB Atlas / GridFS storage.
+- [ ] Prompts 5–15: Upload, parsing, chunking, embeddings, summary, hybrid RAG,
+  citations, jobs, offline Ragas, deployment and final live QA.
+
+Prompt 3.1 verification: 17 backend tests passed. Health does not imply external
+service readiness. Existing uncommitted frontend work was preserved.

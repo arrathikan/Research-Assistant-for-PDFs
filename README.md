@@ -155,3 +155,13 @@ PYTHONPATH=. pytest backend/tests/
 - **[AGENTS.md](AGENTS.md):** Coding mentor persona, 20 automatic Git rules, and 16 Ragas evaluation principles.
 - **[docs/architecture.md](docs/architecture.md):** Detailed system architecture, data flows, and MongoDB collection schemas.
 - **[docs/development-roadmap.md](docs/development-roadmap.md):** 10-stage implementation roadmap and increment log.
+
+## Current implementation status
+
+Prompts 0–2 supplied the existing scaffolding and frontend. Prompt 3 gateway
+contracts, centralized errors, JSON logging and CORS checks are implemented; see
+[the gateway guide](backend/gateway/README.md) for verification commands. The
+capabilities described above are the target architecture; upload, storage and AI
+processing are not yet implemented end to end. Health checks indicate gateway
+liveness only. The original prompt progression is tracked in
+[the roadmap](docs/development-roadmap.md).
