@@ -196,3 +196,11 @@ stateDiagram-v2
 - **Single Document Active Session:** The system processes one document at a time per session, optimized for in-depth per-paper exploration. Multi-document cross-comparison is reserved for future extensions.
 - **External Dependency Limits:** Dependent on Voyage AI and LlamaParse rate limits and quota; handled with exponential backoff and queuing via RabbitMQ.
 
+
+## Gateway implementation status
+
+The gateway now separates liveness routing and public response schemas from app
+configuration. Central handlers return string `detail` errors; middleware adds
+request IDs and structured duration/status logs without logging request content.
+CORS is configured from environment settings. External dependencies are not yet
+connected, so health responses report gateway liveness only.
