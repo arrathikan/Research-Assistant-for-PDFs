@@ -4,10 +4,15 @@ from collections.abc import Awaitable, Callable
 from time import perf_counter
 from uuid import uuid4
 
+from backend.gateway.body_limit import UploadBodyLimit
+from backend.gateway.documents import router as documents_router
 from backend.gateway.health import router
 from backend.gateway.schemas import ErrorResponse
+from backend.services.document_processor.upload import UploadRejected
 from backend.shared.config import get_settings
+from backend.shared.database import StorageUnavailable
 from backend.shared.logging import setup_logger
+from backend.shared.storage import DocumentNotFound
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -27,6 +32,22 @@ def create_app() -> FastAPI:
         responses={422: {"model": ErrorResponse}, 500: {"model": ErrorResponse}},
     )
     application.include_router(router)
+    application.include_router(documents_router)
+    application.add_middleware(UploadBodyLimit)
+
+    @application.exception_handler(UploadRejected)
+    async def upload_error(request: Request, exc: UploadRejected) -> JSONResponse:
+        return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+
+    @application.exception_handler(StorageUnavailable)
+    async def storage_error(request: Request, exc: StorageUnavailable) -> JSONResponse:
+        return JSONResponse(
+            status_code=503, content={"detail": "Document storage temporarily unavailable"}
+        )
+
+    @application.exception_handler(DocumentNotFound)
+    async def missing_original(request: Request, exc: DocumentNotFound) -> JSONResponse:
+        return JSONResponse(status_code=404, content={"detail": "Original PDF not found"})
 
     @application.exception_handler(HTTPException)
     async def http_error(request: Request, exc: HTTPException) -> JSONResponse:

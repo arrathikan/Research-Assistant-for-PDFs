@@ -206,7 +206,7 @@ Atlas connectivity and frontend tests were not run for this storage stage.
 ### Prompt 5: PDF upload and duplicate detection
 
 - [x] 5.1: Bounded validation of filename, MIME, PDF structure and page count.
-- [ ] 5.2: Upload, metadata/status and original-PDF API routes.
+- [x] 5.2: Upload, metadata/status and original-PDF API routes.
 - [ ] 5.3: Real frontend success/duplicate/failure states and upload tests.
 - [ ] 5.4: Isolated API/database integration verification and demo commands.
 

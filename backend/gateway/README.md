@@ -46,3 +46,39 @@ ruff format --check backend/gateway backend/shared/logging.py backend/tests/test
 ```
 
 Linting currently covers the Prompt 3 files; older scaffolding is not reformatted.
+
+## Document upload API (Prompt 5)
+
+- `POST /api/v1/documents`: one multipart `file`; 201 for a new document,
+  200 for an identical existing document. `/api/v1/documents/upload` is a
+  compatibility alias for earlier frontend clients.
+- Response: `{document: {id, sha256, filename, file_size_bytes, page_count,
+  status, ...}, is_duplicate, message}`. Public identifiers use `id`, not `_id`.
+- `GET /api/v1/documents/{id}`: persisted metadata.
+- `GET /api/v1/documents/{id}/status`: document ID, actual status and error.
+- `GET /api/v1/documents/{id}/pdf`: original bytes with inline PDF disposition.
+
+The upload parser accepts exactly one file, no additional fields, and caps
+received body bytes at the configured file limit plus 64 KiB for multipart
+headers. The actual file has its own strict size check. Body limits count bytes
+even without Content-Length. Multipart spool files close on success or rejection
+and use the operating system's temporary directory, outside the repository.
+Validation and synchronous PyMongo work run in the thread pool. A unique SHA-256
+index is ensured before every accepted write.
+
+Invalid/corrupt/empty/encrypted PDFs return 400, oversize files/requests 413,
+unsupported MIME/encoding 415, missing/wrong file field 422 (multipart structure
+errors may be 400), missing documents/files 404, invalid IDs 422, and storage
+unavailability 503. Internal storage details are not exposed.
+
+New documents remain `PENDING`. No parsing, summary generation, chat, RabbitMQ
+publication or simulated success is performed. A duplicate returns its actual
+stored status, including pending or failed records. Status does not advance
+until later processing stages are installed. Original downloads are complete
+responses in memory; byte-range streaming is not implemented yet.
+
+```bash
+curl -F 'file=@/absolute/path/paper.pdf' http://localhost:8000/api/v1/documents
+curl http://localhost:8000/api/v1/documents/DOCUMENT_ID/status
+curl http://localhost:8000/api/v1/documents/DOCUMENT_ID/pdf --output /tmp/original.pdf
+```

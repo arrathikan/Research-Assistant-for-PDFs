@@ -75,7 +75,13 @@ def _delete_candidate(bucket: GridFSBucket, file_id: ObjectId) -> None:
         raise StorageUnavailable("Storage cleanup failed; reconciliation required") from None
 
 
-def store_pdf(database: Database[dict[str, Any]], filename: str, content: bytes) -> StoredPdfResult:
+def store_pdf(
+    database: Database[dict[str, Any]],
+    filename: str,
+    content: bytes,
+    *,
+    page_count: int | None = None,
+) -> StoredPdfResult:
     """Persist raw bytes and metadata after ensure_indexes() has succeeded.
 
     The unique SHA-256 index arbitrates races. Each attempt owns a fresh GridFS
@@ -92,6 +98,7 @@ def store_pdf(database: Database[dict[str, Any]], filename: str, content: bytes)
         sha256=digest,
         filename=filename,
         file_size_bytes=len(content),
+        page_count=page_count,
     )
     existing = find_document_by_hash(database, digest)
     if existing is not None:
