@@ -9,7 +9,7 @@ This roadmap breaks down the complete development of **ResearchAI — AI Researc
 | Stage | Name | Key Deliverable | Status |
 |---|---|---|---|
 | **Stage 0** | Foundation & Repository Setup | Rules, architecture, roadmap, Git workflow | **Completed** |
-| **Stage 1** | Containerized Infrastructure & Scaffolding | Docker Compose, FastAPI skeleton, Vite React setup | Not Started |
+| **Stage 1** | Containerized Infrastructure & Scaffolding | Docker Compose, FastAPI skeleton, Vite React setup | **Completed** |
 | **Stage 2** | PDF Upload, Deduplication & Storage | SHA-256 detection, MongoDB GridFS, upload validation | Not Started |
 | **Stage 3** | Ingestion & Markdown Parsing Worker | RabbitMQ queues, LlamaParse, page-aware chunking | Not Started |
 | **Stage 4** | Embeddings & Hybrid Vector/Keyword Store | Voyage AI embeddings, Atlas Vector Search, BM25 | Not Started |
@@ -39,18 +39,21 @@ This roadmap breaks down the complete development of **ResearchAI — AI Researc
 
 ## Stage 1: Containerized Infrastructure & Scaffolding
 
-- [ ] **Increment 1.1: Docker Compose & Infrastructure Services**
-  - Create `docker-compose.yml` for RabbitMQ and MongoDB (with local replica set / test container).
-  - Configure RabbitMQ management dashboard and standard exchanges/queues.
-- [ ] **Increment 1.2: Backend Core Scaffolding (FastAPI)**
-  - Scaffold `backend/` directory structure: `app/main.py`, `app/core/config.py`, `app/api/`, `app/services/`.
-  - Implement health check endpoint (`GET /health`) returning service status and database connectivity.
-  - Set up structured logging, CORS middleware, and global error handling.
-  - Add pytest test suite for health checks.
-- [ ] **Increment 1.3: Frontend Core Scaffolding (React + Vite + Tailwind)**
+- [x] **Increment 1.1: Docker Compose & Infrastructure Services**
+  - Create `docker-compose.yml` for RabbitMQ and MongoDB with health checks and persistent volumes.
+  - Configure RabbitMQ management dashboard and standard networks.
+- [x] **Increment 1.2: Backend Core Scaffolding (Gateway & Microservices)**
+  - Scaffold microservices monorepo: `backend/gateway/`, `backend/services/`, `backend/shared/`, `backend/tests/`.
+  - Implement health check endpoints (`GET /health`, `GET /api/v1/health`) and CORS middleware.
+  - Implement centralized `Settings` using Pydantic `BaseSettings` and structured logging.
+  - Add pytest test suite covering domain models, schemas, and gateway health.
+- [x] **Increment 1.3: Frontend Core Scaffolding (React + Vite + Tailwind)**
   - Scaffold `frontend/` using Vite, React 18+, TypeScript, and Tailwind CSS.
-  - Implement base layout (Navbar, Status Indicator, Split View container).
-  - Add Vitest test configuration and initial smoke test.
+  - Implement base layout (`Navbar`, `SplitView`, and responsive container).
+  - Define TypeScript domain contracts strictly matching backend schemas.
+- [x] **Increment 1.4: Evaluation Subsystem Scaffolding (Ragas & Benchmark)**
+  - Scaffold `evaluation/` directory with Pydantic schemas, benchmark dataset, and report directories.
+  - Add deterministic unit tests validating benchmark dataset and evaluation contracts.
 
 ---
 

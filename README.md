@@ -1,33 +1,34 @@
 # ResearchAI — AI Research Paper Assistant
 
-ResearchAI is an intelligent, full-stack research assistant designed for reading, analyzing, and synthesizing academic PDFs. It combines automated structured summarization with a hybrid retrieval-augmented generation (RAG) chatbot and an interactive PDF viewer featuring jump-to-source citation highlighting.
+ResearchAI is a modular, production-grade academic research paper assistant designed for researchers, graduate students, and software engineers. It automates academic paper comprehension through a predefined 5-section structured summary, conversational Hybrid RAG with citation generation, and an embedded PDF viewer featuring real-time source text highlighting.
 
 ---
 
-## 📑 Core Features
+## 📑 Core Capabilities
 
-1. **Academic PDF Upload & Deduplication:**
-   - Single-paper upload with strict MIME and size validation.
-   - SHA-256 content hashing to detect duplicates instantly and prevent redundant processing.
-   - Persistent raw PDF binary storage in MongoDB GridFS.
+1. **Deterministic Structured Summarization (LangGraph):**
+   - Automatically breaks down complex academic PDFs into 5 standard sections:
+     - **Title, Authors, and Abstract**
+     - **Problem Statement & Motivation**
+     - **Methodology & Architecture**
+     - **Key Empirical Results & Benchmarks**
+     - **Conclusion & Future Directions**
 
-2. **Automated 5-Part Structured Summary (LangGraph):**
-   - Deterministic multi-stage state graph extracting:
-     - **Title, Authors & Abstract**
-     - **Problem Statement**
-     - **Methodology**
-     - **Key Results**
-     - **Conclusion**
+2. **Conversational Hybrid RAG Chatbot:**
+   - **Semantic Dense Search:** Powered by domain-specific Voyage AI embeddings (`voyage-3`).
+   - **Lexical Sparse Search:** BM25 indexing targeting exact terminology, variable names, and mathematical symbols.
+   - **Reciprocal Rank Fusion (RRF):** Merges dense and sparse candidates to maximize both recall and precision.
+   - **Guardrails:** Grounded answers only; gracefully abstains when queries fall outside the paper's scope.
 
-3. **Conversational Hybrid RAG Chatbot:**
-   - **Semantic Search:** Voyage AI state-of-the-art dense embeddings (`voyage-3`).
-   - **Lexical Search:** BM25 keyword matching for exact technical formulas, symbols, and author references.
-   - **Reciprocal Rank Fusion (RRF):** Fuses sparse and dense rankings for superior context retrieval.
-   - Guardrailed responses preventing hallucination on questions out of paper scope.
+3. **Interactive PDF Viewer with Citation Highlighting:**
+   - Built on React-PDF / PDF.js.
+   - Every response provides source citation chips (e.g. `[Page 4, Section 3.2]`).
+   - Clicking a citation scrolls the embedded viewer directly to the source page and highlights the supporting passage.
 
-4. **Interactive PDF Viewer & Source Citation Highlighting:**
-   - Embedded PDF viewer powered by React-PDF / PDF.js.
-   - Clickable citations in the chat stream (e.g., `[Page 4, Section 3.2]`) automatically scroll to the exact page and highlight the supporting evidence.
+4. **Rigorous Offline Ragas Evaluation:**
+   - Complete evaluation suite decoupled from live user requests.
+   - Separate measurement of Retrieval Quality (*Context Precision*, *Context Recall*) and Generation Quality (*Faithfulness*, *Answer Relevancy*, *Factual Correctness*).
+   - Curated benchmark dataset containing both answerable and unanswerable questions to test abstention.
 
 ---
 
@@ -35,64 +36,122 @@ ResearchAI is an intelligent, full-stack research assistant designed for reading
 
 | Domain | Technology | Purpose |
 |---|---|---|
-| **Frontend** | React, TypeScript, Vite, Tailwind CSS | Responsive split-view workspace |
-| **PDF Viewer** | React-PDF / PDF.js | Canvas rendering, text layer & citation highlighting |
-| **Backend API** | Python 3.11+, FastAPI, Pydantic v2 | High-performance REST endpoints |
-| **Job Queue** | RabbitMQ | Asynchronous PDF ingestion & summarization worker |
-| **PDF Extraction** | LlamaParse | Academic layout parsing to clean Markdown |
-| **Chunking** | LangChain Markdown-aware splitters | Structure- and page-preserving chunking |
-| **Embeddings** | Voyage AI | Domain-optimized dense vector representations |
-| **Database** | MongoDB Atlas + GridFS | Metadata, summary storage, raw PDF binaries, vector index |
-| **Hybrid Search**| Dense Vector + BM25 + RRF | High-recall academic retrieval |
-| **Summarizer** | LangGraph | Deterministic multi-step academic summarizer |
-| **Chat Engine** | LangChain + Configurable LLM | Conversational QA with source references |
-| **Evaluation** | Ragas | Faithfulness, context recall, and answer relevance |
+| **Frontend** | React 18, TypeScript, Vite, Tailwind CSS | Responsive split-view workspace |
+| **PDF Viewer** | React-PDF / PDF.js | Highlighting overlay, canvas rendering, text layer |
+| **API Gateway** | FastAPI, Pydantic v2, Uvicorn | Central REST API and request routing |
+| **Message Broker** | RabbitMQ | Asynchronous job queues for heavy extraction and summarization |
+| **PDF Extraction** | LlamaParse | Academic layout parsing with page tracking |
+| **Text Chunking** | LangChain Text Splitters | Markdown- and header-aware chunk segmentation |
+| **Embeddings** | Voyage AI (`voyage-3`) | Dense vector representations for technical literature |
+| **Database & Storage** | MongoDB Atlas + GridFS | Structured metadata, chunk vectors, raw PDF binaries |
+| **Hybrid Search** | Dense Vector + BM25 + RRF | Multimodal text retrieval with rank fusion |
+| **Summarizer** | LangGraph | Stateful deterministic extraction graph |
+| **Chat Engine** | LangChain + Configurable LLM | Conversational QA with verifiable citations |
+| **RAG Evaluation** | Ragas + Manual Benchmarking | Automated evaluation suite and failure tracking |
 | **Testing** | pytest + Vitest | Unit, integration, and UI testing |
-| **DevOps** | Docker Compose + GitHub Actions | Containerization & automated CI pipelines |
+| **Infrastructure** | Docker Compose | Local multi-service orchestration |
 
 ---
 
-## 📁 Repository Structure
+## 📁 Monorepo Project Structure
 
 ```
 .
-├── AGENTS.md                   # Engineering standards, mentor persona & Git rules
-├── README.md                   # Project documentation & overview
-├── .env.example                # Environment variables template
-├── .gitignore                  # Git ignore rules
-├── docs/                       # Architectural & development documentation
-│   ├── architecture.md         # Detailed system design & data flow diagrams
-│   └── development-roadmap.md  # Multi-stage roadmap & increment tracker
-├── backend/                    # FastAPI services & worker (Stage 1+)
-└── frontend/                   # React + Vite application (Stage 1+)
+├── frontend/                               # React + Vite + Tailwind CSS client
+│   ├── src/
+│   │   ├── components/                     # Navbar, SplitView, UI components
+│   │   ├── types/                          # TypeScript contracts mirroring backend
+│   │   ├── App.tsx                         # Main split-screen application layout
+│   │   └── main.tsx                        # Application mount
+│   ├── package.json                        # Frontend dependency definitions
+│   └── vite.config.ts                      # Vite build configuration
+│
+├── backend/                                # Python FastAPI services & workers
+│   ├── gateway/                            # Central API Gateway service
+│   │   ├── main.py                         # Health endpoints and route orchestrator
+│   │   └── README.md                       # Gateway architecture documentation
+│   ├── services/
+│   │   ├── document_processor/             # PDF extraction & chunking worker
+│   │   │   ├── main.py                     # LlamaParse & RabbitMQ consumer
+│   │   │   └── README.md
+│   │   ├── summary_service/                # LangGraph 5-section summarizer
+│   │   │   ├── main.py                     # Deterministic state machine
+│   │   │   └── README.md
+│   │   └── rag_service/                    # Hybrid RAG & citation engine
+│   │       ├── main.py                     # Voyage AI + BM25 + RRF retriever
+│   │       └── README.md
+│   ├── shared/                             # Cross-cutting configurations & contracts
+│   │   ├── config.py                       # Pydantic BaseSettings (.env loading)
+│   │   ├── models.py                       # Shared Pydantic data schemas
+│   │   ├── logging.py                      # Standardized structured logging
+│   │   └── README.md
+│   ├── tests/                              # Backend pytest test suite
+│   │   ├── test_shared_models.py           # Domain schema validation tests
+│   │   ├── test_gateway_health.py          # API Gateway health tests
+│   │   └── test_evaluation_schemas.py      # Evaluation schema & benchmark tests
+│   ├── pyproject.toml                      # Modern Python packaging configuration
+│   └── requirements.txt                    # Pinned backend dependencies
+│
+├── evaluation/                             # Offline Ragas benchmarking subsystem
+│   ├── schemas.py                          # Evaluation sample & report data models
+│   ├── benchmark_dataset.json              # Curated queries (answerable & unanswerable)
+│   ├── README.md                           # Ragas evaluation rules & guidelines
+│   └── reports/                            # Versioned evaluation benchmark reports
+│
+├── docs/                                   # Architectural & operational documentation
+│   ├── architecture.md                     # System design, data flows, and schemas
+│   └── development-roadmap.md              # Staged development plan & progress tracker
+│
+├── docker-compose.yml                      # Containerized MongoDB & RabbitMQ services
+├── .env.example                            # Configuration environment template
+├── .gitignore                              # Git exclusion rules
+├── AGENTS.md                               # Project engineering & mentor rules
+└── README.md                               # Project introduction and overview
 ```
 
 ---
 
-## 🚀 Quick Start (Local Setup)
+## 🚀 Getting Started
 
 ### 1. Prerequisites
 - Docker & Docker Compose
-- Node.js 18+ & npm
 - Python 3.11+
-- API Keys: [LlamaParse](https://cloud.llamaindex.ai/), [Voyage AI](https://www.voyageai.com/), and an LLM provider (OpenAI, Anthropic, or Google)
+- Node.js 18+ & npm
 
-### 2. Environment Setup
-Copy the environment template and populate your API credentials:
+### 2. Environment Configuration
+Copy `.env.example` to `.env` and configure your API keys:
 ```bash
 cp .env.example .env
 ```
 
-### 3. Start Infrastructure
-Start the RabbitMQ and MongoDB instances via Docker Compose:
+### 3. Start Infrastructure Services
+Launch MongoDB and RabbitMQ using Docker Compose:
 ```bash
-docker-compose up -d
+docker compose up -d
+```
+
+### 4. Run Backend Gateway
+```bash
+pip install -r backend/requirements.txt
+uvicorn backend.gateway.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+### 5. Run Frontend Development Server
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+### 6. Run Test Suite
+```bash
+PYTHONPATH=. pytest backend/tests/
 ```
 
 ---
 
-## 📖 Documentation & Guidelines
+## 📖 Guidelines & Architecture
 
-- **[AGENTS.md](AGENTS.md):** Complete project rules, Conventional Commit standards, and 20 automatic Git rules.
-- **[docs/architecture.md](docs/architecture.md):** Architectural diagrams, data flows, MongoDB schemas, and RAG retrieval pipelines.
-- **[docs/development-roadmap.md](docs/development-roadmap.md):** Stage-by-stage implementation tracker.
+- **[AGENTS.md](AGENTS.md):** Coding mentor persona, 20 automatic Git rules, and 16 Ragas evaluation principles.
+- **[docs/architecture.md](docs/architecture.md):** Detailed system architecture, data flows, and MongoDB collection schemas.
+- **[docs/development-roadmap.md](docs/development-roadmap.md):** 10-stage implementation roadmap and increment log.
