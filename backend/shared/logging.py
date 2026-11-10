@@ -22,3 +22,4 @@ def setup_logger(service_name: str, log_level: str = "INFO") -> logging.Logger:
 
     logger.propagate = False
     return logger
+

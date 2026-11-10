@@ -1,0 +1,37 @@
+[
+  {
+    "sample_id": "bench_001",
+    "user_question": "What is the primary architectural innovation introduced in the Transformer model?",
+    "reference_answer": "The Transformer model relies entirely on self-attention mechanisms to compute representations of its input and output without using sequence-aligned RNNs or convolution.",
+    "is_answerable": true,
+    "expected_page_numbers": [1, 2]
+  },
+  {
+    "sample_id": "bench_002",
+    "user_question": "What BLEU score does the big Transformer model achieve on the WMT 2014 English-to-German translation task?",
+    "reference_answer": "On the WMT 2014 English-to-German translation task, the big Transformer model achieves a BLEU score of 28.4.",
+    "is_answerable": true,
+    "expected_page_numbers": [7, 8]
+  },
+  {
+    "sample_id": "bench_003",
+    "user_question": "How many training epochs are required to train the vision backbone of the paper?",
+    "reference_answer": "The paper does not discuss or train any vision backbone; it focuses strictly on sequence transduction and machine translation.",
+    "is_answerable": false,
+    "expected_page_numbers": []
+  },
+  {
+    "sample_id": "bench_004",
+    "user_question": "What is the computational complexity per layer of self-attention compared to recurrent layers?",
+    "reference_answer": "Self-attention layers have a computational complexity per layer of O(n^2 * d), whereas recurrent layers have a complexity of O(n * d^2), where n is the sequence length and d is the representation dimension.",
+    "is_answerable": true,
+    "expected_page_numbers": [6]
+  },
+  {
+    "sample_id": "bench_005",
+    "user_question": "What hardware GPU temperature was recorded in the server room during training?",
+    "reference_answer": "The paper does not provide information regarding server room temperature or hardware operating thermals.",
+    "is_answerable": false,
+    "expected_page_numbers": []
+  }
+]

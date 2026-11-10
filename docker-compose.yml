@@ -49,3 +49,4 @@ networks:
   researchai-network:
     name: researchai_network
     driver: bridge
+

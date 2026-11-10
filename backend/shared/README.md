@@ -29,3 +29,4 @@ settings = get_settings()
 logger = setup_logger("my_service", settings.log_level)
 logger.info(f"Connected to {settings.mongodb_uri}")
 ```
+
