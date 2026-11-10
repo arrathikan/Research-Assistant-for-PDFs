@@ -186,3 +186,12 @@ See the storage guide for non-atomic write recovery limits and complete checks.
 Atlas-specific DNS, TLS, credentials, and network rules require verification
 against your own configured test cluster; local integration results do not
 prove Atlas connectivity.
+
+### PDF upload validation (Prompt 5)
+
+Uploads use the configurable `MAX_UPLOAD_SIZE_BYTES` (default 26214400 bytes).
+The validator checks extension, MIME, header/trailer, PDF structure and page tree
+using pypdf. Corrupt, encrypted, empty or zero-page PDFs are rejected. Browser
+MIME may be empty or `application/octet-stream`, but the bytes must still pass
+PDF validation. Filenames are reduced to a basename. Strict validation can reject
+PDFs that a viewer might repair; it is not malware scanning or content extraction.

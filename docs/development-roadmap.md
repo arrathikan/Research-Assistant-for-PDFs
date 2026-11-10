@@ -202,3 +202,12 @@ loopback-only MongoDB 8.2.0, including all 3 live tests. Without the test URI,
 46 passed and the 3 live tests were skipped. PyMongo 4.19.0 and Python 3.13.5
 were used. Ruff lint/format checks passed for the six Prompt 4 Python files.
 Atlas connectivity and frontend tests were not run for this storage stage.
+
+### Prompt 5: PDF upload and duplicate detection
+
+- [x] 5.1: Bounded validation of filename, MIME, PDF structure and page count.
+- [ ] 5.2: Upload, metadata/status and original-PDF API routes.
+- [ ] 5.3: Real frontend success/duplicate/failure states and upload tests.
+- [ ] 5.4: Isolated API/database integration verification and demo commands.
+
+The user approved pypdf for upload validation. Parsing/extraction remains Prompt 6.

@@ -52,7 +52,7 @@ class Settings(BaseSettings):
     llm_temperature: float = 0.1
 
     # Ingestion & Chunking Limits
-    max_upload_size_bytes: int = 25 * 1024 * 1024  # 25 MB
+    max_upload_size_bytes: int = Field(default=25 * 1024 * 1024, gt=0)  # 25 MB
     chunk_size: int = 1000
     chunk_overlap: int = 200
 

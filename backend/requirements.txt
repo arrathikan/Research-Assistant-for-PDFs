@@ -42,3 +42,6 @@ python-multipart>=0.0.9,<0.1.0
 
 # Linting & Formatting
 ruff>=0.9.0,<1.0.0
+
+# PDF structure validation (approved for Prompt 5)
+pypdf>=6.21.4,<7.0.0
