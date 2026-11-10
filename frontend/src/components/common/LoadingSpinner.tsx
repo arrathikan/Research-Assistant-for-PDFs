@@ -24,7 +24,6 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
     >
       <Loader2 className={`${sizeClass} animate-spin text-blue-600`} />
       {label && <span className="text-xs font-medium text-slate-600">{label}</span>}
-      <span className="sr-only">{label}</span>
     </div>
   );
 };
