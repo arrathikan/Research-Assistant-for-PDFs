@@ -77,7 +77,7 @@ describe('UploadZone Component', () => {
     const onUpload = vi.fn();
     render(<UploadZone onUpload={onUpload} isUploading={true} />);
 
-    expect(screen.getByText(/Uploading and analyzing research PDF.../i)).toBeInTheDocument();
+    expect(screen.getByText(/Uploading and checking research PDF.../i)).toBeInTheDocument();
     expect(screen.getByText(/Computing SHA-256 hash & checking duplicates/i)).toBeInTheDocument();
   });
 });

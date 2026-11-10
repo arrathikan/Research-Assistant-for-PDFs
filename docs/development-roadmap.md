@@ -207,7 +207,7 @@ Atlas connectivity and frontend tests were not run for this storage stage.
 
 - [x] 5.1: Bounded validation of filename, MIME, PDF structure and page count.
 - [x] 5.2: Upload, metadata/status and original-PDF API routes.
-- [ ] 5.3: Real frontend success/duplicate/failure states and upload tests.
+- [x] 5.3: Real frontend success/duplicate/failure states and upload tests.
 - [ ] 5.4: Isolated API/database integration verification and demo commands.
 
 The user approved pypdf for upload validation. Parsing/extraction remains Prompt 6.
