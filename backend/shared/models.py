@@ -4,10 +4,14 @@ These schemas establish contracts across all microservices, the API gateway,
 and the frontend client.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import List, Optional
 from pydantic import BaseModel, Field
+
+
+def _utc_now() -> datetime:
+    return datetime.now(timezone.utc)
 
 
 class DocumentStatus(str, Enum):
@@ -32,12 +36,11 @@ class DocumentMetadata(BaseModel):
     page_count: Optional[int] = Field(default=None, description="Total number of pages")
     status: DocumentStatus = Field(default=DocumentStatus.PENDING, description="Current ingestion status")
     error_message: Optional[str] = Field(default=None, description="Error detail if status is FAILED")
-    created_at: datetime = Field(default_factory=datetime.utcnow, description="Creation timestamp")
-    updated_at: datetime = Field(default_factory=datetime.utcnow, description="Last update timestamp")
+    created_at: datetime = Field(default_factory=_utc_now, description="Creation timestamp")
+    updated_at: datetime = Field(default_factory=_utc_now, description="Last update timestamp")
 
     model_config = {
         "populate_by_name": True,
-        "json_encoders": {datetime: lambda dt: dt.isoformat()},
     }
 
 
@@ -51,7 +54,7 @@ class ChunkMetadata(BaseModel):
     section_title: Optional[str] = Field(default=None, description="Associated section or Markdown header")
     content: str = Field(..., description="Text content of the chunk")
     token_count: Optional[int] = Field(default=None, description="Estimated token count")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=_utc_now)
 
     model_config = {
         "populate_by_name": True,
@@ -69,7 +72,7 @@ class StructuredSummary(BaseModel):
     methodology: str = Field(..., description="Proposed approach, architecture, or algorithm")
     key_results: str = Field(..., description="Primary empirical findings, metrics, and outcomes")
     conclusion: str = Field(..., description="Summary of conclusions, limitations, and future work")
-    generated_at: datetime = Field(default_factory=datetime.utcnow)
+    generated_at: datetime = Field(default_factory=_utc_now)
 
 
 class CitationReference(BaseModel):
@@ -94,3 +97,4 @@ class ChatQueryResponse(BaseModel):
     citations: List[CitationReference] = Field(default_factory=list, description="Citations supporting the answer")
     document_id: str = Field(..., description="Document identifier queried against")
     is_out_of_scope: bool = Field(default=False, description="Flag indicating if the question was outside paper scope")
+

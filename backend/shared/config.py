@@ -64,3 +64,4 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     """Returns a cached singleton instance of application settings."""
     return Settings()
+
