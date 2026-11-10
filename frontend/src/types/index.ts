@@ -55,3 +55,7 @@ export interface UploadResponse {
   message: string;
   is_duplicate: boolean;
 }
+
+export type NavigationTab = 'dashboard' | 'upload' | 'workspace';
+
+export type WorkspaceTab = 'summary' | 'chat' | 'pdf';
