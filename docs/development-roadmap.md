@@ -157,9 +157,12 @@ This roadmap breaks down the complete development of **ResearchAI — AI Researc
   - Comprehensive pytest test suite for FastAPI endpoints, RabbitMQ queues, and LangGraph workflow.
 - [ ] **Increment 8.2: Frontend Component & Integration Test Suite**
   - Vitest + React Testing Library tests for upload, summary render, chat, and citation click handlers.
-- [ ] **Increment 8.3: Ragas Evaluation Benchmark**
-  - Evaluate RAG pipeline against test research papers using Ragas metrics: Faithfulness, Answer Relevance, Context Recall.
-  - Document evaluation scores and analysis in `docs/evaluation-report.md`.
+- [ ] **Increment 8.3: Ragas Evaluation Benchmark & Manual Verification**
+  - Implement curated benchmark dataset containing both answerable and unanswerable/out-of-scope questions.
+  - Implement deterministic unit tests for evaluation dataset schema validation and report generation.
+  - Integrate Ragas modern collections-based API (`EvaluationDataset`, `evaluate()`) evaluating retrieval (Context Precision, Context Recall) and generation (Faithfulness, Answer Relevancy, Factual Correctness) separately.
+  - Implement comparative benchmarking harness comparing Hybrid Retrieval (Vector + BM25 + RRF) vs Semantic-only search.
+  - Perform manual cross-verification and record reproducible reports in `evaluations/reports/`.
 
 ---
 
