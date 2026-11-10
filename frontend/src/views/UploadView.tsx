@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { UploadZone } from '../components/upload/UploadZone';
-import { ErrorMessage } from '../common/ErrorMessage';
-import { DocumentMetadata } from '../types';
+import { ErrorMessage } from '../components/common/ErrorMessage';
+import { DocumentMetadata, UploadResponse } from '../types';
 import { api } from '../services/api';
 import { ShieldCheck, Zap, Sparkles } from 'lucide-react';
 
@@ -13,29 +13,18 @@ export const UploadView: React.FC<UploadViewProps> = ({ onUploadSuccess }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [result, setResult] = useState<UploadResponse | null>(null);
+
   const handleUpload = async (file: File) => {
     setIsUploading(true);
     setError(null);
+    setResult(null);
 
     try {
-      // Attempt live upload to API Gateway
-      const res = await api.uploadDocument(file);
-      onUploadSuccess(res.document);
+      const response = await api.uploadDocument(file);
+      setResult(response);
     } catch (err: unknown) {
-      // In development when backend is offline, provide graceful simulated document record
-      // as required by Rule: "Use clearly labeled placeholder content only until the backend is connected."
-      console.warn('Backend unavailable, using client-side simulated document representation:', err);
-
-      const simulatedDoc: DocumentMetadata = {
-        sha256: 'simulated_' + Math.random().toString(36).substring(2, 10),
-        filename: file.name,
-        file_size_bytes: file.size,
-        status: 'READY',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-
-      onUploadSuccess(simulatedDoc);
+      setError(err instanceof Error ? err.message : 'Upload failed. Please try again.');
     } finally {
       setIsUploading(false);
     }
@@ -46,11 +35,11 @@ export const UploadView: React.FC<UploadViewProps> = ({ onUploadSuccess }) => {
       <div className="text-center mb-8">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-semibold mb-3 border border-blue-200">
           <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-          <span>Stage 2: Paper Ingestion</span>
+          <span>Research Paper Upload</span>
         </div>
         <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Upload Research Paper</h2>
         <p className="text-xs text-slate-500 mt-2 max-w-md mx-auto">
-          Upload an academic research PDF. ResearchAI will extract its contents, compute SHA-256 deduplication, generate a 5-part summary, and prepare the Hybrid RAG engine.
+          Upload one academic PDF. Your original file is saved and checked for exact duplicates. Summary and chat become available after processing.
         </p>
       </div>
 
@@ -61,6 +50,27 @@ export const UploadView: React.FC<UploadViewProps> = ({ onUploadSuccess }) => {
             message={error}
             onRetry={() => setError(null)}
           />
+        </div>
+      )}
+
+      {result && (
+        <div role="status" className="mb-6 p-4 max-w-xl w-full mx-auto bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-900">
+          <h3 className="font-semibold">{result.is_duplicate ? 'Duplicate detected' : 'Upload successful'}</h3>
+          <p className="mt-1">{result.message}</p>
+          <p className="mt-1">{result.document.filename} · Status: {result.document.status}</p>
+          <p className="text-xs mt-1">Document ID: {result.document.id}</p>
+          {result.document.status === 'PENDING' && (
+            <p className="mt-2 text-xs">Your PDF is saved. Summary and chat will be available after processing.</p>
+          )}
+          {result.document.status === 'FAILED' && (
+            <p className="mt-2 text-xs">This file is already stored, but its processing failed.</p>
+          )}
+          {result.document.id && (
+            <a href={api.getPdfStreamUrl(result.document.id)} target="_blank" rel="noopener noreferrer" className="inline-block mt-3 underline">Open original PDF</a>
+          )}
+          {result.document.status === 'READY' && (
+            <button className="block mt-3 underline" onClick={() => onUploadSuccess(result.document)}>Open workspace</button>
+          )}
         </div>
       )}
 
@@ -79,8 +89,8 @@ export const UploadView: React.FC<UploadViewProps> = ({ onUploadSuccess }) => {
         <div className="p-3.5 bg-white rounded-xl border border-slate-200 flex items-start gap-3">
           <Zap className="w-5 h-5 text-amber-500 flex-shrink-0" />
           <div>
-            <span className="font-semibold text-slate-800">LlamaParse + LangGraph</span>
-            <p className="text-[11px] text-slate-500 mt-0.5">Layout-aware Markdown parsing coupled with stateful extraction of the 5 summary sections.</p>
+            <span className="font-semibold text-slate-800">Original PDF preserved</span>
+            <p className="text-[11px] text-slate-500 mt-0.5">Open the original file after uploading. Its page count and processing status are stored with the document.</p>
           </div>
         </div>
       </div>

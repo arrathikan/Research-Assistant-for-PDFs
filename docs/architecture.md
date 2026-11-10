@@ -223,3 +223,20 @@ and SHA-256 metadata for reconciliation. `read_pdf` resolves by document ID and
 GridFS ID rather than filename. GridFS is outside metadata transactions: crashes
 can leave orphan files, and uncertain inserts retain files for operator review.
 No HTTP upload, parser, embeddings, or job processing is added by Prompt 4.
+
+## Upload validation boundary (Prompt 5)
+
+Validation reads at most the configured file limit plus one byte, strips directory
+components from filenames, and verifies PDF structure/page references with pypdf.
+This runs before database writes and does not extract paper text or invoke AI.
+The original accepted bytes, rather than a rewritten PDF, are used for SHA-256.
+
+### Upload API orchestration
+
+An ASGI body counter bounds multipart requests even without Content-Length;
+the parser accepts one file and no fields. The domain validator runs before
+database access. A thread-pool task ensures indexes and stores the original
+bytes with validated page count; concurrent duplicates use the storage layer's
+unique index and loser cleanup. Responses preserve actual lifecycle status.
+Metadata/status/original-PDF reads use explicit database lifecycle helpers.
+No AI or message broker is invoked in this stage.

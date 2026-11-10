@@ -72,8 +72,12 @@ export const api = {
    * Validates MIME type and max size upfront.
    */
   async uploadDocument(file: File): Promise<UploadResponse> {
-    if (file.type !== 'application/pdf') {
+    if (!file.name.toLowerCase().endsWith('.pdf') || !['', 'application/pdf', 'application/octet-stream'].includes(file.type)) {
       throw new ApiError(400, 'Invalid file type: Only academic PDF documents (.pdf) are supported.');
+    }
+
+    if (file.size === 0) {
+      throw new ApiError(400, 'The PDF file is empty.');
     }
 
     const maxSizeBytes = 25 * 1024 * 1024; // 25 MB
@@ -84,7 +88,7 @@ export const api = {
     const formData = new FormData();
     formData.append('file', file);
 
-    return request<UploadResponse>('/documents/upload', {
+    return request<UploadResponse>('/documents', {
       method: 'POST',
       body: formData,
     });

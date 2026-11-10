@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Navbar } from './components/Navbar';
 import { SplitView } from './components/SplitView';
 import { DocumentMetadata } from './types';
-import { UploadCloud, MessageSquare, FileText } from 'lucide-react';
+import { MessageSquare, FileText } from 'lucide-react';
+import { UploadView } from './views/UploadView';
 
 export const App: React.FC = () => {
   const [activeDoc, setActiveDoc] = useState<DocumentMetadata | null>(null);
@@ -10,31 +11,7 @@ export const App: React.FC = () => {
   const leftPanel = (
     <div className="flex-1 flex flex-col p-6 overflow-y-auto">
       {!activeDoc ? (
-        <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-xl p-8 text-center bg-slate-50">
-          <div className="p-4 bg-blue-50 text-blue-600 rounded-full mb-4">
-            <UploadCloud className="w-8 h-8" />
-          </div>
-          <h2 className="text-base font-semibold text-slate-800">Upload Academic Research PDF</h2>
-          <p className="text-xs text-slate-500 max-w-sm mt-1">
-            Drag and drop a research paper or browse files. Generates a structured 5-part summary and opens conversational Hybrid RAG.
-          </p>
-          <button
-            onClick={() => {
-              // Simulated upload placeholder for Stage 1 layout verification
-              setActiveDoc({
-                sha256: 'simulated_hash',
-                filename: 'sample_paper.pdf',
-                file_size_bytes: 1200000,
-                status: 'READY',
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-              });
-            }}
-            className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors"
-          >
-            Select PDF Document
-          </button>
-        </div>
+        <UploadView onUploadSuccess={setActiveDoc} />
       ) : (
         <div className="flex-1 flex flex-col space-y-4">
           <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">

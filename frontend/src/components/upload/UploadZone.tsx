@@ -1,5 +1,5 @@
 import React, { useState, useRef, DragEvent, ChangeEvent } from 'react';
-import { UploadCloud, FileText, CheckCircle2, AlertTriangle, X } from 'lucide-react';
+import { UploadCloud, FileText, CheckCircle2, X } from 'lucide-react';
 import { LoadingSpinner } from '../common/LoadingSpinner';
 import { ErrorMessage } from '../common/ErrorMessage';
 
@@ -20,9 +20,14 @@ export const UploadZone: React.FC<UploadZoneProps> = ({ onUpload, isUploading = 
     setValidationError(null);
 
     // Validate MIME type and extension
-    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+    const isPdf = file.name.toLowerCase().endsWith('.pdf') && ['', 'application/pdf', 'application/octet-stream'].includes(file.type);
     if (!isPdf) {
       setValidationError('Invalid file format. Please upload an academic research paper in PDF format.');
+      return false;
+    }
+
+    if (file.size === 0) {
+      setValidationError('The PDF file is empty. Choose a non-empty PDF.');
       return false;
     }
 
@@ -63,6 +68,11 @@ export const UploadZone: React.FC<UploadZoneProps> = ({ onUpload, isUploading = 
 
     if (isUploading) return;
 
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 1) {
+      setSelectedFile(null);
+      setValidationError('Choose exactly one PDF at a time.');
+      return;
+    }
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       handleFileSelection(e.dataTransfer.files[0]);
     }
@@ -122,7 +132,7 @@ export const UploadZone: React.FC<UploadZoneProps> = ({ onUpload, isUploading = 
 
         {isUploading ? (
           <div className="py-6 flex flex-col items-center">
-            <LoadingSpinner size="lg" label="Uploading and analyzing research PDF..." />
+            <LoadingSpinner size="lg" label="Uploading and checking research PDF..." />
             <p className="text-xs text-slate-400 mt-2">Computing SHA-256 hash & checking duplicates</p>
           </div>
         ) : (
