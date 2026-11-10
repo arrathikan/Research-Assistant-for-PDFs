@@ -1,5 +1,6 @@
 """Storage unit tests with explicit mocked driver failures, not a live database."""
 
+from datetime import datetime, timedelta, timezone
 from hashlib import sha256
 from unittest.mock import MagicMock, patch
 
@@ -44,6 +45,8 @@ def test_stores_bytes_and_validated_metadata():
         assert result.document.id == str(stored["_id"])
         assert result.document.status == "PENDING"
         assert result.document.created_at.tzinfo is not None
+        assert result.document.created_at.microsecond % 1000 == 0
+        assert result.document.updated_at.microsecond % 1000 == 0
         assert result.is_duplicate is False
         args = constructor.return_value.upload_from_stream_with_id.call_args
         assert args.args == (stored["gridfs_file_id"], "paper.pdf", PDF)
@@ -216,3 +219,16 @@ def test_download_of_missing_document():
     database.documents.find_one.return_value = None
     with pytest.raises(DocumentNotFound):
         read_pdf(database, str(ObjectId()))
+
+
+def test_storage_timestamps_match_bson_millisecond_precision():
+    data = record()
+    data["_id"] = str(data["_id"])
+    data["gridfs_file_id"] = str(data["gridfs_file_id"])
+    data["created_at"] = datetime(
+        2026, 11, 10, 12, 0, 0, 123456, tzinfo=timezone(timedelta(hours=5, minutes=30))
+    )
+    data["updated_at"] = datetime(2026, 11, 10, 7, 0, 0, 987654)
+    document = StoredDocument.model_validate(data)
+    assert document.created_at == datetime(2026, 11, 10, 6, 30, 0, 123000, tzinfo=timezone.utc)
+    assert document.updated_at == datetime(2026, 11, 10, 7, 0, 0, 987000, tzinfo=timezone.utc)

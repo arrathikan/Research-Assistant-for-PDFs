@@ -211,3 +211,11 @@ Atlas connectivity and frontend tests were not run for this storage stage.
 - [ ] 5.4: Isolated API/database integration verification and demo commands.
 
 The user approved pypdf for upload validation. Parsing/extraction remains Prompt 6.
+
+### Upload verification follow-up (2026-11-10)
+
+- Fixed initial-response timestamp precision to match persisted BSON dates.
+- Full backend suite with temporary local MongoDB: **87 passed**, including
+  upload, duplicate, status, original-file retrieval and concurrent requests.
+- Added the live upload integration tests to version control; private PDF data
+  remains outside the repository. Atlas deployment verification is still pending.

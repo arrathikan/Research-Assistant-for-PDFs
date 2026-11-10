@@ -1,5 +1,6 @@
 """PDF persistence helpers; HTTP validation and processing belong to later stages."""
 
+from datetime import datetime, timezone
 from hashlib import sha256
 from typing import Any
 
@@ -7,7 +8,7 @@ from backend.shared.database import StorageUnavailable
 from backend.shared.models import DocumentMetadata
 from bson import ObjectId
 from gridfs import GridFSBucket, NoFile
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from pymongo.database import Database
 from pymongo.errors import DuplicateKeyError, PyMongoError
 
@@ -21,6 +22,17 @@ class StoredDocument(DocumentMetadata):
     filename: str = Field(min_length=1)
     file_size_bytes: int = Field(gt=0)
     page_count: int | None = Field(default=None, gt=0)
+
+    model_config = ConfigDict(populate_by_name=True, validate_default=True)
+
+    @field_validator("created_at", "updated_at")
+    @classmethod
+    def mongo_timestamp(cls, value: datetime) -> datetime:
+        """Return the same UTC millisecond precision stored by BSON dates."""
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=timezone.utc)
+        value = value.astimezone(timezone.utc)
+        return value.replace(microsecond=(value.microsecond // 1000) * 1000)
 
 
 class StoredPdfResult(BaseModel):
