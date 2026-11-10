@@ -8,7 +8,7 @@ This roadmap breaks down the complete development of **ResearchAI — AI Researc
 
 | Stage | Name | Key Deliverable | Status |
 |---|---|---|---|
-| **Stage 0** | Foundation & Repository Setup | Rules, architecture, roadmap, Git workflow | **In Progress** |
+| **Stage 0** | Foundation & Repository Setup | Rules, architecture, roadmap, Git workflow | **Completed** |
 | **Stage 1** | Containerized Infrastructure & Scaffolding | Docker Compose, FastAPI skeleton, Vite React setup | Not Started |
 | **Stage 2** | PDF Upload, Deduplication & Storage | SHA-256 detection, MongoDB GridFS, upload validation | Not Started |
 | **Stage 3** | Ingestion & Markdown Parsing Worker | RabbitMQ queues, LlamaParse, page-aware chunking | Not Started |
@@ -29,7 +29,7 @@ This roadmap breaks down the complete development of **ResearchAI — AI Researc
 - [x] **Increment 0.2: Architecture & Roadmap Documentation**
   - Create `docs/architecture.md` detailing system topology, microservices, and data flows.
   - Create `docs/development-roadmap.md` detailing stages, increments, and deliverables.
-- [ ] **Increment 0.3: Git Workflow & Environment Configuration**
+- [x] **Increment 0.3: Git Workflow & Environment Configuration**
   - Create `.gitignore` to prevent secret leaks, `.env`, binaries, and build artifacts from entering Git.
   - Create `.env.example` defining all required configuration variables.
   - Update `README.md` to reflect project overview, setup, and roadmap.
