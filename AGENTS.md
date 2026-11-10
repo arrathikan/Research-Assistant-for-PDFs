@@ -115,7 +115,42 @@ Follow these rules for every operation in the repository:
 
 ---
 
-## 6. Increment Report Template
+## 6. Permanent Ragas-Based RAG Evaluation Rules
+
+To guarantee the quality, faithfulness, and transparency of the academic RAG system, strictly enforce the following 16 evaluation rules:
+
+1. **Primary Framework:** Use **Ragas** as the primary framework for automated RAG evaluation.
+2. **Manual Cross-Verification:** Always use systematic manual evaluation to spot-check, verify, and validate Ragas scores.
+3. **Decoupled Evaluation:** Evaluate retrieval performance and answer generation performance separately to isolate pipeline bottlenecks.
+4. **Comprehensive Run Logging:** For every evaluated sample, strictly record:
+   - User question
+   - Retrieved contexts (text chunks)
+   - Generated answer
+   - Reference (ground truth) answer when available
+   - Retrieved chunk IDs
+   - Source page numbers
+   - Model and pipeline configuration (chunk size, retriever parameters, $k$, LLM temperature)
+5. **Standardized Metrics Suite:** Evaluate the following metrics whenever appropriate:
+   - **Faithfulness:** Verifies that the answer is grounded entirely in the retrieved context without hallucinations.
+   - **Answer Relevancy:** Ensures the answer directly addresses the user's query.
+   - **Context Precision:** Measures whether the most relevant chunks are ranked at the top.
+   - **Context Recall:** Verifies that all necessary information from the reference answer was retrieved.
+   - **Factual Correctness:** Evaluates factual alignment with ground truth when references exist.
+6. **Zero Score Fabrication:** Never invent, mock, or fabricate evaluation scores. All reported scores must derive from actual evaluation executions.
+7. **Strict Architectural Separation:** Keep live Ragas evaluation pipelines strictly decoupled from normal, user-facing chatbot requests. Live chat requests must remain fast and lean.
+8. **Modern Collections-Based API:** Use the officially supported Ragas API for the installed version. Strictly prefer the modern, collections-based dataset and evaluation API (`EvaluationDataset`, `evaluate()`) over deprecated legacy interfaces.
+9. **CI/CD Cost & Quota Prudence:** Do not run expensive LLM-based evaluation suites in standard GitHub Actions CI builds. CI runs deterministic tests; full LLM evaluation runs on-demand or as scheduled nightly benchmarks.
+10. **Reproducible Configurations:** Store reproducible evaluation configurations, prompts, and versioned report outputs in a designated artifacts directory (`docs/evaluations/` or `evaluations/reports/`).
+11. **Privacy & Data Protection:** Never commit private research papers, unpublished manuscripts, or sensitive user conversations to the repository.
+12. **Simplicity & Readability:** Keep evaluation scripts, metrics aggregation, and data transformers clean, readable, modular, and easy for an AI engineering intern to follow.
+13. **Deterministic Unit Testing:** Add deterministic unit tests for evaluation dataset schema validation, scoring calculations, and report export logic (independent of live LLM calls).
+14. **Curated Benchmark Dataset:** Maintain a small, reviewed benchmark dataset containing both **answerable questions** and explicitly **unanswerable / out-of-scope questions** to evaluate guardrails and abstention.
+15. **Transparent Failure Tracking:** Document real failures, regressions, and prompt/retrieval improvements honestly in evaluation reports.
+16. **Comparative Benchmarking:** Systematically benchmark and compare hybrid retrieval (Semantic Vector + BM25 + RRF) against semantic-only retrieval to validate the empirical benefit of hybrid search.
+
+---
+
+## 7. Increment Report Template
 
 After completing every increment, report the outcome using this exact structured format:
 

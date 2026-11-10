@@ -113,6 +113,22 @@ stateDiagram-v2
   - `chunk_id`: Unique chunk identifier in MongoDB.
 - **Out-of-Scope Handling:** If question cannot be answered using the provided document, the agent responds clearly that the paper does not contain this information.
 
+### 2.8. Ragas-Based RAG Evaluation Subsystem
+- **Framework:** Ragas (modern collections-based API) paired with systematic manual cross-verification.
+- **Architectural Boundary:** Strictly decoupled from live user-facing chatbot requests; executed via offline benchmarks or on-demand evaluation CLI.
+- **Evaluation Trace Schema:** Every run captures:
+  - `user_question`: Input query.
+  - `retrieved_contexts`: List of chunk texts passed to the LLM.
+  - `generated_answer`: Chatbot response.
+  - `reference_answer`: Ground truth when available in curated benchmark datasets.
+  - `retrieved_chunk_ids`: MongoDB chunk IDs.
+  - `source_page_numbers`: Referenced PDF pages.
+  - `model_configuration`: Temperature, retriever $k$, and fusion weights.
+- **Component Decoupling:**
+  - *Retrieval Metrics:* Context Precision, Context Recall.
+  - *Generation Metrics:* Faithfulness, Answer Relevancy, Factual Correctness.
+- **Comparative Benchmarking:** Quantitative comparison between Hybrid Retrieval (Vector + BM25 + RRF) and pure Semantic Vector Search on answerable and unanswerable test suites.
+
 ---
 
 ## 3. Data Schema & Models (MongoDB)
@@ -179,3 +195,4 @@ stateDiagram-v2
 
 - **Single Document Active Session:** The system processes one document at a time per session, optimized for in-depth per-paper exploration. Multi-document cross-comparison is reserved for future extensions.
 - **External Dependency Limits:** Dependent on Voyage AI and LlamaParse rate limits and quota; handled with exponential backoff and queuing via RabbitMQ.
+
