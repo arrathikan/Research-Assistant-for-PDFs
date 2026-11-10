@@ -43,6 +43,7 @@ dev = [
 asyncio_mode = "auto"
 testpaths = ["tests"]
 python_files = "test_*.py"
+markers = ["integration: opt-in tests against an isolated real MongoDB database"]
 
 
 [tool.ruff]

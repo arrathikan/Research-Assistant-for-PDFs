@@ -204,3 +204,22 @@ configuration. Central handlers return string `detail` errors; middleware adds
 request IDs and structured duration/status logs without logging request content.
 CORS is configured from environment settings. External dependencies are not yet
 connected, so health responses report gateway liveness only.
+
+## MongoDB storage foundation (Prompt 4)
+
+PyMongo connections have bounded selection/connect/socket timeouts and explicit
+cleanup. Index initialization materializes the six domain collections. Document
+`_id` is a MongoDB ObjectId, serialized as a string at Python model boundaries;
+related records use string `document_id` fields. `documents.sha256` is unique.
+The API does not establish database connections at import time or during liveness
+checks. GridFS persistence is implemented separately from HTTP upload routing.
+
+### Original PDF persistence
+
+`store_pdf` computes SHA-256, uploads to a unique GridFS file ID, and inserts a
+validated document record. The unique hash index arbitrates races; duplicate
+losers delete their own files and return the winner. Files carry document ID
+and SHA-256 metadata for reconciliation. `read_pdf` resolves by document ID and
+GridFS ID rather than filename. GridFS is outside metadata transactions: crashes
+can leave orphan files, and uncertain inserts retain files for operator review.
+No HTTP upload, parser, embeddings, or job processing is added by Prompt 4.

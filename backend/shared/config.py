@@ -6,6 +6,8 @@ Centralizes database, message broker, embedding, and LLM parameters.
 
 from functools import lru_cache
 from typing import List
+
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -26,6 +28,7 @@ class Settings(BaseSettings):
     # MongoDB Atlas & GridFS Configuration
     mongodb_uri: str = "mongodb://localhost:27017"
     mongodb_db_name: str = "research_assistant"
+    mongodb_timeout_ms: int = Field(default=5000, gt=0)
 
     # RabbitMQ Message Broker Configuration
     rabbitmq_url: str = "amqp://guest:guest@localhost:5672/"
@@ -64,4 +67,3 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     """Returns a cached singleton instance of application settings."""
     return Settings()
-

@@ -184,9 +184,21 @@ development prompts. Prompts 0–2 are the existing rules, scaffolding and front
 
 - [x] Prompt 3.1: Gateway contracts, errors, JSON logging, CORS and backend tests.
 - [ ] Prompt 3.2: Frontend health connection indicator.
-- [ ] Prompt 4: MongoDB Atlas / GridFS storage.
+- [x] Prompt 4: MongoDB Atlas-compatible / GridFS storage (Atlas deployment verification pending).
 - [ ] Prompts 5–15: Upload, parsing, chunking, embeddings, summary, hybrid RAG,
   citations, jobs, offline Ragas, deployment and final live QA.
 
 Prompt 3.1 verification: 17 backend tests passed. Health does not imply external
 service readiness. Existing uncommitted frontend work was preserved.
+
+### Prompt 4 increments
+
+- [x] 4.1: Explicit PyMongo lifecycle, bounded connections and collection indexes.
+- [x] 4.2: GridFS persistence, validated metadata and concurrent deduplication.
+- [x] 4.3: Optional isolated live storage tests and setup documentation.
+
+Prompt 4 verification (2026-11-10): 49 backend tests passed against a temporary
+loopback-only MongoDB 8.2.0, including all 3 live tests. Without the test URI,
+46 passed and the 3 live tests were skipped. PyMongo 4.19.0 and Python 3.13.5
+were used. Ruff lint/format checks passed for the six Prompt 4 Python files.
+Atlas connectivity and frontend tests were not run for this storage stage.
