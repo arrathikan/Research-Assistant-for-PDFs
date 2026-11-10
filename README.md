@@ -172,3 +172,17 @@ Prompt 4 adds explicit MongoDB connection and index initialization. After
 configuring `MONGODB_URI`, `MONGODB_DB_NAME`, and `MONGODB_TIMEOUT_MS`, run
 `python -m backend.shared.database` from the project root. See
 [the storage guide](backend/shared/README.md) for permissions and lifecycle details.
+
+Prompt 4 now includes GridFS persistence and retrieval, validated metadata, and
+SHA-256 uniqueness under concurrent writes. These are internal storage helpers;
+HTTP upload routes remain Prompt 5. Offline unit tests use mocked drivers.
+Opt-in live tests create/drop only uniquely named disposable databases:
+
+```bash
+RESEARCHAI_TEST_MONGODB_URI=mongodb://localhost:27017 python -m pytest backend/tests -m integration -q
+```
+
+See the storage guide for non-atomic write recovery limits and complete checks.
+Atlas-specific DNS, TLS, credentials, and network rules require verification
+against your own configured test cluster; local integration results do not
+prove Atlas connectivity.

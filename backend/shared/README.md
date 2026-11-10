@@ -78,3 +78,22 @@ compare `fs.files._id` with `documents.gridfs_file_id` after operations have
 settled, back up data, and review unreferenced files before manual cleanup.
 Never delete files merely because a request timed out. A cleanup failure also
 requires reconciliation. No automatic destructive reconciliation is provided.
+
+## Verification
+
+Unit tests mock PyMongo and GridFS failure paths; they do not establish Atlas
+connectivity. Live integration tests are opt-in and require a MongoDB URI:
+
+```bash
+python -m pytest backend/tests -q
+RESEARCHAI_TEST_MONGODB_URI=mongodb://localhost:27017 python -m pytest backend/tests -m integration -q
+ruff check --no-cache backend/shared/database.py backend/shared/storage.py backend/shared/config.py backend/tests/test_database.py backend/tests/test_storage.py backend/tests/test_storage_integration.py
+ruff format --check backend/shared/database.py backend/shared/storage.py backend/shared/config.py backend/tests/test_database.py backend/tests/test_storage.py backend/tests/test_storage_integration.py
+```
+
+The live fixture creates and drops only a fresh `researchai_test_<uuid>` database
+per test. The account must be allowed to create/drop these test databases. Use a
+test deployment, never a production account. Tests cover idempotent indexes, a
+17 MiB GridFS byte round trip, missing-file handling and eight simultaneous
+duplicate writes forced past the initial hash miss. Synthetic storage bytes do
+not validate PDF parsing. Without the opt-in URI, live tests are explicitly skipped.
