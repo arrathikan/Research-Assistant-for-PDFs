@@ -165,3 +165,10 @@ capabilities described above are the target architecture; upload, storage and AI
 processing are not yet implemented end to end. Health checks indicate gateway
 liveness only. The original prompt progression is tracked in
 [the roadmap](docs/development-roadmap.md).
+
+### MongoDB setup
+
+Prompt 4 adds explicit MongoDB connection and index initialization. After
+configuring `MONGODB_URI`, `MONGODB_DB_NAME`, and `MONGODB_TIMEOUT_MS`, run
+`python -m backend.shared.database` from the project root. See
+[the storage guide](backend/shared/README.md) for permissions and lifecycle details.

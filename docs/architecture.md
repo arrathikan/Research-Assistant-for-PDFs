@@ -204,3 +204,12 @@ configuration. Central handlers return string `detail` errors; middleware adds
 request IDs and structured duration/status logs without logging request content.
 CORS is configured from environment settings. External dependencies are not yet
 connected, so health responses report gateway liveness only.
+
+## MongoDB storage foundation (Prompt 4)
+
+PyMongo connections have bounded selection/connect/socket timeouts and explicit
+cleanup. Index initialization materializes the six domain collections. Document
+`_id` is a MongoDB ObjectId, serialized as a string at Python model boundaries;
+related records use string `document_id` fields. `documents.sha256` is unique.
+The API does not establish database connections at import time or during liveness
+checks. GridFS persistence is implemented separately from HTTP upload routing.

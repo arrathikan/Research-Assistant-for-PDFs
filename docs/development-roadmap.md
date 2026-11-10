@@ -190,3 +190,9 @@ development prompts. Prompts 0–2 are the existing rules, scaffolding and front
 
 Prompt 3.1 verification: 17 backend tests passed. Health does not imply external
 service readiness. Existing uncommitted frontend work was preserved.
+
+### Prompt 4 increments
+
+- [x] 4.1: Explicit PyMongo lifecycle, bounded connections and collection indexes.
+- [ ] 4.2: GridFS persistence, validated metadata and concurrent deduplication.
+- [ ] 4.3: Optional isolated live storage tests and setup documentation.
