@@ -249,3 +249,8 @@ chunks with heading paths, stable IDs, explicit page evidence spans and source
 references. Configure `CHUNK_SIZE=1200` and `CHUNK_OVERLAP=150` (character counts,
 not tokens). Overlap must be nonnegative and smaller than the chunk size.
 Unrelated sections remain separate; section continuation may span PDF pages.
+
+Chunk storage now keeps immutable generations and publishes only complete sets.
+Changing configuration preserves older output. Metadata includes chunking_status
+and chunked_at. The original unique chunk index can be upgraded automatically
+only while its collection is empty; populated legacy data requires review.

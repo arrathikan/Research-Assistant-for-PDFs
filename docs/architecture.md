@@ -294,3 +294,21 @@ on its source page; ambiguous text falls back to page attribution. The splitter
 normalizes whitespace, so original PDF bytes and parsed Markdown remain the
 authoritative artifacts. IDs include parsing provenance, configuration, actual
 splitter version and algorithm version. No embeddings are created in this stage.
+
+### Chunk-set publication
+
+Chunks are upserted by stable ID with set-on-insert semantics. A unique
+(document_id, chunk_set_id, chunk_index) index permits immutable generations.
+Only an ownership- and parse-version-checked metadata update publishes the
+active_chunk_set_id after every write. Readers filter by the active set and
+verify its count, order and parsing provenance. Prior generations remain intact;
+failed or interrupted attempts cannot expose partially written new output.
+
+A running claim prevents concurrent chunk writers. Repeating an active parse
+and configuration reuses the same set. Changing configuration creates a new set
+without overwriting prior output. Completed chunking still leaves the document
+PENDING for embeddings and summary generation; it never marks chat READY.
+
+The legacy (document_id, chunk_index) index is removed automatically only from
+an empty chunks collection. Populated legacy data is preserved and requires an
+operator-reviewed index migration. No chunk records are deleted automatically.

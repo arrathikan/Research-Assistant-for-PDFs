@@ -246,7 +246,7 @@ upload-to-parse triggering remain later stages.
 ### Prompt 7: Markdown-aware chunking
 
 - [x] 7.1: LangChain section/recursive splitting, configuration and source mapping.
-- [ ] 7.2: Versioned MongoDB persistence and atomic chunk-set publication.
+- [x] 7.2: Versioned MongoDB persistence and atomic chunk-set publication.
 - [ ] 7.3: CLI/read endpoint, isolated integration checks and documentation.
 
 Defaults: 1200 characters with 150-character overlap. Chunk IDs are stable for

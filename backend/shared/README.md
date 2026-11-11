@@ -101,3 +101,12 @@ not validate PDF parsing. Without the opt-in URI, live tests are explicitly skip
 Stored document timestamps are normalized to UTC millisecond precision before
 saving and responding, so initial uploads, duplicate responses and metadata
 reads match BSON's timestamp representation.
+
+## Chunk index compatibility (Prompt 7)
+
+The new unique `document_chunk_set_index` covers document_id, chunk_set_id and
+chunk_index. It supports immutable chunk generations. Initialization removes
+the original `document_chunk_index` only when the chunks collection is empty.
+If populated legacy data exists, initialization raises a safe error and preserves
+all records and the legacy index. Review/back up the database and migrate the
+legacy index with old writers stopped before enabling versioned chunking.

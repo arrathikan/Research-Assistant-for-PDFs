@@ -50,11 +50,7 @@ def ensure_indexes(database: Database[dict[str, Any]]) -> None:
     try:
         database.documents.create_index("sha256", unique=True, name="unique_sha256")
         database.documents.create_index("created_at", name="documents_created_at")
-        database.chunks.create_index(
-            [("document_id", ASCENDING), ("chunk_index", ASCENDING)],
-            unique=True,
-            name="document_chunk_index",
-        )
+        ensure_chunk_indexes(database)
         database.source_elements.create_index(
             [("document_id", ASCENDING), ("page_number", ASCENDING)],
             name="document_source_pages",
@@ -70,6 +66,36 @@ def ensure_indexes(database: Database[dict[str, Any]]) -> None:
         )
     except PyMongoError:
         raise StorageUnavailable("MongoDB index initialization failed") from None
+
+
+def ensure_chunk_indexes(database: Database[dict[str, Any]]) -> None:
+    """Allow immutable chunk generations without deleting pre-existing records.
+
+    The old unique (document_id, chunk_index) index prevents versioned output.
+    Remove it automatically only on an empty collection; populated legacy data
+    requires an operator-reviewed index migration before any new chunk writes.
+    """
+    try:
+        database.chunks.create_index(
+            [("document_id", ASCENDING), ("chunk_set_id", ASCENDING), ("chunk_index", ASCENDING)],
+            unique=True,
+            name="document_chunk_set_index",
+        )
+        indexes = database.chunks.index_information()
+        if "document_chunk_index" in indexes:
+            legacy = indexes["document_chunk_index"]
+            if (
+                legacy.get("key") != [("document_id", ASCENDING), ("chunk_index", ASCENDING)]
+                or legacy.get("unique") is not True
+            ):
+                raise StorageUnavailable("Unexpected legacy chunk index; manual review required")
+            if database.chunks.count_documents({}, limit=1):
+                raise StorageUnavailable(
+                    "Populated legacy chunk index requires a reviewed migration"
+                )
+            database.chunks.drop_index("document_chunk_index")
+    except PyMongoError:
+        raise StorageUnavailable("Chunk index initialization failed") from None
 
 
 def main() -> None:

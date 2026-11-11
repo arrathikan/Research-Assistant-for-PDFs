@@ -1,8 +1,10 @@
 """Chunking contracts with explicit per-page evidence and deterministic identity."""
 
+from datetime import datetime, timezone
+
 from backend.services.document_processor.parsed_models import SourceElement
 from backend.shared.models import ChunkMetadata
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class ChunkingError(RuntimeError):
@@ -46,6 +48,16 @@ class DocumentChunk(ChunkMetadata):
     splitter_version: str
     algorithm_version: str
 
+    model_config = ConfigDict(populate_by_name=True, validate_default=True)
+
+    @field_validator("created_at")
+    @classmethod
+    def mongo_timestamp(cls, value: datetime) -> datetime:
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=timezone.utc)
+        value = value.astimezone(timezone.utc)
+        return value.replace(microsecond=value.microsecond // 1000 * 1000)
+
     @model_validator(mode="after")
     def validate_source_attribution(self) -> "DocumentChunk":
         if len(self.content) > self.chunk_size:
@@ -57,6 +69,7 @@ class DocumentChunk(ChunkMetadata):
         for span in self.page_spans:
             if (
                 span.chunk_start >= span.chunk_end
+                or span.chunk_end > len(self.content)
                 or self.content[span.chunk_start : span.chunk_end] != span.text
             ):
                 raise ValueError("Source span does not match chunk content")
