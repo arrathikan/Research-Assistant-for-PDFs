@@ -339,3 +339,11 @@ embeddings use the direct API, with `voyage-4-lite` selected in the environment
 template and an independent embedding profile. `rerank-2.5` is configured for the
 later retrieval stage. LlamaParse remains direct and uses `agentic` extraction.
 See [provider configuration](provider-configuration.md) for exact names and scope.
+
+### Summary completion boundary (Prompt 9.1)
+
+The summary service uses strict Pydantic draft models and a single OpenRouter
+completion adapter. Populated fields require verified chunk/page/quote references;
+missing fields remain explicit. Provider retries are bounded, redirects disabled,
+and raw request/response details excluded from safe errors. See
+[structured summaries](structured-summary.md) for limitations.

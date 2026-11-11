@@ -282,3 +282,9 @@ Voyage `voyage-4-lite` with 1024 dimensions, and LlamaParse `agentic` parsing.
 The primary, inexpensive and vision model roles, environment variable aliases,
 and remaining integration work are described in the
 [provider configuration guide](docs/provider-configuration.md).
+
+### Structured summaries (Prompt 9)
+
+Summary output contracts and the OpenRouter completion adapter now enforce
+explicit missing information and source references. See the
+[summary guide](docs/structured-summary.md) for configuration and current scope.

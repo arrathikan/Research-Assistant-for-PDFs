@@ -81,7 +81,7 @@ class Settings(BaseSettings):
     # OpenRouter is the single completion gateway; model roles are explicit.
     openrouter_api_key: str = Field(default="", repr=False)
     openrouter_app_url: str = Field(default="https://verdeai.local", pattern=r"^https?://[^\s]+$")
-    openrouter_app_name: str = Field(default="VerdeAI", min_length=1)
+    openrouter_app_name: str = Field(default="VerdeAI", min_length=1, pattern=r"^[^\r\n]+$")
     llm_provider: Literal["openrouter"] = "openrouter"
     primary_reasoning_model: str = Field(
         default="openai/gpt-5.6-luna",
@@ -92,6 +92,11 @@ class Settings(BaseSettings):
     vision_model: str = Field(default="mistralai/mistral-small-3.1-24b-instruct", min_length=1)
     llm_max_retries: int = Field(default=3, ge=0, le=5)
     llm_temperature: float = 0.1
+    llm_timeout_seconds: float = Field(default=60, gt=0, le=180)
+    llm_max_output_tokens: int = Field(default=4096, ge=512, le=8192)
+    summary_context_bytes: int = Field(default=48000, ge=8000, le=128000)
+    summary_max_windows: int = Field(default=64, ge=1, le=128)
+    summary_validation_retries: int = Field(default=2, ge=0, le=2)
 
     @property
     def llm_model(self) -> str:
