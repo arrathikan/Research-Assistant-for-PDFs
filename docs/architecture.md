@@ -330,6 +330,15 @@ conservative UTF-8 byte guards bound requests; they are not token counts.
 Provider truncation is disabled. Retries are bounded for transient errors;
 authentication/input failures are not silently retried or logged with secrets.
 
+Prompt 8 embedding persistence uses two additional collections. `embedding_vectors`
+contains content-SHA-256/profile keyed vectors without source text; `chunk_embeddings`
+contains immutable searchable snapshots, vectors and complete chunk/page/source
+metadata scoped by document, chunk set and embedding profile. Source `chunks`
+remain unchanged. A conditional document claim prevents concurrent processing of
+one document; publication requires complete snapshot coverage and unchanged source
+generation. Failed jobs retain successful cache batches for retry. Concurrent jobs
+for different documents may still pay for the same first uncached content.
+
 ### Configured provider gateways
 
 OpenRouter is the single configured gateway for future summary/chat completion
@@ -367,3 +376,7 @@ quotes are shown; interactive PDF highlighting remains Prompt 11.
 The upload result can open the read-only summary panel before document READY,
 without opening a pending chatbot or starting generation. This separates summary
 availability from completion of the embedding stage.
+
+Embedding publication recognizes a completed summary for the same parse, chunk
+set and summary profile. Current embeddings and summary are both required for
+READY, regardless of which finishes first. Search indexes are independent.

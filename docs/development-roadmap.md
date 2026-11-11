@@ -265,7 +265,7 @@ production build passed. Existing uncommitted frontend work remains preserved.
 ### Prompt 8: Voyage embeddings and semantic retrieval
 
 - [x] 8.1: Voyage document/query adapter, batching, vector validation and retries.
-- [ ] 8.2: Content-based embedding cache and versioned MongoDB persistence.
+- [x] 8.2: Content-based embedding cache and versioned MongoDB persistence.
 - [ ] 8.3: Atlas index management and document-scoped semantic search.
 - [ ] 8.4: CLI/API, isolated integration checks, optional live tests and guide.
 
@@ -320,3 +320,10 @@ Independent staged-PR export verification: **254 backend tests passed, 2 skipped
 frontend production build and **26 tests passed**. Counts exclude preserved,
 uncommitted Prompt 8 and workspace tests. The upload page can now show a saved
 summary before embeddings finish without opening a pending chatbot.
+
+Prompt 8 storage follow-up: **265 backend tests passed, 2 skipped** against a
+disposable local MongoDB; TypeScript checking passed. The earlier test import is
+fixed. Versioned embedding snapshots and retryable content-vector caching are
+now committed. Embedding publication also recognizes an already completed summary
+for the same sources/model so either processing order can reach READY. Atlas
+index creation and retrieval remain to be implemented/verified separately.

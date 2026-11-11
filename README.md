@@ -275,6 +275,16 @@ truncation, validates dimensions/finite nonzero vectors, and applies bounded
 batching/retry guards. Existing voyage-3/1024 configuration is preserved;
 voyage-4 and its supported dimensions are explicit configuration choices.
 
+Embed a previously parsed and chunked PDF explicitly (may consume Voyage credits):
+
+```bash
+python -m backend.services.document_processor.embed_cli DOCUMENT_ID
+```
+
+Completed content/profile vectors are reused across retries and documents. Embedding
+completion leaves the document `PENDING` for the later summary stage. The original
+chunks and their page/source metadata are preserved in searchable snapshots.
+
 ### Configured AI providers
 
 The local environment and template use OpenRouter for future completion calls,
@@ -305,3 +315,7 @@ for commands, test scope and remaining work.
 After upload, View summary opens the read-only summary panel even while the
 document is waiting for embeddings. Generation remains an explicit CLI job
 until background orchestration is implemented.
+
+Embedding storage is now available through the explicit embedding command above.
+Successful cached batches survive retries; current summaries and embeddings can
+finish in either order. Atlas index/search verification remains separate.
