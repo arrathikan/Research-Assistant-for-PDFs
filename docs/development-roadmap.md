@@ -265,9 +265,9 @@ production build passed. Existing uncommitted frontend work remains preserved.
 ### Prompt 8: Voyage embeddings and semantic retrieval
 
 - [x] 8.1: Voyage document/query adapter, batching, vector validation and retries.
-- [ ] 8.2: Content-based embedding cache and versioned MongoDB persistence.
-- [ ] 8.3: Atlas index management and document-scoped semantic search.
-- [ ] 8.4: CLI/API, isolated integration checks, optional live tests and guide.
+- [x] 8.2: Content-based embedding cache and versioned MongoDB persistence.
+- [x] 8.3: Atlas index management and document-scoped semantic search.
+- [x] 8.4: CLI/API, isolated integration checks, optional live tests and guide.
 
 Voyage model remains voyage-3/1024 by default; voyage-4 is an explicit option.
 A real synthetic document/query check returned valid 1024-dimensional vectors.
@@ -320,3 +320,40 @@ Independent staged-PR export verification: **254 backend tests passed, 2 skipped
 frontend production build and **26 tests passed**. Counts exclude preserved,
 uncommitted Prompt 8 and workspace tests. The upload page can now show a saved
 summary before embeddings finish without opening a pending chatbot.
+
+Prompt 8 storage follow-up: **265 backend tests passed, 2 skipped** against a
+disposable local MongoDB; TypeScript checking passed. The earlier test import is
+fixed. Versioned embedding snapshots and retryable content-vector caching are
+now committed. Embedding publication also recognizes an already completed summary
+for the same sources/model so either processing order can reach READY. Atlas
+index creation and retrieval remain to be implemented/verified separately.
+
+### Prompt 10: Hybrid RAG with evaluation support
+
+- [x] 10.1: Explicit Atlas vector/BM25 index management, scoped retrieval and RRF.
+- [x] 10.2: Grounded LangChain answers, source verification and internal evaluation traces.
+- [x] 10.3: Document-scoped conversation persistence and HTTP API.
+- [x] 10.4: React chat, opt-in live checks, integration verification and guide.
+
+Increment 10.1: **14 deterministic tests passed**; Ruff checks passed. This
+implements the missing Prompt 8 Atlas search code prerequisite. Live Atlas
+verification remains pending; no measured retrieval-quality claim is made.
+
+Increment 10.2: **26 tests passed** across retrieval and grounded answer contracts;
+Ruff checks passed. Invalid pages/quotes/IDs, missing evidence, unsupported
+questions, trace privacy and document isolation were checked with mocked models.
+
+Increment 10.3: **302 backend tests passed, 2 skipped** with disposable local MongoDB.
+Conversation isolation, ordering, trace privacy, failure cleanup, source changes
+and public HTTP contracts passed. Atlas/provider requests were mocked here.
+
+Prompt 8 code prerequisites are now committed (storage plus Atlas index/search
+implementation). Live Atlas deployment verification remains pending. Prompt 10.4:
+**302 backend tests passed, 4 skipped**, frontend build and **36 tests passed**
+in the working copy. The separate real-model answer test passed; the full Atlas
+integration test was not run without a test Atlas connection. No Ragas scores
+were calculated or fabricated.
+
+Independent Prompt 10 staged-export verification: **302 backend tests passed,
+4 skipped**; frontend build and **32 tests passed**. Full Atlas verification is
+pending user setup; an Atlas setup guide was added.

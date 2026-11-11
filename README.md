@@ -275,6 +275,16 @@ truncation, validates dimensions/finite nonzero vectors, and applies bounded
 batching/retry guards. Existing voyage-3/1024 configuration is preserved;
 voyage-4 and its supported dimensions are explicit configuration choices.
 
+Embed a previously parsed and chunked PDF explicitly (may consume Voyage credits):
+
+```bash
+python -m backend.services.document_processor.embed_cli DOCUMENT_ID
+```
+
+Completed content/profile vectors are reused across retries and documents. Embedding
+completion leaves the document `PENDING` for the later summary stage. The original
+chunks and their page/source metadata are preserved in searchable snapshots.
+
 ### Configured AI providers
 
 The local environment and template use OpenRouter for future completion calls,
@@ -305,3 +315,32 @@ for commands, test scope and remaining work.
 After upload, View summary opens the read-only summary panel even while the
 document is waiting for embeddings. Generation remains an explicit CLI job
 until background orchestration is implemented.
+
+Embedding storage is now available through the explicit embedding command above.
+Successful cached batches survive retries; current summaries and embeddings can
+finish in either order. Atlas index/search verification remains separate.
+
+### Hybrid RAG (Prompt 10)
+
+The document-scoped Atlas vector/BM25 retriever and Python rank fusion are
+implemented. See [hybrid RAG setup](docs/hybrid-rag.md) for explicit index creation,
+settings and verification limits. Live Atlas search still needs a search-enabled
+MongoDB connection; local storage success does not establish search readiness.
+
+The LangChain answer chain now validates claim-level source quotes and abstains
+when evidence is insufficient. Internal typed traces support later offline Ragas
+evaluation; no evaluation runs during ordinary chat requests.
+
+The chatbot API now supports document-scoped conversations and saved history:
+`POST /api/v1/documents/{id}/chat` and
+`GET /api/v1/documents/{id}/chat/{conversation_id}`. Successful turns are saved
+atomically; private retrieval traces are excluded from public responses.
+
+The React chatbot now sends real questions, recovers saved conversations and
+shows source quotes and unavailable/unsupported states. A live OpenRouter answer
+check passed on synthetic text. Full live hybrid retrieval still requires an
+Atlas/search-enabled database and remains unverified with the local MongoDB URI.
+See [the RAG guide](docs/hybrid-rag.md) for setup and opt-in checks.
+
+New to Atlas? Follow the [project setup guide](docs/atlas-setup.md), then keep your
+connection string only in the ignored local `.env`.

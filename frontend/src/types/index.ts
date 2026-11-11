@@ -11,6 +11,8 @@ export type DocumentStatus =
   | 'READY'
   | 'FAILED';
 
+export type EmbeddingStatus = 'NOT_STARTED' | 'RUNNING' | 'COMPLETED' | 'FAILED';
+
 export type ChunkingStatus = 'NOT_STARTED' | 'RUNNING' | 'COMPLETED' | 'FAILED';
 
 export type ParsingStatus = 'NOT_STARTED' | 'RUNNING' | 'COMPLETED' | 'FAILED';
@@ -27,6 +29,8 @@ export interface DocumentMetadata {
   parsed_at?: string | null;
   chunking_status?: ChunkingStatus;
   chunked_at?: string | null;
+  embedding_status?: EmbeddingStatus;
+  embedded_at?: string | null;
   error_message?: string | null;
   created_at: string;
   updated_at: string;

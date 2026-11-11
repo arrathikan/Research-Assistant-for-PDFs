@@ -40,6 +40,13 @@ class ChunkingStatus(str, Enum):
     FAILED = "FAILED"
 
 
+class EmbeddingStatus(str, Enum):
+    NOT_STARTED = "NOT_STARTED"
+    RUNNING = "RUNNING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+
+
 class DocumentMetadata(BaseModel):
     """Metadata record for an uploaded research paper."""
 
@@ -59,6 +66,8 @@ class DocumentMetadata(BaseModel):
     parsed_at: Optional[datetime] = None
     chunking_status: ChunkingStatus = ChunkingStatus.NOT_STARTED
     chunked_at: Optional[datetime] = None
+    embedding_status: EmbeddingStatus = EmbeddingStatus.NOT_STARTED
+    embedded_at: Optional[datetime] = None
     created_at: datetime = Field(default_factory=_utc_now, description="Creation timestamp")
     updated_at: datetime = Field(default_factory=_utc_now, description="Last update timestamp")
 

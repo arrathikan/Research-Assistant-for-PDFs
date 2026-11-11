@@ -330,6 +330,15 @@ conservative UTF-8 byte guards bound requests; they are not token counts.
 Provider truncation is disabled. Retries are bounded for transient errors;
 authentication/input failures are not silently retried or logged with secrets.
 
+Prompt 8 embedding persistence uses two additional collections. `embedding_vectors`
+contains content-SHA-256/profile keyed vectors without source text; `chunk_embeddings`
+contains immutable searchable snapshots, vectors and complete chunk/page/source
+metadata scoped by document, chunk set and embedding profile. Source `chunks`
+remain unchanged. A conditional document claim prevents concurrent processing of
+one document; publication requires complete snapshot coverage and unchanged source
+generation. Failed jobs retain successful cache batches for retry. Concurrent jobs
+for different documents may still pay for the same first uncached content.
+
 ### Configured provider gateways
 
 OpenRouter is the single configured gateway for future summary/chat completion
@@ -367,3 +376,32 @@ quotes are shown; interactive PDF highlighting remains Prompt 11.
 The upload result can open the read-only summary panel before document READY,
 without opening a pending chatbot or starting generation. This separates summary
 availability from completion of the embedding stage.
+
+Embedding publication recognizes a completed summary for the same parse, chunk
+set and summary profile. Current embeddings and summary are both required for
+READY, regardless of which finishes first. Search indexes are independent.
+
+Prompt 10 retrieval runs Atlas Vector Search and MongoDB Search BM25 over the same
+immutable `chunk_embeddings` snapshots. Both branches pre-filter document, chunk
+set and embedding profile. Results resolve to canonical current chunks and content
+hashes. LangChain RunnableParallel executes branches, then Python RRF deduplicates
+and combines ranks. Index definition compatibility/readiness is checked before a
+paid query embedding. No local pseudo-vector fallback is used.
+
+Prompt 10.2 uses an ordinary LangChain composition for bounded context, OpenRouter
+completion and deterministic claim/source validation. Answers reference only
+retrieved current chunks. The internal PipelineOutput contains response and
+EvaluationTrace separately; public routes must return only the response. Empty
+retrieval causes a deterministic abstention without an LLM request.
+
+Prompt 10.3 stores `chat_conversations` with source-generation identity and a
+per-conversation ownership token. `chat_turns` stores complete user/assistant
+pairs, sequence numbers and internal evaluation traces in one atomic insert.
+Public chat/history routes return response data only. Generation changes, failed
+models and concurrent turns are handled without mixing documents or partial turns.
+
+Prompt 10.4 connects React chat/history to the real API, stores only per-document
+conversation IDs in sessionStorage and discards late replies after document
+switches. Deterministic tests cover request/history/source/failure contracts;
+opt-in tests cover an actual model answer and a disposable Atlas integration.
+Only the model-answer check was run live; Atlas retrieval remains unverified.
