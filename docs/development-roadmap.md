@@ -229,8 +229,9 @@ See [verification report](verification-report.md) for exact scope and limitation
 ### Prompt 6: LlamaParse extraction
 
 - [x] 6.1: Page-aware Markdown and source-element normalization contracts.
-- [ ] 6.2: Installed-SDK adapter, GridFS orchestration and safe parse persistence.
-- [ ] 6.3: CLI, integration checks, opt-in paid live test and documentation.
+- [x] 6.2: Supported LlamaParse v2 SDK adapter and complete source metadata.
+- [ ] 6.3: GridFS orchestration and versioned parse persistence.
+- [ ] 6.4: CLI, integration checks, opt-in paid live test and documentation.
 
 Coordinate metadata is preserved when valid. Missing/unknown coordinate systems
 require page navigation fallback; layout boxes are not guessed for text items.

@@ -250,3 +250,8 @@ headings/tables remain intact and combined output has explicit page separators.
 Item coordinates retain provider-defined units. Layout boxes use the provider's
 documented normalized convention; unrelated layout boxes are never attached to
 text. Missing or invalid coordinates fall back to page-level attribution.
+
+The supported v2 SDK adapter converts explicitly numbered Markdown/items pages
+to the internal page contract. Current item boxes are in page points, with all
+boxes retained and parent/child relationships preserved. The standalone adapter
+uses bounded HTTP/polling timeouts and avoids automatic paid POST retries.

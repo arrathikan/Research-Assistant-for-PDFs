@@ -1,6 +1,6 @@
 """Page-aware extraction contracts independent of the provider SDK."""
 
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -14,7 +14,7 @@ class BoundingBox(BaseModel):
     y: float = Field(ge=0, allow_inf_nan=False)
     width: float = Field(gt=0, allow_inf_nan=False)
     height: float = Field(gt=0, allow_inf_nan=False)
-    coordinate_system: Literal["normalized", "provider"]
+    coordinate_system: Literal["normalized", "points", "provider"]
 
     @model_validator(mode="after")
     def validate_normalized_bounds(self) -> "BoundingBox":
@@ -35,6 +35,9 @@ class SourceElement(BaseModel):
     source: Literal["items", "layout"]
     provider_element_id: str | None = None
     bbox: BoundingBox | None = None
+    bounding_boxes: list[BoundingBox] = Field(default_factory=list)
+    parent_element_id: str | None = None
+    attributes: dict[str, Any] = Field(default_factory=dict)
 
 
 class ParsedPage(BaseModel):

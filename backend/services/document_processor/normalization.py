@@ -1,4 +1,4 @@
-"""Normalize the installed LlamaParse v1 JSON contract without guessing pages."""
+"""Normalize page records from the provider adapter without guessing pages."""
 
 from math import isfinite
 from typing import Any
@@ -24,7 +24,7 @@ def _dimension(value: object) -> float | None:
     return None
 
 
-def _bbox(value: object, normalized: bool) -> BoundingBox | None:
+def _bbox(value: object, normalized: bool, points: bool = False) -> BoundingBox | None:
     if not isinstance(value, dict):
         return None
     try:
@@ -33,7 +33,7 @@ def _bbox(value: object, normalized: bool) -> BoundingBox | None:
             y=value["y"],
             width=value["w"],
             height=value["h"],
-            coordinate_system="normalized" if normalized else "provider",
+            coordinate_system="points" if points else "normalized" if normalized else "provider",
         )
     except (KeyError, ValidationError):
         # Optional bad coordinates do not destroy otherwise useful page text.
@@ -54,6 +54,18 @@ def _elements(document_id: str, page_number: int, page: dict[str, Any]) -> list[
             if not all(isinstance(value, str) for value in (text, markdown, kind)):
                 raise ParsingError("Parser returned invalid source text")
             provider_id = item.get("id")
+            raw_boxes = item.get("bounding_boxes")
+            if raw_boxes is None:
+                raw_boxes = [item.get("bbox") if source == "layout" else item.get("bBox")]
+            if not isinstance(raw_boxes, list):
+                raw_boxes = []
+            boxes = [
+                box
+                for raw in raw_boxes
+                if (box := _bbox(raw, source == "layout", item.get("bbox_units") == "points"))
+                is not None
+            ]
+            parent = item.get("parent_index")
             elements.append(
                 SourceElement(
                     element_id=f"{document_id}:p{page_number}:e{index}",
@@ -67,10 +79,12 @@ def _elements(document_id: str, page_number: int, page: dict[str, Any]) -> list[
                     provider_element_id=str(provider_id)
                     if isinstance(provider_id, (str, int))
                     else None,
-                    bbox=_bbox(
-                        item.get("bbox") if source == "layout" else item.get("bBox"),
-                        source == "layout",
-                    ),
+                    bbox=boxes[0] if boxes else None,
+                    bounding_boxes=boxes,
+                    parent_element_id=f"{document_id}:p{page_number}:e{parent}"
+                    if isinstance(parent, int) and 0 <= parent < index
+                    else None,
+                    attributes=item.get("attributes") or {},
                 )
             )
     return elements

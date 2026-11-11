@@ -215,3 +215,9 @@ for scope, local workspace status and features still awaiting implementation.
 Extraction contracts now preserve page-specific Markdown, headings/tables, source
 elements and available coordinates. Missing coordinates support page-navigation
 fallback; page numbers are never inferred from an incomplete parser response.
+
+Prompt 6 uses LlamaParse v2 through the provider's supported `llama-cloud` SDK.
+Configure `LLAMA_CLOUD_API_KEY`, `LLAMA_PARSE_TIMEOUT_SECONDS`,
+`LLAMA_PARSE_TIER` and `LLAMA_PARSE_VERSION`; see the
+[document processor guide](backend/services/document_processor/README.md).
+Source boxes retain their documented coordinate units and nested relationships.
