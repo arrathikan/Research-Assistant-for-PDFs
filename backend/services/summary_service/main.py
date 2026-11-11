@@ -1,26 +1,40 @@
-"""Summary Service entrypoint.
+"""Generate one stored PDF's summary explicitly; RabbitMQ dispatch comes later."""
 
-Executes a deterministic LangGraph state machine to extract a 5-part academic summary:
-1. Title, Authors, and Abstract
-2. Problem Statement
-3. Methodology
-4. Key Results
-5. Conclusion
-"""
+import argparse
 
+from backend.services.document_processor.chunk_cli import _document_id
+from backend.services.document_processor.chunk_storage import ChunkingNotReady
+from backend.services.summary_service.models import SummaryError
+from backend.services.summary_service.storage import SummaryNotReady, summarize_stored_document
 from backend.shared.config import get_settings
+from backend.shared.database import StorageUnavailable, connect_database
 from backend.shared.logging import setup_logger
-
-settings = get_settings()
-logger = setup_logger("summary_service", settings.log_level)
+from backend.shared.storage import DocumentNotFound
 
 
-def run_service():
-    """Initializes the LangGraph summarization service."""
-    logger.info("Initializing Summary Service...")
-    logger.info(f"Target summary queue: {settings.summary_queue}")
-    logger.info("Summary service skeleton ready. LangGraph workflow scheduled for Stage 5.")
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        description="Generate a source-backed five-section research summary"
+    )
+    parser.add_argument("document_id", type=_document_id)
+    args = parser.parse_args(argv)
+    settings = get_settings()
+    logger = setup_logger("summary_service", settings.log_level)
+    try:
+        with connect_database(settings) as database:
+            summarize_stored_document(database, args.document_id, settings)
+    except (
+        SummaryError,
+        SummaryNotReady,
+        ChunkingNotReady,
+        DocumentNotFound,
+        StorageUnavailable,
+    ) as error:
+        logger.error(str(error))
+        return 1
+    logger.info(f"Summary published for {args.document_id}")
+    return 0
 
 
 if __name__ == "__main__":
-    run_service()
+    raise SystemExit(main())

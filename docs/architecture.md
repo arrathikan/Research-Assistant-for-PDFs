@@ -329,3 +329,41 @@ finite numeric values and must be nonzero for cosine search. Batch size and
 conservative UTF-8 byte guards bound requests; they are not token counts.
 Provider truncation is disabled. Retries are bounded for transient errors;
 authentication/input failures are not silently retried or logged with secrets.
+
+### Configured provider gateways
+
+OpenRouter is the single configured gateway for future summary/chat completion
+calls. Primary, inexpensive and vision model roles are explicit settings; direct
+OpenAI/Anthropic/Google completion credentials are no longer settings. Voyage
+embeddings use the direct API, with `voyage-4-lite` selected in the environment
+template and an independent embedding profile. `rerank-2.5` is configured for the
+later retrieval stage. LlamaParse remains direct and uses `agentic` extraction.
+See [provider configuration](provider-configuration.md) for exact names and scope.
+
+### Summary completion boundary (Prompt 9.1)
+
+The summary service uses strict Pydantic draft models and a single OpenRouter
+completion adapter. Populated fields require verified chunk/page/quote references;
+missing fields remain explicit. Provider retries are bounded, redirects disabled,
+and raw request/response details excluded from safe errors. See
+[structured summaries](structured-summary.md) for limitations.
+
+Prompt 9.2 uses one controlled LangGraph with source-identification, generation,
+validation/targeted retry, reduction and save nodes. All source chunks are
+processed. Long-paper reduction retains original references and has bounded
+rounds, windows and payload sizes; no persistent checkpoint store is introduced.
+
+Prompt 9.3 persists immutable `summary_runs` with an active pointer and ownership
+token on `documents`. Publication checks the current parse and chunk set; a
+completed run can be reused without repeating LLM calls. Reads revalidate source
+references. Summary completion alone leaves PENDING until current embeddings
+are complete. `GET /api/v1/documents/{id}/summary` is read-only.
+
+Prompt 9.4 connects the React summary panel to the saved-summary endpoint. It
+checks pending results, handles unavailable/failed jobs, preserves explicit
+missing information and discards stale document responses. Source pages and
+quotes are shown; interactive PDF highlighting remains Prompt 11.
+
+The upload result can open the read-only summary panel before document READY,
+without opening a pending chatbot or starting generation. This separates summary
+availability from completion of the embedding stage.

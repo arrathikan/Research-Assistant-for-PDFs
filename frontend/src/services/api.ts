@@ -6,10 +6,11 @@
 import {
   DocumentMetadata,
   DocumentStatus,
-  StructuredSummary,
   ChatMessage,
   UploadResponse,
 } from '../types';
+
+import type { SummaryResponse } from '../types/summary';
 
 const API_BASE_URL =
   (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:8000/api/v1';
@@ -113,8 +114,8 @@ export const api = {
   /**
    * Fetch 5-section structured summary.
    */
-  async getDocumentSummary(documentId: string): Promise<StructuredSummary> {
-    return request<StructuredSummary>(`/documents/${encodeURIComponent(documentId)}/summary`);
+  async getDocumentSummary(documentId: string): Promise<SummaryResponse> {
+    return request<SummaryResponse>(`/documents/${encodeURIComponent(documentId)}/summary`);
   },
 
   /**

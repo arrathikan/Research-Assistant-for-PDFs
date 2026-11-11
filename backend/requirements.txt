@@ -23,7 +23,7 @@ voyageai>=0.6.0,<1.0.0
 rank-bm25>=0.2.2,<1.0.0
 
 # Multi-Agent / Workflow Orchestration
-langgraph>=0.1.0,<0.3.0
+langgraph>=0.2.76,<0.3.0
 
 # LLM Providers
 langchain-openai>=0.1.0,<0.3.0

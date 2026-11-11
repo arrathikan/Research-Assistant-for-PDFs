@@ -65,7 +65,7 @@ def _request(
                 truncation=False,
                 output_dtype="float",
                 output_dimension=settings.voyage_dimensions
-                if settings.voyage_model == "voyage-4"
+                if settings.voyage_model.startswith("voyage-4")
                 else None,
             )
             return validate_vectors(result.embeddings, len(texts), settings.voyage_dimensions)

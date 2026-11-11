@@ -272,3 +272,51 @@ production build passed. Existing uncommitted frontend work remains preserved.
 Voyage model remains voyage-3/1024 by default; voyage-4 is an explicit option.
 A real synthetic document/query check returned valid 1024-dimensional vectors.
 No private PDF, credential or vector was printed or committed.
+
+### Provider configuration follow-up (2026-11-11)
+
+- [x] Accept OpenRouter credentials, attribution, three model roles and bounded retries.
+- [x] Support the requested Voyage embedding/dimension variable names and `voyage-4-lite`.
+- [x] Configure `rerank-2.5` for the later retrieval integration.
+- [x] Keep all credentials in the ignored, owner-readable local environment file.
+
+Verification: **214 passed, 1 skipped** with disposable local MongoDB in the
+current working copy, including pending embedding storage tests. The earlier
+integration-test import was corrected locally. OpenRouter authentication returned
+HTTP 200 without generating a completion. Real `voyage-4-lite` document/query
+requests returned valid 1024-dimensional vectors. Ruff checks passed. These
+checks establish configuration/connectivity, not RAG answer quality. Prompt 8
+Atlas search, completion clients and reranking integration remain unfinished.
+
+### Prompt 9: Structured summary generation
+
+- [x] 9.1: Strict summary/evidence contracts and the OpenRouter completion client.
+- [x] 9.2: LangGraph extraction, validation and bounded targeted repairs.
+- [x] 9.3: Versioned MongoDB publication, CLI and read-only HTTP endpoint.
+- [x] 9.4: Live React summary display, regression checks and optional model test.
+
+Increment 9.1 verification: **30 passed** focused schema, source validation,
+provider settings and mocked completion tests. Ruff lint/format checks passed.
+LangGraph 0.2.76 is installed within the declared dependency range; dependency
+compatibility checks passed. No live completion was generated in this increment.
+
+Increment 9.2 verification: **34 passed** workflow, evidence/schema and completion
+contract tests. Real LangGraph execution was used with deterministic mocked
+completion calls. All source windows, document isolation, two repair limits,
+preflight input limits and save ordering were verified. Ruff checks passed.
+
+Increment 9.3 verification: **264 passed, 1 skipped** with disposable local MongoDB.
+The skipped test is the opt-in paid parser test. Summary persistence/reuse,
+failed publication recovery, document/source/model isolation, API errors and
+CLI contracts passed. Ruff checks passed; no live LLM call was made yet.
+
+Increment 9.4 verification: **264 backend tests passed, 2 skipped** with local
+disposable MongoDB; frontend production build and **30 tests passed**. The
+separately enabled real-model summary smoke test **passed** on synthetic text
+using the configured OpenRouter primary model. No private PDF or generated
+summary was committed. Atlas semantic search remains unfinished Prompt 8 work.
+
+Independent staged-PR export verification: **254 backend tests passed, 2 skipped**;
+frontend production build and **26 tests passed**. Counts exclude preserved,
+uncommitted Prompt 8 and workspace tests. The upload page can now show a saved
+summary before embeddings finish without opening a pending chatbot.

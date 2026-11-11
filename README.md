@@ -274,3 +274,34 @@ The Voyage adapter distinguishes document and query inputs, disables silent
 truncation, validates dimensions/finite nonzero vectors, and applies bounded
 batching/retry guards. Existing voyage-3/1024 configuration is preserved;
 voyage-4 and its supported dimensions are explicit configuration choices.
+
+### Configured AI providers
+
+The local environment and template use OpenRouter for future completion calls,
+Voyage `voyage-4-lite` with 1024 dimensions, and LlamaParse `agentic` parsing.
+The primary, inexpensive and vision model roles, environment variable aliases,
+and remaining integration work are described in the
+[provider configuration guide](docs/provider-configuration.md).
+
+### Structured summaries (Prompt 9)
+
+Summary output contracts and the OpenRouter completion adapter now enforce
+explicit missing information and source references. See the
+[summary guide](docs/structured-summary.md) for configuration and current scope.
+
+The summary LangGraph now extracts bounded research windows, validates evidence,
+repairs invalid output at most twice, and combines long-paper notes without
+silently dropping chunks. Versioned persistence and the frontend summary connection are implemented.
+
+Generate a parsed/chunked document summary with
+`python -m backend.services.summary_service.main DOCUMENT_ID`. Retrieve the saved
+result through `GET /api/v1/documents/{id}/summary`; this read never calls the LLM.
+
+The five summary cards now read saved results with loading, waiting and error
+states, and display source pages/quotes. The real OpenRouter summary smoke test
+passed on synthetic input. See the [summary guide](docs/structured-summary.md)
+for commands, test scope and remaining work.
+
+After upload, View summary opens the read-only summary panel even while the
+document is waiting for embeddings. Generation remains an explicit CLI job
+until background orchestration is implemented.

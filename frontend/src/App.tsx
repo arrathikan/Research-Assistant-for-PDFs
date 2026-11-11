@@ -4,6 +4,7 @@ import { SplitView } from './components/SplitView';
 import { DocumentMetadata } from './types';
 import { MessageSquare, FileText } from 'lucide-react';
 import { UploadView } from './views/UploadView';
+import { DocumentSummaryPanel } from './components/summary/DocumentSummaryPanel';
 
 export const App: React.FC = () => {
   const [activeDoc, setActiveDoc] = useState<DocumentMetadata | null>(null);
@@ -14,15 +15,7 @@ export const App: React.FC = () => {
         <UploadView onUploadSuccess={setActiveDoc} />
       ) : (
         <div className="flex-1 flex flex-col space-y-4">
-          <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-            <div className="flex items-center gap-2 text-slate-700 text-sm font-semibold">
-              <FileText className="w-4 h-4 text-blue-600" />
-              <span>Structured Summary (5 Sections)</span>
-            </div>
-            <p className="text-xs text-slate-500 mt-1">
-              Summary will be generated via LangGraph deterministic workflow in Stage 5.
-            </p>
-          </div>
+          <DocumentSummaryPanel documentId={activeDoc.id} filename={activeDoc.filename} />
 
           <div className="flex-1 p-4 bg-slate-50 rounded-lg border border-slate-200 flex flex-col justify-between">
             <div className="flex items-center gap-2 text-slate-700 text-sm font-semibold">
