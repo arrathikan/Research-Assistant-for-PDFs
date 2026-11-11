@@ -357,3 +357,19 @@ were calculated or fabricated.
 Independent Prompt 10 staged-export verification: **302 backend tests passed,
 4 skipped**; frontend build and **32 tests passed**. Full Atlas verification is
 pending user setup; an Atlas setup guide was added.
+
+
+### Atlas live verification follow-up (2026-11-11)
+
+- [x] Atlas authentication and application database access.
+- [x] Real Voyage → Atlas vector/BM25 → OpenRouter integration check.
+- [x] Application vector/BM25 index compatibility and queryability.
+- [x] Local API reload with Atlas settings and database-backed HTTP check.
+
+The earlier live-test failure came from a generated test database name exceeding
+this cluster's 38-byte limit. Short disposable names and a regression test fix it.
+The corrected live Atlas test **passed** on synthetic content with document-scoped
+citations, and removed only its own disposable database. Full backend regression:
+**303 passed, 4 optional live tests skipped**; the live Atlas test ran separately.
+Prompt 8/10 Atlas deployment verification is now complete for this synthetic
+workflow. Real-paper quality metrics and later-stage functionality remain pending.

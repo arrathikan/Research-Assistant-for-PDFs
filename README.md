@@ -324,8 +324,8 @@ finish in either order. Atlas index/search verification remains separate.
 
 The document-scoped Atlas vector/BM25 retriever and Python rank fusion are
 implemented. See [hybrid RAG setup](docs/hybrid-rag.md) for explicit index creation,
-settings and verification limits. Live Atlas search still needs a search-enabled
-MongoDB connection; local storage success does not establish search readiness.
+settings and verification limits. Atlas connectivity and the vector/BM25 indexes have now been verified live;
+see the verification report below for the exact scope.
 
 The LangChain answer chain now validates claim-level source quotes and abstains
 when evidence is insufficient. Internal typed traces support later offline Ragas
@@ -338,9 +338,16 @@ atomically; private retrieval traces are excluded from public responses.
 
 The React chatbot now sends real questions, recovers saved conversations and
 shows source quotes and unavailable/unsupported states. A live OpenRouter answer
-check passed on synthetic text. Full live hybrid retrieval still requires an
-Atlas/search-enabled database and remains unverified with the local MongoDB URI.
+check passed on synthetic text. The separate live Atlas hybrid-retrieval check also passed on synthetic input.
 See [the RAG guide](docs/hybrid-rag.md) for setup and opt-in checks.
 
 New to Atlas? Follow the [project setup guide](docs/atlas-setup.md), then keep your
 connection string only in the ignored local `.env`.
+
+
+Atlas verification (2026-11-11): the real Voyage → Atlas vector/BM25 → OpenRouter
+integration test **passed** with verified document-scoped citations. Both
+application search indexes are queryable. Backend regression checks: **303 passed,
+4 optional live tests skipped**; the live Atlas check was enabled and run separately.
+See [the verification report](docs/atlas-verification.md). This establishes the
+synthetic workflow, not a scientific-summary/RAG accuracy benchmark.

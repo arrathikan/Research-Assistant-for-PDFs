@@ -404,4 +404,6 @@ Prompt 10.4 connects React chat/history to the real API, stores only per-documen
 conversation IDs in sessionStorage and discards late replies after document
 switches. Deterministic tests cover request/history/source/failure contracts;
 opt-in tests cover an actual model answer and a disposable Atlas integration.
-Only the model-answer check was run live; Atlas retrieval remains unverified.
+The model-answer check and the isolated live Atlas integration check have both
+passed. Application vector/BM25 indexes are compatible and queryable; scientific
+quality evaluation remains a later stage.
