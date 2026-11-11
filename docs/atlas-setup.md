@@ -65,3 +65,10 @@ When working with the assistant, reply **Atlas ready** after saving the URI
 locally. The assistant can then verify the connection without displaying it and
 complete the remaining live search checks. See [hybrid RAG](hybrid-rag.md) for the
 explicit optional live-test requirements and current verification scope.
+
+
+Verification note: this project's Atlas cluster enforces a 38-byte database-name
+limit. The live test uses a short researchai_test name; keep custom test namespaces
+within the deployment's limit. The project database name research_assistant fits.
+The application connection, vector/BM25 indexes and isolated live hybrid test have
+now been verified; see [the result](atlas-verification.md).

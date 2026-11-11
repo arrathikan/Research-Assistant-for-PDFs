@@ -33,9 +33,15 @@ def _flatten_items(
                 "bbox_units": "points",
                 "parent_index": parent,
                 "attributes": {
-                    key: item[key]
-                    for key in ("rows", "html", "csv", "level", "caption", "confidence")
-                    if item.get(key) is not None
+                    "bbox_origin": "top_left",
+                    "bbox_rotations": [
+                        box.get("r", 0) for box in (item.get("bbox") or []) if isinstance(box, dict)
+                    ],
+                    **{
+                        key: item[key]
+                        for key in ("rows", "html", "csv", "level", "caption", "confidence")
+                        if item.get(key) is not None
+                    },
                 },
             }
         )

@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from backend.gateway.body_limit import UploadBodyLimit
 from backend.gateway.chat import router as chat_router
+from backend.gateway.citations import router as citations_router
 from backend.gateway.documents import router as documents_router
 from backend.gateway.health import router
 from backend.gateway.schemas import ErrorResponse
@@ -35,6 +36,7 @@ def create_app() -> FastAPI:
     application.include_router(router)
     application.include_router(documents_router)
     application.include_router(chat_router)
+    application.include_router(citations_router)
     application.add_middleware(UploadBodyLimit)
 
     @application.exception_handler(UploadRejected)

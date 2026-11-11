@@ -72,3 +72,6 @@ Thumbs.db
 .vscode/
 *.swp
 *.swo
+
+# Generated assets from the installed PDF.js dependency
+frontend/public/pdfjs/

@@ -19,6 +19,7 @@ from backend.services.rag_service.service import chat_with_trace
 from backend.shared.config import get_settings
 from backend.shared.database import connect_database, ensure_indexes
 from backend.shared.voyage import embedding_profile
+from backend.tests.atlas_helpers import new_atlas_database_name
 from backend.tests.summary_fixtures import summary_chunks
 from backend.tests.test_chunking_integration import seed_parse
 
@@ -58,7 +59,7 @@ def test_live_atlas_hybrid_chat_document_isolation():
     if not uri:
         pytest.skip("Set RESEARCHAI_TEST_ATLAS_URI; never use a production database name")
     settings = get_settings().model_copy(
-        update={"mongodb_uri": uri, "mongodb_db_name": "researchai_test_" + uuid4().hex}
+        update={"mongodb_uri": uri, "mongodb_db_name": new_atlas_database_name()}
     )
     with connect_database(settings) as db:
         try:

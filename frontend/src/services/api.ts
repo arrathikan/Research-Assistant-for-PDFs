@@ -9,7 +9,7 @@ import {
   UploadResponse,
 } from '../types';
 
-import type { ChatResponse, ChatHistory } from '../types/chat';
+import type { ChatCitation, ChatResponse, ChatHistory } from '../types/chat';
 import type { SummaryResponse } from '../types/summary';
 
 const API_BASE_URL =
@@ -128,6 +128,19 @@ export const api = {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ message, conversation_id: conversationId }),
+    });
+  },
+
+  async resolveCitation(documentId: string, citation: ChatCitation): Promise<ChatCitation> {
+    return request<ChatCitation>(`/documents/${encodeURIComponent(documentId)}/citations/resolve`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        citation_id: citation.citation_id, document_id: citation.document_id,
+        chunk_id: citation.chunk_id, page_number: citation.page_number,
+        quote_snippet: citation.quote_snippet, chunk_set_id: citation.chunk_set_id,
+        parse_run_id: citation.parse_run_id,
+      }),
     });
   },
 

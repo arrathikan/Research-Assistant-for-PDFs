@@ -148,15 +148,22 @@ The Atlas test uses synthetic parsed artifacts, real Voyage/Atlas/OpenRouter,
 creates only a uniquely named researchai_test database and removes it afterwards.
 It does not parse a private PDF. Normal CI skips it even if keys are present.
 
-Current working-copy verification: **302 backend tests passed, 4 live tests
-skipped**; production frontend build and **36 tests passed**. The separately
-opted-in live OpenRouter answer check **passed** on synthetic text and verified
-its source citation and stated result. The full live Atlas test was **not run**:
-MONGODB_URI remains a local MongoDB address. No retrieval-quality/Ragas scores or
-claims that hybrid retrieval outperforms semantic retrieval are made.
+Earlier frontend verification: production build and **36 working-copy tests
+passed**; an isolated staged export passed **32 frontend tests** (excluding four
+preserved local workspace tests). The separately enabled OpenRouter answer check
+also passed on synthetic text.
 
-Independent staged-PR verification: **302 backend tests passed, 4 skipped**,
-frontend production build and **32 tests passed**. The working copy has 4
-additional preserved workspace tests (36 total). All staged credential/whitespace
-and scoped Ruff checks passed. User confirmed Atlas is not yet set up; see the
-[Atlas setup guide](atlas-setup.md) to complete the remaining live verification.
+Atlas follow-up (2026-11-11): the real Atlas/Voyage/OpenRouter integration check
+**passed** after shortening the disposable database name to fit this cluster's
+38-byte limit. The test created its own short researchai_test database, exercised
+both search branches and generated a cited answer, then removed that database.
+Both application vector and BM25 indexes are now compatible and queryable. Backend
+regression checks: **303 passed, 4 optional live tests skipped**; the live Atlas
+check was run separately and passed.
+
+The local gateway was reloaded with Atlas settings and verified through health,
+current chat/summary routes and a database-backed missing-document lookup. Existing
+local database files were preserved and were not migrated to Atlas. See the
+[verification report](atlas-verification.md) and [setup guide](atlas-setup.md).
+No retrieval-quality/Ragas scores or claims that hybrid beats semantic retrieval
+are inferred from this smoke test.

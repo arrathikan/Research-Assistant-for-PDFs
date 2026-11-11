@@ -22,7 +22,7 @@ it('shows pending state then a sourced API answer', async () => {
   expect(screen.getByText('Finding evidence and generating a response…')).toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Send Message' })).toBeDisabled();
   await act(async () => { finish(RESULT); });
-  expect(screen.getByText(RESULT.answer)).toBeInTheDocument();
+  expect(screen.getByText('Synthetic answer', { exact: false })).toHaveTextContent(RESULT.answer);
   fireEvent.click(screen.getByText('Source: Page 1'));
   fireEvent.click(screen.getByRole('button', { name: 'Page 1' }));
   expect(cite).toHaveBeenCalledWith(RESULT.citations[0]);
@@ -44,7 +44,7 @@ it('loads saved history without a paid send', async () => {
   const post = vi.spyOn(api, 'sendChatQuery');
   render(<DocumentChatPanel documentId={ID} />);
   expect(await screen.findByText('Earlier question')).toBeInTheDocument();
-  expect(screen.getByText(RESULT.answer)).toBeInTheDocument();
+  expect(screen.getByText('Synthetic answer', { exact: false })).toHaveTextContent(RESULT.answer);
   expect(post).not.toHaveBeenCalled();
 });
 
@@ -70,4 +70,17 @@ it('displays insufficient-evidence answers without invented sources', async () =
   render(<DocumentChatPanel documentId={ID} />); send();
   expect(await screen.findByText('Insufficient evidence in this paper.')).toBeInTheDocument();
   expect(screen.queryByText('Source: Page 1')).not.toBeInTheDocument();
+});
+
+it('opens inline citations and keeps page buttons visible when quotes are collapsed', async () => {
+  vi.spyOn(api, 'sendChatQuery').mockResolvedValue({ ...RESULT, answer: 'Supported [1]. Unknown [9]. <img src=x>' });
+  const cite = vi.fn();
+  render(<DocumentChatPanel documentId={ID} onCitationClick={cite} />); send();
+  fireEvent.click(await screen.findByRole('button', { name: 'Open citation 1, page 1' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Page 1' }));
+  expect(cite).toHaveBeenCalledTimes(2);
+  expect(cite).toHaveBeenLastCalledWith(RESULT.citations[0]);
+  expect(screen.queryByRole('button', { name: /citation 9/ })).not.toBeInTheDocument();
+  expect(screen.getByText(/Unknown \[9\]/)).toHaveTextContent('<img src=x>');
+  expect(document.querySelector('img')).toBeNull();
 });

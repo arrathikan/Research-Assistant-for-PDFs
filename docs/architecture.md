@@ -404,4 +404,20 @@ Prompt 10.4 connects React chat/history to the real API, stores only per-documen
 conversation IDs in sessionStorage and discards late replies after document
 switches. Deterministic tests cover request/history/source/failure contracts;
 opt-in tests cover an actual model answer and a disposable Atlas integration.
-Only the model-answer check was run live; Atlas retrieval remains unverified.
+The model-answer check and the isolated live Atlas integration check have both
+passed. Application vector/BM25 indexes are compatible and queryable; scientific
+quality evaluation remains a later stage.
+
+Prompt 11.1 enriches citations with source generation and retained geometry.
+A read-only citation resolver rebuilds anchors from canonical current chunks and
+rechecks generation; it does not trust client coordinates or call providers.
+Only documented, unrotated and in-bounds source regions are eligible for overlays.
+
+
+Prompt 11.2–11.3 uses one responsive React-PDF viewer, with a same-version local
+worker/CMaps/fonts. The browser resolves selected citations before navigating.
+Native rendered-text Range rectangles take precedence over conservative,
+frame-checked source-region overlays. Unmatched/ambiguous text and incompatible
+geometry keep an honest page/quote fallback. Inline chat references and page
+buttons trigger the same navigation; late results and old-page overlays are
+suppressed. Citation checks remain separate from offline Ragas evaluation.
