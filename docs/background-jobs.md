@@ -50,3 +50,45 @@ have its next action overwritten by a delayed publication update.
 Increment 12.2 verification: **353 backend tests passed, 4 optional live checks
 skipped** with disposable local MongoDB. Provider/publication boundaries were
 mocked; worker execution and real-broker checks follow next.
+
+
+## Workers and failure handling
+
+`python -m backend.services.jobs.main run` starts the dispatcher and separate
+consumers for ingestion and summary. Each consumer uses prefetch 1, manual
+acknowledgements and a separate provider-work thread so RabbitMQ I/O continues
+while parsing or summarizing. Acknowledgement follows saved job completion,
+next-stage scheduling, retry scheduling or terminal failure. Persistence failures
+leave the delivery unacknowledged. Shutdown waits for in-flight work.
+
+The ingestion worker reuses `parse_pdf`, Markdown chunking and Voyage embedding
+storage, then schedules summary. The summary worker validates the same parse,
+chunk and embedding generation, reuses the existing LangGraph service and marks
+the job complete only with a ready document. Duplicate, early and stale messages
+do not invoke providers. Job failures use bounded exponential backoff, then a
+durable dead-letter action; raw provider errors never enter the public status.
+
+A MongoDB lease/heartbeat prevents concurrent job owners from advancing the same
+job. An expired lease is marked `WORKER_INTERRUPTED` and sent to the dead-letter
+queue for review. Existing service claims deliberately do not expire silently:
+a hard-killed parser/model request may still be running remotely. This system
+provides at-least-once delivery and output reuse, not exactly-once provider billing.
+
+After confirming the old workers have stopped and inspecting the interrupted job,
+an operator may run:
+
+```bash
+python -m backend.services.jobs.main recover DOCUMENT_ID --confirm-workers-stopped
+```
+
+Recovery conditionally clears only the interrupted document's still-running
+claims with the matching ownership token. Completed parses, chunks, vectors and
+summaries remain stored. A new job generation resumes ingestion and reuses these
+outputs. `SOURCE_BUSY` from unrelated/manual processing requires separate review
+and is never reset automatically. Normal terminal failures can use the explicit
+HTTP retry endpoint; it also starts ingestion with output reuse.
+
+Increment 12.3 verification: **363 backend tests passed, 4 optional live checks
+skipped** with disposable MongoDB. Full processing used simulated providers.
+Atomic claims, duplicate/early deliveries, bounded retries, changed generations,
+reviewed interrupted recovery and acknowledgement-after-persistence passed.

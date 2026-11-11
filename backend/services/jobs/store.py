@@ -23,6 +23,7 @@ class ProcessingView(BaseModel):
     job_id: str | None = None
     status: JobStatus | Literal["NOT_SCHEDULED"] = "NOT_SCHEDULED"
     stage: JobStage | None = None
+    step: str | None = None
     generation: int = 0
     attempt: int = 0
     max_attempts: int = 0
@@ -69,6 +70,7 @@ def view(record: dict | None, document_id: str) -> ProcessingView:
         job_id=message.job_id,
         status=record["status"],
         stage=message.stage,
+        step=record.get("step"),
         generation=message.generation,
         attempt=message.attempt,
         max_attempts=record["max_attempts"],
@@ -140,6 +142,8 @@ def retry_job(database: Database, document_id: str, settings: Settings) -> Proce
                     "dispatch_status": "PENDING",
                     "generation": current.generation + 1,
                     "attempt": 1,
+                    "stage": "ingestion",
+                    "step": None,
                     "max_attempts": settings.job_max_attempts,
                     "next_attempt_at": stamp,
                     "updated_at": stamp,

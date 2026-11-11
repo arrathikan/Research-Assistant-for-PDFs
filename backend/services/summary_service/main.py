@@ -1,4 +1,4 @@
-"""Generate one stored PDF's summary explicitly; RabbitMQ dispatch comes later."""
+"""Generate one stored summary explicitly; automatic jobs use services.jobs.main."""
 
 import argparse
 

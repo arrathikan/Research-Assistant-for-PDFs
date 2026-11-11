@@ -429,3 +429,11 @@ dispatcher confirms RabbitMQ publication before marking the precise job action
 sent. Pending retry/dead-letter actions survive broker downtime. Public job
 status excludes ownership tokens. Manual retry increments the job generation;
 unrequested legacy documents are excluded from reconciliation.
+
+
+Prompt 12.3 runs ingestion and summary consumers outside the gateway. Prefetch 1
+bounds deliveries; long provider calls run outside the RabbitMQ I/O thread.
+MongoDB leases, source-generation checks and the existing service claims guard
+publication. A completed ingestion action atomically becomes a summary outbox
+action. Bounded retries and dead letters are durable before acknowledgements.
+Expired workers require explicit reviewed recovery; completed artifacts are reused.

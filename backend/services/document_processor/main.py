@@ -1,4 +1,4 @@
-"""Parse one stored document; RabbitMQ dispatch is introduced in a later stage."""
+"""Parse one stored document explicitly; automatic jobs use services.jobs.main."""
 
 import argparse
 

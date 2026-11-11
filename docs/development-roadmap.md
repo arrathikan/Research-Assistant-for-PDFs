@@ -407,7 +407,7 @@ conservative fallback contract; Prompt 12 queued jobs is next.
 
 - [x] 12.1: Durable queue/message contracts and bounded broker connections.
 - [x] 12.2: Persisted upload scheduling, retries and processing status API.
-- [ ] 12.3: Ingestion/summary workers, acknowledgements and safe recovery.
+- [x] 12.3: Ingestion/summary workers, acknowledgements and safe recovery.
 - [ ] 12.4: Upload progress, real-broker verification and operating guide.
 
 Increment 12.1: queue contracts/provider settings **26 tests passed**; Ruff checks
@@ -417,3 +417,8 @@ replaced with a supported name pattern and explicit reserved-prefix validation.
 Increment 12.2: durable upload scheduling, conditional outbox publishing and safe
 status/retry routes implemented. **353 backend tests passed, 4 optional live tests
 skipped**, with disposable MongoDB. Scoped Ruff and formatting checks passed.
+
+Increment 12.3: ingestion/summary consumers, prefetch/manual acknowledgement,
+provider threads, lease heartbeats, bounded retries and operator-reviewed recovery
+implemented. **363 backend tests passed, 4 optional live checks skipped**; scoped
+Ruff checks and CLI help passed. Provider calls were simulated for these checks.

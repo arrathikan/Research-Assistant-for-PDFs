@@ -374,3 +374,8 @@ confirmed publications are implemented. See [background jobs](docs/background-jo
 Uploads now save background job requests without requiring RabbitMQ to be online.
 The processing status/retry API is implemented; worker execution follows in the
 next Prompt 12 increment.
+
+Run automatic processing independently of the gateway with
+`python -m backend.services.jobs.main run`. It requires the configured MongoDB,
+RabbitMQ and provider credentials. See the [worker guide](docs/background-jobs.md)
+for retries, dead letters and interrupted-job recovery.
