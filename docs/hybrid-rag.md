@@ -53,3 +53,23 @@ Answer generation, persistence and frontend integration follow next.
 
 References: [MongoDB vector query documentation](https://www.mongodb.com/docs/vector-search/query/aggregation-stages/vector-search-stage/),
 [MongoDB Search string/BM25 configuration](https://www.mongodb.com/docs/search/indexes/field-types/string-type/).
+
+## Grounded answers and offline evaluation traces
+
+The ordinary LangChain chain builds a bounded prompt, invokes the configured
+OpenRouter model, and validates structured claims. Each claim needs a quote from
+one retrieved chunk's actual page span. Invalid/missing citations fail the turn;
+no answer is saved. Empty retrieval skips the LLM and returns a polite abstention.
+The model can also abstain when nonempty context does not answer the question.
+History is context for interpretation, never factual source evidence.
+
+`answer_with_trace` returns a typed public response plus an internal evaluation
+trace with question, answer, actual selected contexts/IDs/pages, citations,
+measured latency and model/retrieval/chunk configuration. Public responses exclude
+retrieval text/configuration traces. There is no Ragas call or fabricated score
+in the request path. Claim entailment still requires manual/offline evaluation;
+quote identity checks are not proof of scientific correctness.
+
+Source/history JSON is bounded by `RAG_CONTEXT_BYTES`. Old history is removed
+before excluding whole source chunks that do not fit; source text is never cut
+mid-chunk. Traces record only the chunks actually supplied to the model.

@@ -387,3 +387,9 @@ set and embedding profile. Results resolve to canonical current chunks and conte
 hashes. LangChain RunnableParallel executes branches, then Python RRF deduplicates
 and combines ranks. Index definition compatibility/readiness is checked before a
 paid query embedding. No local pseudo-vector fallback is used.
+
+Prompt 10.2 uses an ordinary LangChain composition for bounded context, OpenRouter
+completion and deterministic claim/source validation. Answers reference only
+retrieved current chunks. The internal PipelineOutput contains response and
+EvaluationTrace separately; public routes must return only the response. Empty
+retrieval causes a deterministic abstention without an LLM request.

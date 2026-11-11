@@ -331,10 +331,14 @@ index creation and retrieval remain to be implemented/verified separately.
 ### Prompt 10: Hybrid RAG with evaluation support
 
 - [x] 10.1: Explicit Atlas vector/BM25 index management, scoped retrieval and RRF.
-- [ ] 10.2: Grounded LangChain answers, source verification and internal evaluation traces.
+- [x] 10.2: Grounded LangChain answers, source verification and internal evaluation traces.
 - [ ] 10.3: Document-scoped conversation persistence and HTTP API.
 - [ ] 10.4: React chat, opt-in live checks, integration verification and guide.
 
 Increment 10.1: **14 deterministic tests passed**; Ruff checks passed. This
 implements the missing Prompt 8 Atlas search code prerequisite. Live Atlas
 verification remains pending; no measured retrieval-quality claim is made.
+
+Increment 10.2: **26 tests passed** across retrieval and grounded answer contracts;
+Ruff checks passed. Invalid pages/quotes/IDs, missing evidence, unsupported
+questions, trace privacy and document isolation were checked with mocked models.

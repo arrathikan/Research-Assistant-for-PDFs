@@ -326,3 +326,7 @@ The document-scoped Atlas vector/BM25 retriever and Python rank fusion are
 implemented. See [hybrid RAG setup](docs/hybrid-rag.md) for explicit index creation,
 settings and verification limits. Live Atlas search still needs a search-enabled
 MongoDB connection; local storage success does not establish search readiness.
+
+The LangChain answer chain now validates claim-level source quotes and abstains
+when evidence is insufficient. Internal typed traces support later offline Ragas
+evaluation; no evaluation runs during ordinary chat requests.
