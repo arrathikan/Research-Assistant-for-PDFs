@@ -379,7 +379,7 @@ workflow. Real-paper quality metrics and later-stage functionality remain pendin
 - [x] 11.1: Canonical source/geometry contract and current-generation resolver.
 - [x] 11.2: React-PDF rendering, text-layer matching and safe highlight fallbacks.
 - [x] 11.3: Citation clicks, responsive workspace integration and regression checks.
-- [ ] 11.4: Browser verification, documentation and final QA.
+- [x] 11.4: Browser verification, documentation and final QA.
 
 Increment 11.1 verification: **322 backend tests passed, 4 optional live tests
 skipped** with disposable MongoDB. Scoped Ruff checks passed. Model/parser calls
@@ -393,3 +393,11 @@ Increment 11.3: **325 backend tests passed, 4 optional live tests skipped**.
 Frontend **73 tests passed** and production build passed. Canonical resolution
 also passed against persisted MongoDB chunks, including stale/cross-document
 references and rejection of client geometry. No paid provider calls were made.
+
+Increment 11.4 (2026-11-12): isolated production-build browser QA passed for real
+PDF rendering, two-line quote highlights, zoom, repeat navigation, page fallback
+and 390×844 responsive navigation. Provider outputs were simulated on synthetic
+local data. **69 isolated frontend tests**, production build, and **325 backend
+tests** (4 optional live checks skipped) passed. Local API citation route and Atlas
+connectivity were verified without paid calls. Prompt 11 is complete within its
+conservative fallback contract; Prompt 12 queued jobs is next.

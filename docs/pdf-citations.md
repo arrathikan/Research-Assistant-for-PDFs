@@ -46,7 +46,7 @@ rendering. Late resolver responses and references to another document are ignore
 
 Viewer verification: frontend **67 tests passed** in the working copy, including
 23 text/geometry tests and 8 viewer tests with a mocked renderer. Production build
-passed. Native PDF canvas/worker behavior still needs browser verification.
+passed. Native PDF canvas/worker behavior was subsequently verified below.
 
 
 ## Citation navigation
@@ -64,3 +64,60 @@ skipped**; frontend **73 tests passed** and build passed in the working copy.
 Backend tests used disposable local MongoDB, with provider boundaries mocked.
 The local dashboard redesign is preserved separately from the committed minimal
 App integration.
+
+
+## Browser verification — 2026-11-12
+
+The isolated production build was exercised in the in-app browser with a
+three-page synthetic PDF, real local MongoDB/GridFS, the actual gateway routes,
+and canonical parsed/chunk source records. Retrieval, embedding and completion
+provider boundaries were simulated for this UI check; no paid calls were made.
+The synthetic page without selectable text simulated an OCR-source mismatch;
+this check does not establish LlamaParse OCR accuracy.
+
+Observed results:
+
+- The original uploaded PDF rendered through the local PDF.js worker with its
+  actual three-page count and a selectable text layer.
+- An inline citation opened page 2 and highlighted its quote across two lines.
+- At 125% zoom, both highlight rectangles were recomputed over the source text.
+- Navigating to page 3 removed the old overlay; clicking the same page-2 citation
+  again reopened page 2 and restored the highlight.
+- A source on the page without selectable text opened page 3, displayed the
+  quote and the explicit exact-highlight-unavailable message, with no overlay.
+- At a 390×844 viewport, clicking the citation revealed the PDF pane and matched
+  text at the new page width. Returning to chat retained both turns. There was
+  only one PDF viewer instance. The viewport override was reset afterward.
+- No browser console warnings or errors were captured in the final check.
+
+The local API was reloaded with the citation route and its Atlas connection
+was pinged successfully. The application database contained no documents during
+that runtime check, so an existing-document HTTP read was not performed.
+No Atlas data was seeded, migrated or removed for this browser check.
+
+Final verification of the isolated commit content: **69 frontend tests passed**
+and production build passed; backend regression: **325 passed, 4 optional live
+checks skipped**. The local redesign also passed its four workspace checks.
+Build output retains the installed PDF.js package's eval/bundle-size warnings;
+PDF parsing is configured with `isEvalSupported: false`. Dependency upgrades and
+bundle optimization were outside this stage.
+
+## Try it locally
+
+1. Start the gateway with the project's ignored `.env`, then run `npm run dev`
+   from `frontend` so the local PDF assets are prepared.
+2. Upload a PDF. Complete parsing, chunking, embeddings and summary generation with the existing
+   processing commands; open the workspace when the document is ready. Automatic
+   queued processing belongs to Prompt 12.
+3. Ask a question that the PDF can answer. Click its `[n]` reference or page
+   button. Confirm the quoted source, page number and visible highlight state.
+4. Zoom, navigate away and click the citation again. On a narrow screen, return
+   to AI Chatbot to continue the same conversation.
+5. When extraction differs from selectable PDF text, inspect the page and quote.
+   A region overlay is a source region rather than an exact text match. Ambiguous
+   text, missing coordinates or incompatible page geometry use the stated
+   page-only fallback. Do not interpret that state as a verified text highlight.
+
+These checks validate navigation and source contracts. Scientific answer quality,
+manual benchmarks and Ragas metrics remain later stages; no evaluation scores
+are claimed here.

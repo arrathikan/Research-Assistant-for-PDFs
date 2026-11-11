@@ -359,3 +359,10 @@ resolver checks their document, page, quote and active source version before
 navigation. Chat citation buttons now jump to the uploaded PDF in React-PDF,
 with text highlights, confirmed region highlights or an explicit page-only fallback.
 Page navigation, zoom and mobile source switching are available. See [PDF citations](docs/pdf-citations.md) for the contract and scope.
+
+
+Prompt 11 verification: **325 backend tests passed, 4 optional live checks skipped**;
+**69 frontend tests passed** in an isolated commit copy, plus production build.
+Browser QA confirmed two-line PDF highlights, zoom, repeated source navigation,
+page-only fallback and mobile navigation on a synthetic PDF with simulated
+provider responses. See the [citation demo and scope](docs/pdf-citations.md#try-it-locally).
