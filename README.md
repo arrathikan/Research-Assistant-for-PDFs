@@ -267,3 +267,10 @@ complete chunks for the current parsed version. Local MongoDB verification
 passed 178 tests with one paid parser test skipped. See the
 [chunking guide](docs/markdown-chunking.md) for page/source mapping, settings,
 versioned storage, index compatibility and recovery. Embeddings are Prompt 8.
+
+### Voyage embeddings (Prompt 8)
+
+The Voyage adapter distinguishes document and query inputs, disables silent
+truncation, validates dimensions/finite nonzero vectors, and applies bounded
+batching/retry guards. Existing voyage-3/1024 configuration is preserved;
+voyage-4 and its supported dimensions are explicit configuration choices.

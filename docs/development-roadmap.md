@@ -261,3 +261,14 @@ keys and creates no embeddings. See [chunking guide](markdown-chunking.md).
 
 Frontend regression verification: **22 passed** and full TypeScript/Vite
 production build passed. Existing uncommitted frontend work remains preserved.
+
+### Prompt 8: Voyage embeddings and semantic retrieval
+
+- [x] 8.1: Voyage document/query adapter, batching, vector validation and retries.
+- [ ] 8.2: Content-based embedding cache and versioned MongoDB persistence.
+- [ ] 8.3: Atlas index management and document-scoped semantic search.
+- [ ] 8.4: CLI/API, isolated integration checks, optional live tests and guide.
+
+Voyage model remains voyage-3/1024 by default; voyage-4 is an explicit option.
+A real synthetic document/query check returned valid 1024-dimensional vectors.
+No private PDF, credential or vector was printed or committed.

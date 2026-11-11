@@ -320,3 +320,12 @@ keys. The read-only GET /documents/{id}/chunks exposes only the complete active
 set. Downstream retrieval must filter both document_id and the active chunk_set_id
 to avoid using older immutable generations. No vectors, embedding calls, queue
 dispatch or RAG generation are added by Prompt 7.
+
+## Voyage embedding boundary (Prompt 8)
+
+Documents and questions use distinct Voyage input_type values with a common
+model/dimension profile. All vectors must have the configured dimensions and
+finite numeric values and must be nonzero for cosine search. Batch size and
+conservative UTF-8 byte guards bound requests; they are not token counts.
+Provider truncation is disabled. Retries are bounded for transient errors;
+authentication/input failures are not silently retried or logged with secrets.
