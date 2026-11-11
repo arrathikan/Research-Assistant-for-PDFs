@@ -432,3 +432,9 @@ Frontend tests/build passed; an isolated staged-copy check is recorded below.
 
 Independent staged-copy frontend verification: **75 passed** and production build
 passed. The preserved local dashboard workspace also passed its existing checks.
+
+Prompt 12 local runtime follow-up (2026-11-12): persistent RabbitMQ and the
+background supervisor are running; ingestion/summary each have one consumer.
+Gateway processing routes, Atlas connectivity and an existing-document HTTP read
+were verified. Legacy uploads were left unscheduled. Prompt 12 is complete;
+Prompt 13 offline Ragas/manual evaluation is next.

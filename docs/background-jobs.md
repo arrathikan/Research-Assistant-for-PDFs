@@ -152,3 +152,20 @@ No Ragas scores were produced or claimed by this stage.
 
 Isolated staged-copy verification: **75 frontend tests passed** and production
 build passed. The local dashboard redesign remains outside this feature commit.
+
+
+## Local runtime check — 2026-11-12
+
+After verification, the project's persistent Compose RabbitMQ service was started
+and the gateway was reloaded. The ingestion and summary queues each had one
+connected consumer, with zero ready/unacknowledged messages. Both broker ports
+were confirmed bound to `127.0.0.1`. The configured Atlas connection and an
+existing document metadata HTTP read succeeded. The new processing/status retry
+routes were present in the running API. The frontend remained available on its
+existing development port.
+
+The background supervisor was left running for new uploads. Existing unrequested
+legacy documents were not scheduled, and no live paid end-to-end provider check
+was performed in this stage. Real queue processing was verified by the isolated
+integration tests described above. Provider keys and local runtime logs remain
+outside version control.
