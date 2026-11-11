@@ -9,8 +9,8 @@ Ingestion, summary and dead-letter queues are durable. Producers use persistent
 messages, mandatory routing and publisher confirms. Connection/blocked timeouts
 are bounded, and exception responses exclude broker credentials.
 
-Retries will be scheduled from a persisted MongoDB job/outbox record. Consumers
-must acknowledge only after the result or next action is durable. Duplicate
+Retries are scheduled from a persisted MongoDB job/outbox record. Consumers
+acknowledge only after the result or next action is durable. Duplicate
 messages are expected with at-least-once delivery; processing must check the
 current job identity and reuse existing completed pipeline outputs.
 
@@ -92,3 +92,63 @@ Increment 12.3 verification: **363 backend tests passed, 4 optional live checks
 skipped** with disposable MongoDB. Full processing used simulated providers.
 Atomic claims, duplicate/early deliveries, bounded retries, changed generations,
 reviewed interrupted recovery and acknowledgement-after-persistence passed.
+
+
+## Run locally
+
+From the repository root, activate the backend environment, install the declared
+backend requirements, and populate the ignored `.env`. Keep MongoDB pointed at
+Atlas when you need Atlas vector/BM25 retrieval; the local Compose MongoDB service
+does not provide Atlas search.
+
+```bash
+docker compose up -d rabbitmq
+python -m backend.services.jobs.main run
+```
+
+Keep the gateway and Vite running in their separate terminals. `run` starts three
+threads with independent broker connections: dispatcher, ingestion consumer and
+summary consumer. For separate deployments, use `dispatch`, `work ingestion` and
+`work summary` instead. Stop with Ctrl+C/SIGTERM; shutdown drains in-flight work.
+Broker connection failures retry at the configured poll interval and leave
+pending jobs saved. Do not run the operator recovery command against live workers.
+
+The RabbitMQ AMQP and management ports are bound to loopback. Broker queue names,
+acknowledgement timeout and credentials must match between processes. Queue
+arguments are immutable: inspect an incompatible pre-existing queue and plan a
+migration; do not delete it automatically. Changing settings while a job is in
+flight can invalidate its source/profile checks; retry explicitly afterward.
+
+The upload screen polls processing and document status, shows the current step
+or automatic retry, and enables **Open workspace** only after readiness is
+confirmed. A failed job has an explicit retry button; interrupted work asks for
+review. A temporary status error preserves the original PDF and does not invent
+success. Reconciliation marks repaired scheduling requests so existing jobs cannot
+occupy every reconciliation batch indefinitely.
+
+## Deterministic real-broker verification
+
+Use an isolated local MongoDB and disposable RabbitMQ queues, never a production
+broker/database, then run:
+
+```bash
+RESEARCHAI_TEST_MONGODB_URI='mongodb://127.0.0.1:27017' \
+RESEARCHAI_TEST_RABBITMQ_URL='amqp://guest:guest@127.0.0.1:5672/' \
+python -m pytest backend/tests/test_job_broker_integration.py -q
+```
+
+Tests create random queue/database names and remove only their own resources.
+Real HTTP upload, MongoDB/GridFS, RabbitMQ confirms, consumers, retry scheduling,
+summary publication and readiness are exercised. Paid provider boundaries are
+simulated. Checks cover a transient embedding failure, cache reuse, duplicate
+messages, sanitized poison messages, terminal dead-letter publication and an
+explicit retry that resumes completed stages.
+
+Final backend verification with real RabbitMQ and disposable MongoDB: **366 tests
+passed, 4 optional live provider checks skipped**. Frontend checks include progress,
+automatic retry, reviewed interruption, request failures and confirmed workspace
+readiness. Production build passed with the existing PDF.js eval/bundle warnings.
+No Ragas scores were produced or claimed by this stage.
+
+Isolated staged-copy verification: **75 frontend tests passed** and production
+build passed. The local dashboard redesign remains outside this feature commit.

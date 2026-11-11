@@ -368,14 +368,26 @@ page-only fallback and mobile navigation on a synthetic PDF with simulated
 provider responses. See the [citation demo and scope](docs/pdf-citations.md#try-it-locally).
 
 
-Prompt 12 is in progress: strict RabbitMQ message contracts, durable queues and
-confirmed publications are implemented. See [background jobs](docs/background-jobs.md).
+### Background processing (Prompt 12)
 
-Uploads now save background job requests without requiring RabbitMQ to be online.
-The processing status/retry API is implemented; worker execution follows in the
-next Prompt 12 increment.
+Uploads now save durable processing jobs. RabbitMQ workers automatically run PDF
+parsing, Markdown chunking, embeddings and the five-section summary. The upload
+screen shows progress and retry states, then enables opening the ready workspace.
 
-Run automatic processing independently of the gateway with
-`python -m backend.services.jobs.main run`. It requires the configured MongoDB,
-RabbitMQ and provider credentials. See the [worker guide](docs/background-jobs.md)
-for retries, dead letters and interrupted-job recovery.
+From the project root with the backend environment activated:
+
+```bash
+docker compose up -d rabbitmq
+python -m backend.services.jobs.main run
+```
+
+Run these workers independently of the gateway. See [background jobs](docs/background-jobs.md)
+for configuration, the processing status/retry API, dead letters and reviewed
+interrupted-job recovery. Existing completed artifacts are reused. Unrequested
+legacy documents are not automatically processed.
+
+Real RabbitMQ/disposable MongoDB verification: **366 backend tests passed,
+4 optional live provider checks skipped**. Paid providers were simulated for the
+job integration checks; no Ragas accuracy scores are claimed here.
+
+Isolated frontend verification: **75 tests passed** and production build passed.

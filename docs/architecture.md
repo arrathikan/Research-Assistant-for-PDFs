@@ -437,3 +437,10 @@ MongoDB leases, source-generation checks and the existing service claims guard
 publication. A completed ingestion action atomically becomes a summary outbox
 action. Bounded retries and dead letters are durable before acknowledgements.
 Expired workers require explicit reviewed recovery; completed artifacts are reused.
+
+
+Prompt 12.4 connects upload progress to the processing job and document metadata.
+Readiness is shown only after the persisted document is ready; transient failures
+remain retryable without fabricating a result. RabbitMQ ports are loopback-only
+for local development. Real-broker tests exercise the actual HTTP/storage/queue
+path with simulated provider boundaries and isolated queues/databases.

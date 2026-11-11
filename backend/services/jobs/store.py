@@ -109,6 +109,10 @@ def ensure_requested(database: Database, document_id: str, settings: Settings) -
             )
         except DuplicateKeyError:
             pass  # Concurrent duplicate uploads share the deterministic job identity.
+        database.documents.update_one(
+            {"_id": ObjectId(document_id)},
+            {"$set": {"processing_scheduled_job_id": message.job_id}},
+        )
         return read_status(database, document_id)
 
 

@@ -158,3 +158,28 @@ def test_status_api_excludes_worker_tokens_and_retry_is_explicit(database):
             assert client.get("/api/v1/documents/not-an-id/processing").status_code == 422
     finally:
         app.dependency_overrides.clear()
+
+
+def test_reconciliation_advances_past_already_scheduled_uploads(database):
+    identifier = scheduled(database)
+    document = database.documents.find_one({"_id": ObjectId(identifier)})
+    assert document["processing_scheduled_job_id"] == job_id(identifier)
+    # Existing requested uploads must not occupy every reconciliation batch forever.
+    assert (
+        database.documents.count_documents(
+            {"processing_requested": True, "processing_scheduled_job_id": {"$exists": False}}
+        )
+        == 0
+    )
+    missing = seed_parse(database)
+    database.documents.update_one(
+        {"_id": ObjectId(missing)}, {"$set": {"processing_requested": True}}
+    )
+    reconcile_requests(database, SETTINGS)
+    assert read_status(database, missing).status == "QUEUED"
+    assert (
+        database.documents.count_documents(
+            {"processing_requested": True, "processing_scheduled_job_id": {"$exists": False}}
+        )
+        == 0
+    )

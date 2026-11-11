@@ -12,7 +12,12 @@ def reconcile_requests(database: Database, settings: Settings) -> None:
     # Only repair uploads that explicitly requested processing, never arbitrary legacy PDFs.
     with storage_operation():
         records = database.documents.find(
-            {"processing_requested": True, "status": {"$ne": "READY"}}, {"_id": 1}
+            {
+                "processing_requested": True,
+                "processing_scheduled_job_id": {"$exists": False},
+                "status": {"$ne": "READY"},
+            },
+            {"_id": 1},
         ).limit(100)
         for document in records:
             ensure_requested(database, str(document["_id"]), settings)
