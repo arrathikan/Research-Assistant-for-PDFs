@@ -40,8 +40,8 @@ not reuse `voyage-3` vectors as though they came from `voyage-4-lite`.
 
 The summary service now uses OpenRouter for schema-constrained completions. See
 [structured summaries](structured-summary.md) for generation and verification.
-Chat completion calls, automatic model fallback, vision requests and reranking
-remain in their respective development stages.
+The hybrid chatbot now uses the same OpenRouter gateway. Automatic model fallback,
+vision requests and Voyage reranking remain outside the current RRF pipeline.
 
 Provider references: [OpenRouter model catalog](https://openrouter.ai/api/v1/models),
 [Voyage embeddings](https://docs.voyageai.com/docs/embeddings), and

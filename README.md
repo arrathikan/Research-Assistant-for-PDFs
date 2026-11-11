@@ -335,3 +335,12 @@ The chatbot API now supports document-scoped conversations and saved history:
 `POST /api/v1/documents/{id}/chat` and
 `GET /api/v1/documents/{id}/chat/{conversation_id}`. Successful turns are saved
 atomically; private retrieval traces are excluded from public responses.
+
+The React chatbot now sends real questions, recovers saved conversations and
+shows source quotes and unavailable/unsupported states. A live OpenRouter answer
+check passed on synthetic text. Full live hybrid retrieval still requires an
+Atlas/search-enabled database and remains unverified with the local MongoDB URI.
+See [the RAG guide](docs/hybrid-rag.md) for setup and opt-in checks.
+
+New to Atlas? Follow the [project setup guide](docs/atlas-setup.md), then keep your
+connection string only in the ignored local `.env`.

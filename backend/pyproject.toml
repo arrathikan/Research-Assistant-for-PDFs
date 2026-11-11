@@ -48,6 +48,7 @@ python_files = "test_*.py"
 markers = [
     "integration: opt-in tests against an isolated real MongoDB database",
     "live_parser: opt-in paid LlamaParse call; never run in normal CI",
+    "live_rag: opt-in paid model and isolated Atlas RAG checks; never run in normal CI",
     "live_summary: opt-in paid OpenRouter summary call; never run in normal CI",
 ]
 

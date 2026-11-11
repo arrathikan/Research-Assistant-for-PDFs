@@ -399,3 +399,9 @@ per-conversation ownership token. `chat_turns` stores complete user/assistant
 pairs, sequence numbers and internal evaluation traces in one atomic insert.
 Public chat/history routes return response data only. Generation changes, failed
 models and concurrent turns are handled without mixing documents or partial turns.
+
+Prompt 10.4 connects React chat/history to the real API, stores only per-document
+conversation IDs in sessionStorage and discards late replies after document
+switches. Deterministic tests cover request/history/source/failure contracts;
+opt-in tests cover an actual model answer and a disposable Atlas integration.
+Only the model-answer check was run live; Atlas retrieval remains unverified.

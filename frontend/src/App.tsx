@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { Navbar } from './components/Navbar';
 import { SplitView } from './components/SplitView';
 import { DocumentMetadata } from './types';
-import { MessageSquare, FileText } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import { UploadView } from './views/UploadView';
+import { DocumentChatPanel } from './components/chat/DocumentChatPanel';
 import { DocumentSummaryPanel } from './components/summary/DocumentSummaryPanel';
 
 export const App: React.FC = () => {
@@ -17,15 +18,7 @@ export const App: React.FC = () => {
         <div className="flex-1 flex flex-col space-y-4">
           <DocumentSummaryPanel documentId={activeDoc.id} filename={activeDoc.filename} />
 
-          <div className="flex-1 p-4 bg-slate-50 rounded-lg border border-slate-200 flex flex-col justify-between">
-            <div className="flex items-center gap-2 text-slate-700 text-sm font-semibold">
-              <MessageSquare className="w-4 h-4 text-emerald-600" />
-              <span>Hybrid RAG Chat</span>
-            </div>
-            <p className="text-xs text-slate-500 mt-1">
-              Conversational QA with jump-to-citation PDF highlighting scheduled for Stage 6.
-            </p>
-          </div>
+          <DocumentChatPanel documentId={activeDoc.id} />
         </div>
       )}
     </div>

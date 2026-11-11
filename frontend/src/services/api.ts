@@ -6,10 +6,10 @@
 import {
   DocumentMetadata,
   DocumentStatus,
-  ChatMessage,
   UploadResponse,
 } from '../types';
 
+import type { ChatResponse, ChatHistory } from '../types/chat';
 import type { SummaryResponse } from '../types/summary';
 
 const API_BASE_URL =
@@ -121,14 +121,18 @@ export const api = {
   /**
    * Query document via Hybrid RAG chatbot.
    */
-  async sendChatQuery(documentId: string, message: string): Promise<ChatMessage> {
-    return request<ChatMessage>(`/documents/${encodeURIComponent(documentId)}/chat`, {
+  async sendChatQuery(documentId: string, message: string, conversationId?: string): Promise<ChatResponse> {
+    return request<ChatResponse>(`/documents/${encodeURIComponent(documentId)}/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({ message, conversation_id: conversationId }),
     });
+  },
+
+  async getChatHistory(documentId: string, conversationId: string): Promise<ChatHistory> {
+    return request<ChatHistory>(`/documents/${encodeURIComponent(documentId)}/chat/${encodeURIComponent(conversationId)}`);
   },
 
   /**

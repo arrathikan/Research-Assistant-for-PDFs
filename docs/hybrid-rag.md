@@ -49,7 +49,7 @@ accuracy/confidence estimates.
 
 Verification so far: 14 deterministic retrieval/index tests passed. Atlas itself
 has not been verified: the local environment still points at local MongoDB.
-Answer generation, persistence and frontend integration follow next.
+Answer generation, persistence and frontend integration are described below.
 
 References: [MongoDB vector query documentation](https://www.mongodb.com/docs/vector-search/query/aggregation-stages/vector-search-stage/),
 [MongoDB Search string/BM25 configuration](https://www.mongodb.com/docs/search/indexes/field-types/string-type/).
@@ -101,3 +101,62 @@ and multi-user authorization have not been introduced by this stage.
 HTTP errors: 404 unknown document/conversation, 409 not-ready/busy/changed sources,
 422 invalid request, 503 unavailable storage/provider/search. There is no silent
 BM25-only or fake semantic fallback when Atlas is unavailable.
+
+## Frontend and commands
+
+The real chat panel sends questions to the public endpoint, displays pending,
+failed and insufficient-evidence states, shows source quotes and recovers saved
+history. Only the conversation ID is stored in sessionStorage, separately per
+document; chat text is not persisted in browser storage. A document switch
+ignores late answers. Sending failures never create a simulated assistant reply.
+Citation callbacks preserve IDs/document/chunk/page/quote for Prompt 11's viewer.
+The local workspace redesign is preserved and connected locally; the committed
+App gets the same panel without committing unrelated local layout/PDF-viewer work.
+
+For a parsed/chunked document, prepare embeddings, create indexes, then ask:
+
+```bash
+python -m backend.services.document_processor.embed_cli DOCUMENT_ID
+python -m backend.services.rag_service.indexes --create
+python -m backend.services.rag_service.main DOCUMENT_ID "What method does this paper use?"
+```
+
+Wait for both search indexes to be queryable. HTTP example:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/documents/DOCUMENT_ID/chat \
+  -H 'Content-Type: application/json' -d '{"message":"What method does this paper use?"}'
+```
+
+Use the returned conversation_id for subsequent turns/history. Retrieval and
+answers may consume provider credits. The primary model is configurable through
+OpenRouter. Voyage reranking is configured but not enabled by this RRF pipeline.
+RabbitMQ orchestration and interactive PDF source highlighting remain later stages.
+
+## Verification
+
+Normal deterministic checks mock paid/search boundaries and test real MongoDB
+persistence using disposable databases. Enable live checks explicitly:
+
+```bash
+RESEARCHAI_RUN_ANSWER_LIVE=1 python -m pytest backend/tests/test_rag_live.py::test_live_openrouter_grounded_answer -q
+# Configure RESEARCHAI_TEST_ATLAS_URI locally; it must permit disposable test databases.
+RESEARCHAI_RUN_RAG_LIVE=1 python -m pytest backend/tests/test_rag_live.py::test_live_atlas_hybrid_chat_document_isolation -q
+```
+
+The Atlas test uses synthetic parsed artifacts, real Voyage/Atlas/OpenRouter,
+creates only a uniquely named researchai_test database and removes it afterwards.
+It does not parse a private PDF. Normal CI skips it even if keys are present.
+
+Current working-copy verification: **302 backend tests passed, 4 live tests
+skipped**; production frontend build and **36 tests passed**. The separately
+opted-in live OpenRouter answer check **passed** on synthetic text and verified
+its source citation and stated result. The full live Atlas test was **not run**:
+MONGODB_URI remains a local MongoDB address. No retrieval-quality/Ragas scores or
+claims that hybrid retrieval outperforms semantic retrieval are made.
+
+Independent staged-PR verification: **302 backend tests passed, 4 skipped**,
+frontend production build and **32 tests passed**. The working copy has 4
+additional preserved workspace tests (36 total). All staged credential/whitespace
+and scoped Ruff checks passed. User confirmed Atlas is not yet set up; see the
+[Atlas setup guide](atlas-setup.md) to complete the remaining live verification.
