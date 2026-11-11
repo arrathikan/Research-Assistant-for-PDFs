@@ -44,7 +44,29 @@ class Settings(BaseSettings):
 
     # Embedding Provider Configuration (Voyage AI)
     voyage_api_key: str = ""
-    voyage_model: str = "voyage-3"
+    voyage_model: Literal["voyage-3", "voyage-large-2-instruct", "voyage-4"] = "voyage-3"
+    voyage_dimensions: int = Field(default=1024, gt=0)
+    voyage_batch_size: int = Field(default=16, ge=1, le=128)
+    voyage_max_input_bytes: int = Field(default=12000, gt=0)
+    voyage_max_batch_bytes: int = Field(default=96000, gt=0)
+    voyage_timeout_seconds: float = Field(default=30, gt=0, le=120)
+    voyage_retry_attempts: int = Field(default=2, ge=0, le=4)
+    voyage_retry_backoff_seconds: float = Field(default=1, gt=0, le=8)
+    vector_search_index_name: str = Field(
+        default="chunk_embeddings_v1", pattern=r"^[A-Za-z0-9_-]+$"
+    )
+    semantic_top_k: int = Field(default=5, ge=1, le=20)
+    vector_num_candidates: int = Field(default=100, ge=1, le=10000)
+
+    @model_validator(mode="after")
+    def validate_embedding_configuration(self) -> "Settings":
+        if self.voyage_dimensions not in {256, 512, 1024, 2048}:
+            raise ValueError("Voyage dimensions must be 256, 512, 1024 or 2048")
+        if self.voyage_model != "voyage-4" and self.voyage_dimensions != 1024:
+            raise ValueError("Configured legacy Voyage models require 1024 dimensions")
+        if self.voyage_max_batch_bytes < self.voyage_max_input_bytes:
+            raise ValueError("Voyage batch byte guard must cover one maximum-size input")
+        return self
 
     # LLM Provider Configuration
     openai_api_key: str = ""
