@@ -1,8 +1,8 @@
 # Document extraction service
 
 Prompt 6 parses an uploaded PDF into page-aware Markdown using LlamaParse v2.
-Chunking (Prompt 7), embeddings, summaries and RabbitMQ dispatch remain later
-stages. Uploads do not start paid extraction automatically.
+Prompt 7 adds local Markdown chunking. Embeddings, summaries and RabbitMQ
+dispatch remain later stages. Uploads do not start paid extraction automatically.
 
 ## Setup and execution
 
@@ -108,3 +108,17 @@ quality, paid-account access, or Atlas connectivity.
 
 References: [Python quickstart](https://developers.llamaindex.ai/llamaparse/parse/getting_started/)
 and [provider response format](https://developers.llamaindex.ai/llamaparse/parse/guides/response-format/).
+
+## Markdown chunking (Prompt 7)
+
+After extraction, run:
+
+```bash
+python -m backend.services.document_processor.chunk_cli DOCUMENT_ID
+```
+
+Optional --chunk-size/--chunk-overlap flags override CHUNK_SIZE/CHUNK_OVERLAP
+(1200/150 characters). No provider credentials are used.
+Read the active output through `GET /api/v1/documents/{id}/chunks`.
+See the [chunking guide](../../../docs/markdown-chunking.md) for source mapping,
+stable IDs, persistence/recovery and index compatibility.

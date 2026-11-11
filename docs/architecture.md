@@ -312,3 +312,11 @@ PENDING for embeddings and summary generation; it never marks chat READY.
 The legacy (document_id, chunk_index) index is removed automatically only from
 an empty chunks collection. Populated legacy data is preserved and requires an
 operator-reviewed index migration. No chunk records are deleted automatically.
+
+### Chunking entry points
+
+A dedicated chunk_cli command works from published parsed pages without provider
+keys. The read-only GET /documents/{id}/chunks exposes only the complete active
+set. Downstream retrieval must filter both document_id and the active chunk_set_id
+to avoid using older immutable generations. No vectors, embedding calls, queue
+dispatch or RAG generation are added by Prompt 7.

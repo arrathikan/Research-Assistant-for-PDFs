@@ -6,6 +6,8 @@ from urllib.parse import quote
 
 from backend.gateway.body_limit import LIMIT_DETAIL
 from backend.gateway.upload_service import persist_upload
+from backend.services.document_processor.chunk_models import DocumentChunk
+from backend.services.document_processor.chunk_storage import ChunkingNotReady, read_document_chunks
 from backend.services.document_processor.extraction import ParsingNotReady, read_parsed_document
 from backend.services.document_processor.parsed_models import ParsedDocument
 from backend.shared.config import get_settings
@@ -150,5 +152,20 @@ def parsed_document(document_id: DocumentId, database: DatabaseDependency) -> Pa
         return read_parsed_document(database, document_id)
     except ParsingNotReady:
         raise HTTPException(409, "Document parsing is not complete") from None
+    except DocumentNotFound:
+        raise HTTPException(404, "Document not found") from None
+
+
+@router.get(
+    "/{document_id}/chunks", response_model=list[DocumentChunk], response_model_by_alias=False
+)
+def document_chunks(document_id: DocumentId, database: DatabaseDependency) -> list[DocumentChunk]:
+    """Read a complete chunk set for the current parse; never trigger processing."""
+    try:
+        return read_document_chunks(database, document_id)
+    except ChunkingNotReady:
+        raise HTTPException(
+            409, "Chunking is not complete for the current parsed document"
+        ) from None
     except DocumentNotFound:
         raise HTTPException(404, "Document not found") from None

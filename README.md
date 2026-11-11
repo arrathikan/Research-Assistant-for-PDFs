@@ -254,3 +254,16 @@ Chunk storage now keeps immutable generations and publishes only complete sets.
 Changing configuration preserves older output. Metadata includes chunking_status
 and chunked_at. The original unique chunk index can be upgraded automatically
 only while its collection is empty; populated legacy data requires review.
+
+Run chunking after the document has a published parse:
+
+```bash
+python -m backend.services.document_processor.chunk_cli DOCUMENT_ID
+curl http://localhost:8000/api/v1/documents/DOCUMENT_ID/chunks
+```
+
+This stage is local and needs no provider keys. The read endpoint returns only
+complete chunks for the current parsed version. Local MongoDB verification
+passed 178 tests with one paid parser test skipped. See the
+[chunking guide](docs/markdown-chunking.md) for page/source mapping, settings,
+versioned storage, index compatibility and recovery. Embeddings are Prompt 8.

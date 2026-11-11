@@ -187,7 +187,8 @@ development prompts. Prompts 0–2 are the existing rules, scaffolding and front
 - [x] Prompt 4: MongoDB Atlas-compatible / GridFS storage (Atlas deployment verification pending).
 - [x] Prompt 5: PDF upload, validation, deduplication and local verification.
 - [x] Prompt 6: LlamaParse v2 extraction, status, persistence and local verification.
-- [ ] Prompts 7–15: Chunking, embeddings, summary, hybrid RAG,
+- [x] Prompt 7: Markdown chunking, page/source mapping and versioned persistence.
+- [ ] Prompts 8–15: Embeddings, summary, hybrid RAG,
   citations, jobs, offline Ragas, deployment and final live QA.
 
 Prompt 3.1 verification: 17 backend tests passed. Health does not imply external
@@ -247,8 +248,16 @@ upload-to-parse triggering remain later stages.
 
 - [x] 7.1: LangChain section/recursive splitting, configuration and source mapping.
 - [x] 7.2: Versioned MongoDB persistence and atomic chunk-set publication.
-- [ ] 7.3: CLI/read endpoint, isolated integration checks and documentation.
+- [x] 7.3: CLI/read endpoint, isolated integration checks and documentation.
 
 Defaults: 1200 characters with 150-character overlap. Chunk IDs are stable for
 the same parsed run, content, splitter version and configuration. Sections may
 continue across PDF pages; unrelated heading sections are never combined.
+
+Prompt 7 verification (2026-11-11): **178 passed, 1 skipped** with disposable
+local MongoDB and actual LangChain splitters. The skipped test is the opt-in
+paid parser test. Offline: **160 passed, 19 skipped**. Chunking uses no provider
+keys and creates no embeddings. See [chunking guide](markdown-chunking.md).
+
+Frontend regression verification: **22 passed** and full TypeScript/Vite
+production build passed. Existing uncommitted frontend work remains preserved.
