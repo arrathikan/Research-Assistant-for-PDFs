@@ -240,3 +240,13 @@ bytes with validated page count; concurrent duplicates use the storage layer's
 unique index and loser cleanup. Responses preserve actual lifecycle status.
 Metadata/status/original-PDF reads use explicit database lifecycle helpers.
 No AI or message broker is invoked in this stage.
+
+## Extraction contracts (Prompt 6)
+
+Normalized output preserves one-based PDF page numbers, per-page Markdown and
+individual source elements. Complete page coverage is checked against the
+original PDF page count; ambiguous or partial output is rejected. Markdown
+headings/tables remain intact and combined output has explicit page separators.
+Item coordinates retain provider-defined units. Layout boxes use the provider's
+documented normalized convention; unrelated layout boxes are never attached to
+text. Missing or invalid coordinates fall back to page-level attribution.

@@ -225,3 +225,12 @@ Local browser verification (2026-11-11): upload, duplicate detection, invalid-fi
 rejection and recovery passed. Original downloads matched bytes/SHA-256; one
 metadata record and file remained. Full local frontend build and 22 tests passed.
 See [verification report](verification-report.md) for exact scope and limitations.
+
+### Prompt 6: LlamaParse extraction
+
+- [x] 6.1: Page-aware Markdown and source-element normalization contracts.
+- [ ] 6.2: Installed-SDK adapter, GridFS orchestration and safe parse persistence.
+- [ ] 6.3: CLI, integration checks, opt-in paid live test and documentation.
+
+Coordinate metadata is preserved when valid. Missing/unknown coordinate systems
+require page navigation fallback; layout boxes are not guessed for text items.

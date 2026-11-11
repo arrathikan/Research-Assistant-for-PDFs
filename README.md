@@ -209,3 +209,9 @@ PDF download have been verified with isolated local MongoDB and the browser UI.
 The backend suite passed 87 tests; the current frontend working checkout passed
 22 tests and a full production build. See [verification details](docs/verification-report.md)
 for scope, local workspace status and features still awaiting implementation.
+
+### Page-aware PDF extraction (Prompt 6)
+
+Extraction contracts now preserve page-specific Markdown, headings/tables, source
+elements and available coordinates. Missing coordinates support page-navigation
+fallback; page numbers are never inferred from an incomplete parser response.
