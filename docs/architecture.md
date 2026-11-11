@@ -255,3 +255,19 @@ The supported v2 SDK adapter converts explicitly numbered Markdown/items pages
 to the internal page contract. Current item boxes are in page points, with all
 boxes retained and parent/child relationships preserved. The standalone adapter
 uses bounded HTTP/polling timeouts and avoids automatic paid POST retries.
+
+### Extraction lifecycle and publication
+
+A worker atomically claims only pending/failed documents that are neither running
+nor already parsed. The original GridFS bytes are revalidated before a paid
+provider call. Per-run `parsed_pages` and `source_elements` records are immutable.
+Only after every write succeeds does one conditional metadata update publish
+`active_parse_run_id`. Readers filter by that pointer; partial runs are invisible.
+
+During extraction the document is PARSING with parsing_status RUNNING. Success
+sets parsing_status COMPLETED and the overall status PENDING for the next stage.
+It never marks the document READY before chunking/embedding/summary. Failures set
+FAILED with a safe error message. Completed extraction is reused without paying
+for another call. Interrupted RUNNING claims need operator review; no automatic
+lease expiration can launch a duplicate paid job. Partial runs are retained for
+manual reconciliation without removing previous successful output.

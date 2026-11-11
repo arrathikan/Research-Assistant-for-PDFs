@@ -40,3 +40,18 @@ silently accepting partial content.
 
 References: [v2 Python quickstart](https://developers.llamaindex.ai/llamaparse/parse/getting_started/)
 and [response format](https://developers.llamaindex.ai/llamaparse/parse/guides/response-format/).
+
+## Persistence and recovery
+
+`parse_pdf(database, document_id, settings)` loads and validates the GridFS PDF,
+claims parsing atomically, calls LlamaParse and saves the result. Per-run page and
+source records are published only by a conditional active-run pointer update.
+`read_parsed_document` returns only that complete run. New indexes support run
+and page lookups. Completed extraction is reused; FAILED documents can be retried.
+
+A missing key leaves the document unchanged. Provider, validation or persistence
+failures set a safe FAILED status. If the database is unavailable, failure status
+may itself be impossible to save. A process crash leaves a RUNNING claim: inspect
+the provider job and database before manually recovering it. Partially written
+runs remain unreferenced for operator reconciliation; no destructive automatic
+cleanup or automatic paid retry is performed.

@@ -221,3 +221,8 @@ Configure `LLAMA_CLOUD_API_KEY`, `LLAMA_PARSE_TIMEOUT_SECONDS`,
 `LLAMA_PARSE_TIER` and `LLAMA_PARSE_VERSION`; see the
 [document processor guide](backend/services/document_processor/README.md).
 Source boxes retain their documented coordinate units and nested relationships.
+
+GridFS extraction now records `parsing_status` and `parsed_at`, with versioned
+per-page/source persistence. Successful parsing leaves the overall document
+`PENDING` for later stages; it does not imply embeddings, summaries or chat are
+ready. Failed or interrupted attempts never publish incomplete page results.

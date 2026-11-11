@@ -7,6 +7,7 @@ and the frontend client.
 from datetime import datetime, timezone
 from enum import Enum
 from typing import List, Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -25,6 +26,13 @@ class DocumentStatus(str, Enum):
     FAILED = "FAILED"
 
 
+class ParsingStatus(str, Enum):
+    NOT_STARTED = "NOT_STARTED"
+    RUNNING = "RUNNING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+
+
 class DocumentMetadata(BaseModel):
     """Metadata record for an uploaded research paper."""
 
@@ -34,8 +42,14 @@ class DocumentMetadata(BaseModel):
     file_size_bytes: int = Field(..., description="File size in bytes")
     gridfs_file_id: Optional[str] = Field(default=None, description="GridFS file reference")
     page_count: Optional[int] = Field(default=None, description="Total number of pages")
-    status: DocumentStatus = Field(default=DocumentStatus.PENDING, description="Current ingestion status")
-    error_message: Optional[str] = Field(default=None, description="Error detail if status is FAILED")
+    status: DocumentStatus = Field(
+        default=DocumentStatus.PENDING, description="Current ingestion status"
+    )
+    error_message: Optional[str] = Field(
+        default=None, description="Error detail if status is FAILED"
+    )
+    parsing_status: ParsingStatus = ParsingStatus.NOT_STARTED
+    parsed_at: Optional[datetime] = None
     created_at: datetime = Field(default_factory=_utc_now, description="Creation timestamp")
     updated_at: datetime = Field(default_factory=_utc_now, description="Last update timestamp")
 
@@ -51,7 +65,9 @@ class ChunkMetadata(BaseModel):
     document_id: str = Field(..., description="Reference to parent DocumentMetadata ID")
     chunk_index: int = Field(..., description="Ordered index within the document")
     page_number: int = Field(..., description="Original PDF page number (1-based)")
-    section_title: Optional[str] = Field(default=None, description="Associated section or Markdown header")
+    section_title: Optional[str] = Field(
+        default=None, description="Associated section or Markdown header"
+    )
     content: str = Field(..., description="Text content of the chunk")
     token_count: Optional[int] = Field(default=None, description="Estimated token count")
     created_at: datetime = Field(default_factory=_utc_now)
@@ -86,15 +102,22 @@ class CitationReference(BaseModel):
 class ChatQueryRequest(BaseModel):
     """Request payload for querying the paper via Hybrid RAG."""
 
-    message: str = Field(..., min_length=1, max_length=2000, description="User question about the paper")
-    conversation_id: Optional[str] = Field(default=None, description="Optional conversation session ID")
+    message: str = Field(
+        ..., min_length=1, max_length=2000, description="User question about the paper"
+    )
+    conversation_id: Optional[str] = Field(
+        default=None, description="Optional conversation session ID"
+    )
 
 
 class ChatQueryResponse(BaseModel):
     """Response payload returned by the Hybrid RAG engine."""
 
     answer: str = Field(..., description="Grounded answer synthesized by the LLM")
-    citations: List[CitationReference] = Field(default_factory=list, description="Citations supporting the answer")
+    citations: List[CitationReference] = Field(
+        default_factory=list, description="Citations supporting the answer"
+    )
     document_id: str = Field(..., description="Document identifier queried against")
-    is_out_of_scope: bool = Field(default=False, description="Flag indicating if the question was outside paper scope")
-
+    is_out_of_scope: bool = Field(
+        default=False, description="Flag indicating if the question was outside paper scope"
+    )

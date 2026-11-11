@@ -230,7 +230,7 @@ See [verification report](verification-report.md) for exact scope and limitation
 
 - [x] 6.1: Page-aware Markdown and source-element normalization contracts.
 - [x] 6.2: Supported LlamaParse v2 SDK adapter and complete source metadata.
-- [ ] 6.3: GridFS orchestration and versioned parse persistence.
+- [x] 6.3: GridFS orchestration and versioned parse persistence.
 - [ ] 6.4: CLI, integration checks, opt-in paid live test and documentation.
 
 Coordinate metadata is preserved when valid. Missing/unknown coordinate systems
