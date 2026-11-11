@@ -380,3 +380,10 @@ availability from completion of the embedding stage.
 Embedding publication recognizes a completed summary for the same parse, chunk
 set and summary profile. Current embeddings and summary are both required for
 READY, regardless of which finishes first. Search indexes are independent.
+
+Prompt 10 retrieval runs Atlas Vector Search and MongoDB Search BM25 over the same
+immutable `chunk_embeddings` snapshots. Both branches pre-filter document, chunk
+set and embedding profile. Results resolve to canonical current chunks and content
+hashes. LangChain RunnableParallel executes branches, then Python RRF deduplicates
+and combines ranks. Index definition compatibility/readiness is checked before a
+paid query embedding. No local pseudo-vector fallback is used.

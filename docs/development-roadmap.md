@@ -327,3 +327,14 @@ fixed. Versioned embedding snapshots and retryable content-vector caching are
 now committed. Embedding publication also recognizes an already completed summary
 for the same sources/model so either processing order can reach READY. Atlas
 index creation and retrieval remain to be implemented/verified separately.
+
+### Prompt 10: Hybrid RAG with evaluation support
+
+- [x] 10.1: Explicit Atlas vector/BM25 index management, scoped retrieval and RRF.
+- [ ] 10.2: Grounded LangChain answers, source verification and internal evaluation traces.
+- [ ] 10.3: Document-scoped conversation persistence and HTTP API.
+- [ ] 10.4: React chat, opt-in live checks, integration verification and guide.
+
+Increment 10.1: **14 deterministic tests passed**; Ruff checks passed. This
+implements the missing Prompt 8 Atlas search code prerequisite. Live Atlas
+verification remains pending; no measured retrieval-quality claim is made.

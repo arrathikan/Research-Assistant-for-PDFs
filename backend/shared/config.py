@@ -65,6 +65,12 @@ class Settings(BaseSettings):
     vector_search_index_name: str = Field(
         default="chunk_embeddings_v1", pattern=r"^[A-Za-z0-9_-]+$"
     )
+    keyword_search_index_name: str = Field(default="chunk_keywords_v1", pattern=r"^[A-Za-z0-9_-]+$")
+    rag_candidate_k: int = Field(default=20, ge=1, le=50)
+    rag_context_k: int = Field(default=6, ge=1, le=20)
+    rag_rrf_constant: int = Field(default=60, ge=1, le=1000)
+    rag_context_bytes: int = Field(default=32000, ge=4000, le=128000)
+    rag_history_turns: int = Field(default=6, ge=0, le=20)
     semantic_top_k: int = Field(default=5, ge=1, le=20)
     vector_num_candidates: int = Field(default=100, ge=1, le=10000)
 

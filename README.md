@@ -319,3 +319,10 @@ until background orchestration is implemented.
 Embedding storage is now available through the explicit embedding command above.
 Successful cached batches survive retries; current summaries and embeddings can
 finish in either order. Atlas index/search verification remains separate.
+
+### Hybrid RAG (Prompt 10)
+
+The document-scoped Atlas vector/BM25 retriever and Python rank fusion are
+implemented. See [hybrid RAG setup](docs/hybrid-rag.md) for explicit index creation,
+settings and verification limits. Live Atlas search still needs a search-enabled
+MongoDB connection; local storage success does not establish search readiness.
