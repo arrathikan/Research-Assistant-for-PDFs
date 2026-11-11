@@ -12,7 +12,7 @@ TRANSIENT_STATUS = {408, 429, 500, 502, 503, 504}
 
 
 class OpenRouterClient:
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Settings) -> None:
         if not settings.openrouter_api_key.strip() or settings.openrouter_api_key.startswith(
             "your_"
         ):

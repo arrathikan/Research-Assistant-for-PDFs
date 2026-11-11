@@ -358,3 +358,12 @@ token on `documents`. Publication checks the current parse and chunk set; a
 completed run can be reused without repeating LLM calls. Reads revalidate source
 references. Summary completion alone leaves PENDING until current embeddings
 are complete. `GET /api/v1/documents/{id}/summary` is read-only.
+
+Prompt 9.4 connects the React summary panel to the saved-summary endpoint. It
+checks pending results, handles unavailable/failed jobs, preserves explicit
+missing information and discards stale document responses. Source pages and
+quotes are shown; interactive PDF highlighting remains Prompt 11.
+
+The upload result can open the read-only summary panel before document READY,
+without opening a pending chatbot or starting generation. This separates summary
+availability from completion of the embedding stage.

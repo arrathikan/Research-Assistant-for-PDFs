@@ -17,6 +17,7 @@ from backend.services.summary_service.models import (
 from backend.shared.config import Settings
 from backend.shared.openrouter import OpenRouterClient
 from langgraph.graph import END, START, StateGraph
+from langgraph.graph.state import CompiledStateGraph
 from pydantic import BaseModel
 
 Completion = Callable[[str, str, dict[str, Any]], str]
@@ -116,7 +117,9 @@ def _source_contexts(chunks: list[DocumentChunk], settings: Settings) -> list[Su
     return _pack(records, settings, "extract")
 
 
-def build_summary_graph(settings: Settings, complete: Completion, save: SaveSummary | None = None):
+def build_summary_graph(
+    settings: Settings, complete: Completion, save: SaveSummary | None = None
+) -> CompiledStateGraph:
     """Compile a deterministic graph; no agents or persistent checkpoints."""
 
     def identify(state: SummaryState) -> dict[str, Any]:

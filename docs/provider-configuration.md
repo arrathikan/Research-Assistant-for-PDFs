@@ -38,9 +38,10 @@ Changing models changes the embedding profile even when the vector dimension
 stays 1024. Re-embed the document for the selected profile before searching; do
 not reuse `voyage-3` vectors as though they came from `voyage-4-lite`.
 
-This increment configures the OpenRouter model roles and reranker. It does not
-implement summary/chat completion calls, automatic model fallback, vision
-requests, or reranking. Those remain in their respective development stages.
+The summary service now uses OpenRouter for schema-constrained completions. See
+[structured summaries](structured-summary.md) for generation and verification.
+Chat completion calls, automatic model fallback, vision requests and reranking
+remain in their respective development stages.
 
 Provider references: [OpenRouter model catalog](https://openrouter.ai/api/v1/models),
 [Voyage embeddings](https://docs.voyageai.com/docs/embeddings), and

@@ -293,7 +293,7 @@ Atlas search, completion clients and reranking integration remain unfinished.
 - [x] 9.1: Strict summary/evidence contracts and the OpenRouter completion client.
 - [x] 9.2: LangGraph extraction, validation and bounded targeted repairs.
 - [x] 9.3: Versioned MongoDB publication, CLI and read-only HTTP endpoint.
-- [ ] 9.4: Live React summary display, regression checks and optional model test.
+- [x] 9.4: Live React summary display, regression checks and optional model test.
 
 Increment 9.1 verification: **30 passed** focused schema, source validation,
 provider settings and mocked completion tests. Ruff lint/format checks passed.
@@ -309,3 +309,14 @@ Increment 9.3 verification: **264 passed, 1 skipped** with disposable local Mong
 The skipped test is the opt-in paid parser test. Summary persistence/reuse,
 failed publication recovery, document/source/model isolation, API errors and
 CLI contracts passed. Ruff checks passed; no live LLM call was made yet.
+
+Increment 9.4 verification: **264 backend tests passed, 2 skipped** with local
+disposable MongoDB; frontend production build and **30 tests passed**. The
+separately enabled real-model summary smoke test **passed** on synthetic text
+using the configured OpenRouter primary model. No private PDF or generated
+summary was committed. Atlas semantic search remains unfinished Prompt 8 work.
+
+Independent staged-PR export verification: **254 backend tests passed, 2 skipped**;
+frontend production build and **26 tests passed**. Counts exclude preserved,
+uncommitted Prompt 8 and workspace tests. The upload page can now show a saved
+summary before embeddings finish without opening a pending chatbot.

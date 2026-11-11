@@ -291,8 +291,17 @@ explicit missing information and source references. See the
 
 The summary LangGraph now extracts bounded research windows, validates evidence,
 repairs invalid output at most twice, and combines long-paper notes without
-silently dropping chunks. Versioned persistence is implemented; the frontend connection follows next.
+silently dropping chunks. Versioned persistence and the frontend summary connection are implemented.
 
 Generate a parsed/chunked document summary with
 `python -m backend.services.summary_service.main DOCUMENT_ID`. Retrieve the saved
 result through `GET /api/v1/documents/{id}/summary`; this read never calls the LLM.
+
+The five summary cards now read saved results with loading, waiting and error
+states, and display source pages/quotes. The real OpenRouter summary smoke test
+passed on synthetic input. See the [summary guide](docs/structured-summary.md)
+for commands, test scope and remaining work.
+
+After upload, View summary opens the read-only summary panel even while the
+document is waiting for embeddings. Generation remains an explicit CLI job
+until background orchestration is implemented.

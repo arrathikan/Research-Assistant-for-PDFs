@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { DocumentSummaryPanel } from '../components/summary/DocumentSummaryPanel';
 import { UploadZone } from '../components/upload/UploadZone';
 import { ErrorMessage } from '../components/common/ErrorMessage';
 import { DocumentMetadata, UploadResponse } from '../types';
@@ -13,12 +14,14 @@ export const UploadView: React.FC<UploadViewProps> = ({ onUploadSuccess }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [showSummary, setShowSummary] = useState(false);
   const [result, setResult] = useState<UploadResponse | null>(null);
 
   const handleUpload = async (file: File) => {
     setIsUploading(true);
     setError(null);
     setResult(null);
+    setShowSummary(false);
 
     try {
       const response = await api.uploadDocument(file);
@@ -68,10 +71,19 @@ export const UploadView: React.FC<UploadViewProps> = ({ onUploadSuccess }) => {
           {result.document.id && (
             <a href={api.getPdfStreamUrl(result.document.id)} target="_blank" rel="noopener noreferrer" className="inline-block mt-3 underline">Open original PDF</a>
           )}
+          {result.document.id && result.document.status !== 'READY' && (
+            <button type="button" className="block mt-3 underline" onClick={() => setShowSummary(value => !value)}>
+              {showSummary ? 'Hide summary' : 'View summary'}
+            </button>
+          )}
           {result.document.status === 'READY' && (
             <button className="block mt-3 underline" onClick={() => onUploadSuccess(result.document)}>Open workspace</button>
           )}
         </div>
+      )}
+
+      {showSummary && result?.document.id && (
+        <DocumentSummaryPanel documentId={result.document.id} filename={result.document.filename} />
       )}
 
       <UploadZone onUpload={handleUpload} isUploading={isUploading} />
