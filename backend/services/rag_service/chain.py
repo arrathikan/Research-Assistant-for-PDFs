@@ -1,10 +1,10 @@
 """Ordinary LangChain answer chain with deterministic source validation and traces."""
 
 import json
-from hashlib import sha256
 from time import perf_counter
 from typing import Any
 
+from backend.services.rag_service.citations import make_citation
 from backend.services.rag_service.models import (
     AnswerDraft,
     ChatCitation,
@@ -104,16 +104,7 @@ def _answer(
                 raise RagUnavailable(
                     "Answer citation failed source validation; no answer was saved"
                 )
-            citation_id = sha256(
-                f"{scope.document_id}:{source.chunk_id}:{source.page_number}:{source.quote}".encode()
-            ).hexdigest()
-            citation = ChatCitation(
-                citation_id=citation_id,
-                document_id=scope.document_id,
-                chunk_id=source.chunk_id,
-                page_number=source.page_number,
-                quote_snippet=source.quote,
-            )
+            citation = make_citation(chunk, source.page_number, source.quote)
             if citation not in citations:
                 citations.append(citation)
             references.append(citations.index(citation) + 1)

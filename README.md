@@ -351,3 +351,9 @@ application search indexes are queryable. Backend regression checks: **303 passe
 4 optional live tests skipped**; the live Atlas check was enabled and run separately.
 See [the verification report](docs/atlas-verification.md). This establishes the
 synthetic workflow, not a scientific-summary/RAG accuracy benchmark.
+
+### PDF citations (Prompt 11)
+
+Citations now preserve source geometry and generation metadata. A deterministic
+resolver checks their document, page, quote and active source version before
+navigation. See [PDF citations](docs/pdf-citations.md) for the contract and scope.

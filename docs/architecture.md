@@ -407,3 +407,8 @@ opt-in tests cover an actual model answer and a disposable Atlas integration.
 The model-answer check and the isolated live Atlas integration check have both
 passed. Application vector/BM25 indexes are compatible and queryable; scientific
 quality evaluation remains a later stage.
+
+Prompt 11.1 enriches citations with source generation and retained geometry.
+A read-only citation resolver rebuilds anchors from canonical current chunks and
+rechecks generation; it does not trust client coordinates or call providers.
+Only documented, unrotated and in-bounds source regions are eligible for overlays.

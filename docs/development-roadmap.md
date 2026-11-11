@@ -373,3 +373,14 @@ citations, and removed only its own disposable database. Full backend regression
 **303 passed, 4 optional live tests skipped**; the live Atlas test ran separately.
 Prompt 8/10 Atlas deployment verification is now complete for this synthetic
 workflow. Real-paper quality metrics and later-stage functionality remain pending.
+
+### Prompt 11: Clickable PDF citations
+
+- [x] 11.1: Canonical source/geometry contract and current-generation resolver.
+- [ ] 11.2: React-PDF rendering, text-layer matching and safe highlight fallbacks.
+- [ ] 11.3: Citation clicks, responsive workspace integration and regression checks.
+- [ ] 11.4: Browser verification, documentation and final QA.
+
+Increment 11.1 verification: **322 backend tests passed, 4 optional live tests
+skipped** with disposable MongoDB. Scoped Ruff checks passed. Model/parser calls
+were mocked; citation checks are deterministic and independent from Ragas.

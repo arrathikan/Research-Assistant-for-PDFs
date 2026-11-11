@@ -4,6 +4,7 @@ from typing import Any
 
 from backend.services.document_processor.chunk_models import DocumentChunk
 from backend.services.summary_service.models import Evidence, StrictModel
+from backend.shared.citation_models import CitationBox
 from pydantic import BaseModel, Field, model_validator
 
 
@@ -63,6 +64,12 @@ class ChatCitation(BaseModel):
     chunk_id: str
     page_number: int
     quote_snippet: str
+    chunk_set_id: str | None = None
+    parse_run_id: str | None = None
+    page_width: float | None = None
+    page_height: float | None = None
+    source_element_ids: list[str] = Field(default_factory=list)
+    bounding_boxes: list[CitationBox] = Field(default_factory=list)
 
 
 class ChatResponse(BaseModel):
