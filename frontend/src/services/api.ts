@@ -11,6 +11,7 @@ import {
 
 import type { ChatCitation, ChatResponse, ChatHistory } from '../types/chat';
 import type { SummaryResponse } from '../types/summary';
+import type { ProcessingStatus } from '../types/processing';
 
 const API_BASE_URL =
   (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:8000/api/v1';
@@ -112,8 +113,17 @@ export const api = {
   },
 
   /**
-   * Fetch 5-section structured summary.
+   * Read background processing progress.
    */
+  async getProcessingStatus(documentId: string): Promise<ProcessingStatus> {
+    return request<ProcessingStatus>(`/documents/${encodeURIComponent(documentId)}/processing`);
+  },
+
+  async retryProcessing(documentId: string): Promise<ProcessingStatus> {
+    return request<ProcessingStatus>(`/documents/${encodeURIComponent(documentId)}/processing/retry`, { method: 'POST' });
+  },
+
+  /** Fetch the stored five-section summary without starting generation. */
   async getDocumentSummary(documentId: string): Promise<SummaryResponse> {
     return request<SummaryResponse>(`/documents/${encodeURIComponent(documentId)}/summary`);
   },

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { UploadView } from '../views/UploadView';
 import { api } from '../services/api';
 import { UploadResponse } from '../types';
@@ -69,4 +69,22 @@ describe('live upload states', () => {
     finish(stored);
     await waitFor(() => expect(screen.getByText('Upload successful')).toBeInTheDocument());
   });
+});
+
+
+it('enables opening the workspace only after background progress and metadata confirm readiness', async () => {
+  vi.useFakeTimers();
+  try {
+    vi.spyOn(api, 'uploadDocument').mockResolvedValue(stored);
+    const ready = { ...stored.document, status: 'READY' as const };
+    vi.spyOn(api, 'getDocument').mockResolvedValue(ready);
+    vi.spyOn(api, 'getProcessingStatus').mockResolvedValue({ document_id: ready.id!, job_id: 'a'.repeat(64), status: 'COMPLETED', stage: 'summary', step: 'complete', generation: 1, attempt: 1, max_attempts: 3, retry_at: null, error_code: null, requires_review: false });
+    const open = vi.fn();
+    render(<UploadView onUploadSuccess={open} />);
+    await act(async () => { selectAndUpload(); });
+    expect(screen.queryByRole('button', { name: 'Open workspace' })).not.toBeInTheDocument();
+    await act(async () => { await vi.advanceTimersByTimeAsync(2000); });
+    fireEvent.click(screen.getByRole('button', { name: 'Open workspace' }));
+    expect(open).toHaveBeenCalledWith(ready);
+  } finally { vi.useRealTimers(); }
 });

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
+import { ProcessingProgress } from '../components/upload/ProcessingProgress';
 import { DocumentSummaryPanel } from '../components/summary/DocumentSummaryPanel';
 import { UploadZone } from '../components/upload/UploadZone';
 import { ErrorMessage } from '../components/common/ErrorMessage';
@@ -16,6 +17,10 @@ export const UploadView: React.FC<UploadViewProps> = ({ onUploadSuccess }) => {
 
   const [showSummary, setShowSummary] = useState(false);
   const [result, setResult] = useState<UploadResponse | null>(null);
+
+  const handleReady = useCallback((document: DocumentMetadata) => {
+    setResult(current => current && current.document.id === document.id ? { ...current, document } : current);
+  }, []);
 
   const handleUpload = async (file: File) => {
     setIsUploading(true);
@@ -76,6 +81,7 @@ export const UploadView: React.FC<UploadViewProps> = ({ onUploadSuccess }) => {
               {showSummary ? 'Hide summary' : 'View summary'}
             </button>
           )}
+          {result.document.id && result.document.status !== 'READY' && <ProcessingProgress key={result.document.id} documentId={result.document.id} onReady={handleReady} />}
           {result.document.status === 'READY' && (
             <button className="block mt-3 underline" onClick={() => onUploadSuccess(result.document)}>Open workspace</button>
           )}

@@ -421,3 +421,26 @@ frame-checked source-region overlays. Unmatched/ambiguous text and incompatible
 geometry keep an honest page/quote fallback. Inline chat references and page
 buttons trigger the same navigation; late results and old-page overlays are
 suppressed. Citation checks remain separate from offline Ragas evaluation.
+
+
+Prompt 12.2 adds a MongoDB outbox in `processing_jobs`. Upload validation/GridFS
+storage remain synchronous, followed by durable scheduling only. A separate
+dispatcher confirms RabbitMQ publication before marking the precise job action
+sent. Pending retry/dead-letter actions survive broker downtime. Public job
+status excludes ownership tokens. Manual retry increments the job generation;
+unrequested legacy documents are excluded from reconciliation.
+
+
+Prompt 12.3 runs ingestion and summary consumers outside the gateway. Prefetch 1
+bounds deliveries; long provider calls run outside the RabbitMQ I/O thread.
+MongoDB leases, source-generation checks and the existing service claims guard
+publication. A completed ingestion action atomically becomes a summary outbox
+action. Bounded retries and dead letters are durable before acknowledgements.
+Expired workers require explicit reviewed recovery; completed artifacts are reused.
+
+
+Prompt 12.4 connects upload progress to the processing job and document metadata.
+Readiness is shown only after the persisted document is ready; transient failures
+remain retryable without fabricating a result. RabbitMQ ports are loopback-only
+for local development. Real-broker tests exercise the actual HTTP/storage/queue
+path with simulated provider boundaries and isolated queues/databases.

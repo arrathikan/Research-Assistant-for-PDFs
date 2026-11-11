@@ -401,3 +401,40 @@ local data. **69 isolated frontend tests**, production build, and **325 backend
 tests** (4 optional live checks skipped) passed. Local API citation route and Atlas
 connectivity were verified without paid calls. Prompt 11 is complete within its
 conservative fallback contract; Prompt 12 queued jobs is next.
+
+
+### Prompt 12: RabbitMQ background processing
+
+- [x] 12.1: Durable queue/message contracts and bounded broker connections.
+- [x] 12.2: Persisted upload scheduling, retries and processing status API.
+- [x] 12.3: Ingestion/summary workers, acknowledgements and safe recovery.
+- [x] 12.4: Upload progress, real-broker verification and operating guide.
+
+Increment 12.1: queue contracts/provider settings **26 tests passed**; Ruff checks
+and formatting passed. The unsupported look-ahead from the first attempt was
+replaced with a supported name pattern and explicit reserved-prefix validation.
+
+Increment 12.2: durable upload scheduling, conditional outbox publishing and safe
+status/retry routes implemented. **353 backend tests passed, 4 optional live tests
+skipped**, with disposable MongoDB. Scoped Ruff and formatting checks passed.
+
+Increment 12.3: ingestion/summary consumers, prefetch/manual acknowledgement,
+provider threads, lease heartbeats, bounded retries and operator-reviewed recovery
+implemented. **363 backend tests passed, 4 optional live checks skipped**; scoped
+Ruff checks and CLI help passed. Provider calls were simulated for these checks.
+
+Increment 12.4: upload progress/retry controls, loopback-only broker ports and the
+operating guide are implemented. Real RabbitMQ + disposable MongoDB regression:
+**366 passed, 4 optional live provider checks skipped**. The broker checks exercise
+upload-to-ready, bounded retries, duplicate messages, poison-message sanitization,
+dead letters and explicit retry with cached stages. Paid providers were simulated.
+Frontend tests/build passed; an isolated staged-copy check is recorded below.
+
+Independent staged-copy frontend verification: **75 passed** and production build
+passed. The preserved local dashboard workspace also passed its existing checks.
+
+Prompt 12 local runtime follow-up (2026-11-12): persistent RabbitMQ and the
+background supervisor are running; ingestion/summary each have one consumer.
+Gateway processing routes, Atlas connectivity and an existing-document HTTP read
+were verified. Legacy uploads were left unscheduled. Prompt 12 is complete;
+Prompt 13 offline Ragas/manual evaluation is next.
