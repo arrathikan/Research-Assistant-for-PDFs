@@ -329,3 +329,13 @@ finite numeric values and must be nonzero for cosine search. Batch size and
 conservative UTF-8 byte guards bound requests; they are not token counts.
 Provider truncation is disabled. Retries are bounded for transient errors;
 authentication/input failures are not silently retried or logged with secrets.
+
+### Configured provider gateways
+
+OpenRouter is the single configured gateway for future summary/chat completion
+calls. Primary, inexpensive and vision model roles are explicit settings; direct
+OpenAI/Anthropic/Google completion credentials are no longer settings. Voyage
+embeddings use the direct API, with `voyage-4-lite` selected in the environment
+template and an independent embedding profile. `rerank-2.5` is configured for the
+later retrieval stage. LlamaParse remains direct and uses `agentic` extraction.
+See [provider configuration](provider-configuration.md) for exact names and scope.

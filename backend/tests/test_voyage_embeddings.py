@@ -139,3 +139,19 @@ def test_profile_is_stable_and_dimension_model_settings_are_validated():
 def test_embedding_dimension_is_loaded_from_environment(monkeypatch):
     monkeypatch.setenv("VOYAGE_DIMENSIONS", "1024")
     assert Settings(_env_file=None).voyage_dimensions == 1024
+
+
+@pytest.mark.parametrize("dimensions", [256, 512, 1024, 2048])
+def test_voyage4_lite_sends_explicit_dimensions(dimensions):
+    settings = Settings(
+        _env_file=None,
+        voyage_api_key="test",
+        voyage_model="voyage-4-lite",
+        voyage_dimensions=dimensions,
+    )
+    with patch("backend.shared.voyage.voyageai.Client") as constructor:
+        constructor.return_value.embed.return_value = response(1, dimensions)
+        assert len(embed_query("Question", settings)) == dimensions
+        assert constructor.return_value.embed.call_args.kwargs["model"] == "voyage-4-lite"
+        assert constructor.return_value.embed.call_args.kwargs["output_dimension"] == dimensions
+    assert embedding_profile(settings).id != embedding_profile(SETTINGS).id

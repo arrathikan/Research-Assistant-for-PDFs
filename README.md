@@ -274,3 +274,11 @@ The Voyage adapter distinguishes document and query inputs, disables silent
 truncation, validates dimensions/finite nonzero vectors, and applies bounded
 batching/retry guards. Existing voyage-3/1024 configuration is preserved;
 voyage-4 and its supported dimensions are explicit configuration choices.
+
+### Configured AI providers
+
+The local environment and template use OpenRouter for future completion calls,
+Voyage `voyage-4-lite` with 1024 dimensions, and LlamaParse `agentic` parsing.
+The primary, inexpensive and vision model roles, environment variable aliases,
+and remaining integration work are described in the
+[provider configuration guide](docs/provider-configuration.md).

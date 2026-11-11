@@ -272,3 +272,18 @@ production build passed. Existing uncommitted frontend work remains preserved.
 Voyage model remains voyage-3/1024 by default; voyage-4 is an explicit option.
 A real synthetic document/query check returned valid 1024-dimensional vectors.
 No private PDF, credential or vector was printed or committed.
+
+### Provider configuration follow-up (2026-11-11)
+
+- [x] Accept OpenRouter credentials, attribution, three model roles and bounded retries.
+- [x] Support the requested Voyage embedding/dimension variable names and `voyage-4-lite`.
+- [x] Configure `rerank-2.5` for the later retrieval integration.
+- [x] Keep all credentials in the ignored, owner-readable local environment file.
+
+Verification: **214 passed, 1 skipped** with disposable local MongoDB in the
+current working copy, including pending embedding storage tests. The earlier
+integration-test import was corrected locally. OpenRouter authentication returned
+HTTP 200 without generating a completion. Real `voyage-4-lite` document/query
+requests returned valid 1024-dimensional vectors. Ruff checks passed. These
+checks establish configuration/connectivity, not RAG answer quality. Prompt 8
+Atlas search, completion clients and reranking integration remain unfinished.
