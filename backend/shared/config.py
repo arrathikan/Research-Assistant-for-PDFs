@@ -5,7 +5,7 @@ Centralizes database, message broker, embedding, and LLM parameters.
 """
 
 from functools import lru_cache
-from typing import List
+from typing import List, Literal
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -38,6 +38,9 @@ class Settings(BaseSettings):
 
     # PDF Extraction Configuration (LlamaParse)
     llama_cloud_api_key: str = ""
+    llama_parse_timeout_seconds: int = Field(default=300, gt=0)
+    llama_parse_tier: Literal["fast", "cost_effective", "agentic", "agentic_plus"] = "agentic"
+    llama_parse_version: str = Field(default="latest", min_length=1)
 
     # Embedding Provider Configuration (Voyage AI)
     voyage_api_key: str = ""

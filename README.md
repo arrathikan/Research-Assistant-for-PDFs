@@ -209,3 +209,35 @@ PDF download have been verified with isolated local MongoDB and the browser UI.
 The backend suite passed 87 tests; the current frontend working checkout passed
 22 tests and a full production build. See [verification details](docs/verification-report.md)
 for scope, local workspace status and features still awaiting implementation.
+
+### Page-aware PDF extraction (Prompt 6)
+
+Extraction contracts now preserve page-specific Markdown, headings/tables, source
+elements and available coordinates. Missing coordinates support page-navigation
+fallback; page numbers are never inferred from an incomplete parser response.
+
+Prompt 6 uses LlamaParse v2 through the provider's supported `llama-cloud` SDK.
+Configure `LLAMA_CLOUD_API_KEY`, `LLAMA_PARSE_TIMEOUT_SECONDS`,
+`LLAMA_PARSE_TIER` and `LLAMA_PARSE_VERSION`; see the
+[document processor guide](backend/services/document_processor/README.md).
+Source boxes retain their documented coordinate units and nested relationships.
+
+GridFS extraction now records `parsing_status` and `parsed_at`, with versioned
+per-page/source persistence. Successful parsing leaves the overall document
+`PENDING` for later stages; it does not imply embeddings, summaries or chat are
+ready. Failed or interrupted attempts never publish incomplete page results.
+
+Prompt 6 extraction is available through an explicit CLI after configuring the
+LlamaParse key and the database containing the uploaded file:
+
+```bash
+python -m backend.services.document_processor.main DOCUMENT_ID
+curl http://localhost:8000/api/v1/documents/DOCUMENT_ID/parsed
+```
+
+The parsed-result endpoint is read-only; uploads do not invoke paid parsing
+automatically. Chunking and queue dispatch remain later stages. Local MongoDB
+verification passed 141 tests with one paid provider smoke test skipped. Live
+cloud parsing was not run because no API key was configured. See the
+[extraction guide](backend/services/document_processor/README.md) for configuration,
+status transitions, recovery, source coordinates and opt-in live verification.

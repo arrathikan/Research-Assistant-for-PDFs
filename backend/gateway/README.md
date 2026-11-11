@@ -82,3 +82,12 @@ curl -F 'file=@/absolute/path/paper.pdf' http://localhost:8000/api/v1/documents
 curl http://localhost:8000/api/v1/documents/DOCUMENT_ID/status
 curl http://localhost:8000/api/v1/documents/DOCUMENT_ID/pdf --output /tmp/original.pdf
 ```
+
+## Published extraction (Prompt 6)
+
+`GET /api/v1/documents/{id}/parsed` returns the completed parse's per-page Markdown
+and source elements. It returns 409 until a complete run is published, 404 for an
+unknown document and 422 for malformed identifiers. This endpoint never starts a
+paid cloud call. Run the document processor CLI separately after configuration.
+Metadata now includes parsing_status and parsed_at; completed extraction alone
+does not mark a document READY for summaries/chat.

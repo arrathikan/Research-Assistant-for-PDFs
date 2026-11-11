@@ -11,6 +11,8 @@ export type DocumentStatus =
   | 'READY'
   | 'FAILED';
 
+export type ParsingStatus = 'NOT_STARTED' | 'RUNNING' | 'COMPLETED' | 'FAILED';
+
 export interface DocumentMetadata {
   id?: string;
   sha256: string;
@@ -19,6 +21,8 @@ export interface DocumentMetadata {
   gridfs_file_id?: string;
   page_count?: number;
   status: DocumentStatus;
+  parsing_status?: ParsingStatus;
+  parsed_at?: string | null;
   error_message?: string | null;
   created_at: string;
   updated_at: string;

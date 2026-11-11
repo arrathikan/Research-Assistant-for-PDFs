@@ -186,7 +186,8 @@ development prompts. Prompts 0–2 are the existing rules, scaffolding and front
 - [ ] Prompt 3.2: Frontend health connection indicator.
 - [x] Prompt 4: MongoDB Atlas-compatible / GridFS storage (Atlas deployment verification pending).
 - [x] Prompt 5: PDF upload, validation, deduplication and local verification.
-- [ ] Prompts 6–15: Parsing, chunking, embeddings, summary, hybrid RAG,
+- [x] Prompt 6: LlamaParse v2 extraction, status, persistence and local verification.
+- [ ] Prompts 7–15: Chunking, embeddings, summary, hybrid RAG,
   citations, jobs, offline Ragas, deployment and final live QA.
 
 Prompt 3.1 verification: 17 backend tests passed. Health does not imply external
@@ -225,3 +226,19 @@ Local browser verification (2026-11-11): upload, duplicate detection, invalid-fi
 rejection and recovery passed. Original downloads matched bytes/SHA-256; one
 metadata record and file remained. Full local frontend build and 22 tests passed.
 See [verification report](verification-report.md) for exact scope and limitations.
+
+### Prompt 6: LlamaParse extraction
+
+- [x] 6.1: Page-aware Markdown and source-element normalization contracts.
+- [x] 6.2: Supported LlamaParse v2 SDK adapter and complete source metadata.
+- [x] 6.3: GridFS orchestration and versioned parse persistence.
+- [x] 6.4: CLI, integration checks, opt-in paid live test and documentation.
+
+Coordinate metadata is preserved when valid. Missing/unknown coordinate systems
+require page navigation fallback; layout boxes are not guessed for text items.
+
+Prompt 6 verification (2026-11-11): **141 passed, 1 skipped** against isolated
+MongoDB with provider calls mocked. The skipped test is the opt-in paid provider
+smoke test; no LlamaParse API key was configured. Offline: **131 passed, 11 skipped**.
+CLI help and SDK response-model tests passed. RabbitMQ dispatch and automatic
+upload-to-parse triggering remain later stages.

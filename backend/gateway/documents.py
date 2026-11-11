@@ -6,10 +6,18 @@ from urllib.parse import quote
 
 from backend.gateway.body_limit import LIMIT_DETAIL
 from backend.gateway.upload_service import persist_upload
+from backend.services.document_processor.extraction import ParsingNotReady, read_parsed_document
+from backend.services.document_processor.parsed_models import ParsedDocument
 from backend.shared.config import get_settings
 from backend.shared.database import connect_database
 from backend.shared.models import DocumentStatus
-from backend.shared.storage import StoredDocument, StoredPdfResult, get_document, read_pdf
+from backend.shared.storage import (
+    DocumentNotFound,
+    StoredDocument,
+    StoredPdfResult,
+    get_document,
+    read_pdf,
+)
 from fastapi import APIRouter, Depends, HTTPException, Path, Request, Response
 from pydantic import BaseModel
 from pymongo.database import Database
@@ -133,3 +141,14 @@ def original_pdf(document_id: DocumentId, database: DatabaseDependency) -> Respo
             "Cache-Control": "no-store",
         },
     )
+
+
+@router.get("/{document_id}/parsed", response_model=ParsedDocument)
+def parsed_document(document_id: DocumentId, database: DatabaseDependency) -> ParsedDocument:
+    """Retrieve committed extraction; never start a paid parse in an HTTP route."""
+    try:
+        return read_parsed_document(database, document_id)
+    except ParsingNotReady:
+        raise HTTPException(409, "Document parsing is not complete") from None
+    except DocumentNotFound:
+        raise HTTPException(404, "Document not found") from None
