@@ -377,10 +377,14 @@ workflow. Real-paper quality metrics and later-stage functionality remain pendin
 ### Prompt 11: Clickable PDF citations
 
 - [x] 11.1: Canonical source/geometry contract and current-generation resolver.
-- [ ] 11.2: React-PDF rendering, text-layer matching and safe highlight fallbacks.
+- [x] 11.2: React-PDF rendering, text-layer matching and safe highlight fallbacks.
 - [ ] 11.3: Citation clicks, responsive workspace integration and regression checks.
 - [ ] 11.4: Browser verification, documentation and final QA.
 
 Increment 11.1 verification: **322 backend tests passed, 4 optional live tests
 skipped** with disposable MongoDB. Scoped Ruff checks passed. Model/parser calls
 were mocked; citation checks are deterministic and independent from Ragas.
+
+Increment 11.2: frontend **67 tests passed** and production build passed. Text,
+geometry, source resolution, stale/cross-document errors and page fallback were
+checked deterministically with a mocked React-PDF renderer. Browser QA follows.

@@ -1,5 +1,6 @@
 import type { CitationReference } from './index';
-export interface ChatCitation extends CitationReference {
+import type { SourceAnchorFields } from './citations';
+export interface ChatCitation extends CitationReference, SourceAnchorFields {
   citation_id: string;
   document_id: string;
   chunk_id: string;
