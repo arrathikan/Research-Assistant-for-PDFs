@@ -279,3 +279,18 @@ A one-document CLI performs provider work in a separate process; the gateway's
 request is performed in the read route or on upload. RabbitMQ dispatch remains
 a later stage. Local database integration tests use mocked provider output;
 paid-provider verification is a separate opt-in test.
+
+## Markdown chunking (Prompt 7)
+
+MarkdownHeaderTextSplitter retains the six-level heading hierarchy and avoids
+interpreting fenced-code headings as research sections. Explicit inserted page
+markers carry page attribution through whitespace normalization and are removed
+from saved content. RecursiveCharacterTextSplitter enforces character limits
+within each section. Cross-page chunks have separate page evidence spans with
+exact offsets into the resulting chunk, not guessed PDF offsets.
+
+Source elements/coordinates attach only where supporting text is uniquely mapped
+on its source page; ambiguous text falls back to page attribution. The splitter
+normalizes whitespace, so original PDF bytes and parsed Markdown remain the
+authoritative artifacts. IDs include parsing provenance, configuration, actual
+splitter version and algorithm version. No embeddings are created in this stage.

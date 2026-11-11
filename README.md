@@ -241,3 +241,11 @@ verification passed 141 tests with one paid provider smoke test skipped. Live
 cloud parsing was not run because no API key was configured. See the
 [extraction guide](backend/services/document_processor/README.md) for configuration,
 status transitions, recovery, source coordinates and opt-in live verification.
+
+### Markdown-aware chunking (Prompt 7)
+
+LangChain header-aware and recursive splitters now create bounded research
+chunks with heading paths, stable IDs, explicit page evidence spans and source
+references. Configure `CHUNK_SIZE=1200` and `CHUNK_OVERLAP=150` (character counts,
+not tokens). Overlap must be nonnegative and smaller than the chunk size.
+Unrelated sections remain separate; section continuation may span PDF pages.

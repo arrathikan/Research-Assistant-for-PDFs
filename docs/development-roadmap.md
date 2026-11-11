@@ -242,3 +242,13 @@ MongoDB with provider calls mocked. The skipped test is the opt-in paid provider
 smoke test; no LlamaParse API key was configured. Offline: **131 passed, 11 skipped**.
 CLI help and SDK response-model tests passed. RabbitMQ dispatch and automatic
 upload-to-parse triggering remain later stages.
+
+### Prompt 7: Markdown-aware chunking
+
+- [x] 7.1: LangChain section/recursive splitting, configuration and source mapping.
+- [ ] 7.2: Versioned MongoDB persistence and atomic chunk-set publication.
+- [ ] 7.3: CLI/read endpoint, isolated integration checks and documentation.
+
+Defaults: 1200 characters with 150-character overlap. Chunk IDs are stable for
+the same parsed run, content, splitter version and configuration. Sections may
+continue across PDF pages; unrelated heading sections are never combined.

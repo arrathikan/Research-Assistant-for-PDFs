@@ -7,7 +7,7 @@ Centralizes database, message broker, embedding, and LLM parameters.
 from functools import lru_cache
 from typing import List, Literal
 
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -56,8 +56,14 @@ class Settings(BaseSettings):
 
     # Ingestion & Chunking Limits
     max_upload_size_bytes: int = Field(default=25 * 1024 * 1024, gt=0)  # 25 MB
-    chunk_size: int = 1000
-    chunk_overlap: int = 200
+    chunk_size: int = Field(default=1200, gt=0)
+    chunk_overlap: int = Field(default=150, ge=0)
+
+    @model_validator(mode="after")
+    def validate_chunk_overlap(self) -> "Settings":
+        if self.chunk_overlap >= self.chunk_size:
+            raise ValueError("CHUNK_OVERLAP must be smaller than CHUNK_SIZE")
+        return self
 
     model_config = SettingsConfigDict(
         env_file=".env",
