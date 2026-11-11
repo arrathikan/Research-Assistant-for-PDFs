@@ -356,4 +356,6 @@ synthetic workflow, not a scientific-summary/RAG accuracy benchmark.
 
 Citations now preserve source geometry and generation metadata. A deterministic
 resolver checks their document, page, quote and active source version before
-navigation. See [PDF citations](docs/pdf-citations.md) for the contract and scope.
+navigation. Chat citation buttons now jump to the uploaded PDF in React-PDF,
+with text highlights, confirmed region highlights or an explicit page-only fallback.
+Page navigation, zoom and mobile source switching are available. See [PDF citations](docs/pdf-citations.md) for the contract and scope.

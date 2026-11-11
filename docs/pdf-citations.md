@@ -47,3 +47,20 @@ rendering. Late resolver responses and references to another document are ignore
 Viewer verification: frontend **67 tests passed** in the working copy, including
 23 text/geometry tests and 8 viewer tests with a mocked renderer. Production build
 passed. Native PDF canvas/worker behavior still needs browser verification.
+
+
+## Citation navigation
+
+Inline `[n]` references and always-visible page buttons in chat open the matching
+source. Quote disclosures can remain collapsed. Unknown numeric references stay
+plain text; model strings are rendered as React text, never injected HTML.
+`DocumentWorkspace` keeps one PDF instance across summary/chat/PDF tabs. On small
+screens a citation reveals the PDF pane, and returning to chat keeps the current
+conversation. Repeated source clicks reverify and reopen that page. Switching
+documents clears the selected citation and ignores previous pending results.
+
+Integration verification: **325 backend tests passed, 4 optional live tests
+skipped**; frontend **73 tests passed** and build passed in the working copy.
+Backend tests used disposable local MongoDB, with provider boundaries mocked.
+The local dashboard redesign is preserved separately from the committed minimal
+App integration.

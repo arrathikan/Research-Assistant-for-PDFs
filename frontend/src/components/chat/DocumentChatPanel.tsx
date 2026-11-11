@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { api, ApiError } from '../../services/api';
 import type { ChatCitation, ChatTurn } from '../../types/chat';
+import { CitedAnswer } from './CitedAnswer';
 
 interface Props { documentId?: string; onCitationClick?: (citation: ChatCitation) => void; }
 
@@ -82,13 +83,15 @@ export function DocumentChatPanel({ documentId, onCitationClick }: Props) {
           <div key={turn.response.turn_id} className="space-y-2">
             <p className="ml-8 rounded-xl bg-blue-50 p-3 text-sm whitespace-pre-wrap">{turn.question}</p>
             <div className="mr-8 rounded-xl bg-white border border-slate-200 p-3 text-sm whitespace-pre-wrap">
-              <p>{turn.response.answer}</p>
+              <CitedAnswer answer={turn.response.answer} citations={turn.response.citations} onCitationClick={onCitationClick} />
               {turn.response.citations.map(source => (
-                <details key={source.citation_id} className="mt-2 text-xs text-slate-600">
-                  <summary>Source: Page {source.page_number}</summary>
-                  <blockquote className="mt-2 border-l-2 pl-2">{source.quote_snippet}</blockquote>
-                  {onCitationClick && <button type="button" className="mt-1 underline" onClick={() => onCitationClick(source)}>Page {source.page_number}</button>}
-                </details>
+                <div key={source.citation_id} className="mt-2 text-xs text-slate-600">
+                  {onCitationClick && <button type="button" className="font-semibold text-blue-700 underline" onClick={() => onCitationClick(source)}>Page {source.page_number}</button>}
+                  <details className="mt-1">
+                    <summary>Source: Page {source.page_number}</summary>
+                    <blockquote className="mt-2 border-l-2 pl-2">{source.quote_snippet}</blockquote>
+                  </details>
+                </div>
               ))}
             </div>
           </div>

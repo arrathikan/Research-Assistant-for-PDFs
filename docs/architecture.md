@@ -412,3 +412,12 @@ Prompt 11.1 enriches citations with source generation and retained geometry.
 A read-only citation resolver rebuilds anchors from canonical current chunks and
 rechecks generation; it does not trust client coordinates or call providers.
 Only documented, unrotated and in-bounds source regions are eligible for overlays.
+
+
+Prompt 11.2–11.3 uses one responsive React-PDF viewer, with a same-version local
+worker/CMaps/fonts. The browser resolves selected citations before navigating.
+Native rendered-text Range rectangles take precedence over conservative,
+frame-checked source-region overlays. Unmatched/ambiguous text and incompatible
+geometry keep an honest page/quote fallback. Inline chat references and page
+buttons trigger the same navigation; late results and old-page overlays are
+suppressed. Citation checks remain separate from offline Ragas evaluation.
