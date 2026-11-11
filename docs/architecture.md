@@ -271,3 +271,11 @@ FAILED with a safe error message. Completed extraction is reused without paying
 for another call. Interrupted RUNNING claims need operator review; no automatic
 lease expiration can launch a duplicate paid job. Partial runs are retained for
 manual reconciliation without removing previous successful output.
+
+### Extraction entry points
+
+A one-document CLI performs provider work in a separate process; the gateway's
+`GET /documents/{id}/parsed` exposes only committed structured output. No cloud
+request is performed in the read route or on upload. RabbitMQ dispatch remains
+a later stage. Local database integration tests use mocked provider output;
+paid-provider verification is a separate opt-in test.

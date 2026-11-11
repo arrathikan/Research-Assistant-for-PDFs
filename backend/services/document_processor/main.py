@@ -1,22 +1,42 @@
-"""Document Processor Worker entrypoint.
+"""Parse one stored document; RabbitMQ dispatch is introduced in a later stage."""
 
-Subscribes to RabbitMQ document ingestion queue to parse uploaded research PDFs
-using LlamaParse and generates Markdown-aware chunks with preserved page references.
-"""
+import argparse
 
+from backend.services.document_processor.extraction import ParsingConflict, parse_pdf
+from backend.services.document_processor.parsed_models import ParsingError
 from backend.shared.config import get_settings
+from backend.shared.database import StorageUnavailable, connect_database
 from backend.shared.logging import setup_logger
+from backend.shared.storage import DocumentNotFound
+from bson import ObjectId
 
-settings = get_settings()
-logger = setup_logger("document_processor", settings.log_level)
+
+def _document_id(value: str) -> str:
+    if not ObjectId.is_valid(value):
+        raise argparse.ArgumentTypeError("document_id must be a MongoDB ObjectId")
+    return str(ObjectId(value))
 
 
-def run_worker():
-    """Initializes the background worker for PDF extraction and chunking."""
-    logger.info("Initializing Document Processor worker...")
-    logger.info(f"Target ingestion queue: {settings.ingestion_queue}")
-    logger.info("Worker skeleton ready. Awaiting RabbitMQ events in Stage 3.")
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Extract one uploaded PDF with LlamaParse")
+    parser.add_argument("document_id", type=_document_id)
+    args = parser.parse_args(argv)
+    settings = get_settings()
+    logger = setup_logger("document_processor", settings.log_level)
+    if not settings.llama_cloud_api_key.strip() or settings.llama_cloud_api_key.startswith("your_"):
+        logger.error("Configure LLAMA_CLOUD_API_KEY before parsing")
+        return 1
+    try:
+        with connect_database(settings) as database:
+            parsed = parse_pdf(database, args.document_id, settings)
+    except (ParsingError, ParsingConflict, StorageUnavailable, DocumentNotFound) as exc:
+        logger.error(str(exc))
+        return 1
+    logger.info(
+        f"Extraction complete for {args.document_id}: {len(parsed.pages)} pages; awaiting the next processing stage"
+    )
+    return 0
 
 
 if __name__ == "__main__":
-    run_worker()
+    raise SystemExit(main())

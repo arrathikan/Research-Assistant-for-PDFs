@@ -226,3 +226,18 @@ GridFS extraction now records `parsing_status` and `parsed_at`, with versioned
 per-page/source persistence. Successful parsing leaves the overall document
 `PENDING` for later stages; it does not imply embeddings, summaries or chat are
 ready. Failed or interrupted attempts never publish incomplete page results.
+
+Prompt 6 extraction is available through an explicit CLI after configuring the
+LlamaParse key and the database containing the uploaded file:
+
+```bash
+python -m backend.services.document_processor.main DOCUMENT_ID
+curl http://localhost:8000/api/v1/documents/DOCUMENT_ID/parsed
+```
+
+The parsed-result endpoint is read-only; uploads do not invoke paid parsing
+automatically. Chunking and queue dispatch remain later stages. Local MongoDB
+verification passed 141 tests with one paid provider smoke test skipped. Live
+cloud parsing was not run because no API key was configured. See the
+[extraction guide](backend/services/document_processor/README.md) for configuration,
+status transitions, recovery, source coordinates and opt-in live verification.
