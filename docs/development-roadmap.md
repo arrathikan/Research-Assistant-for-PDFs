@@ -291,7 +291,7 @@ Atlas search, completion clients and reranking integration remain unfinished.
 ### Prompt 9: Structured summary generation
 
 - [x] 9.1: Strict summary/evidence contracts and the OpenRouter completion client.
-- [ ] 9.2: LangGraph extraction, validation and bounded targeted repairs.
+- [x] 9.2: LangGraph extraction, validation and bounded targeted repairs.
 - [ ] 9.3: Versioned MongoDB publication, CLI and read-only HTTP endpoint.
 - [ ] 9.4: Live React summary display, regression checks and optional model test.
 
@@ -299,3 +299,8 @@ Increment 9.1 verification: **30 passed** focused schema, source validation,
 provider settings and mocked completion tests. Ruff lint/format checks passed.
 LangGraph 0.2.76 is installed within the declared dependency range; dependency
 compatibility checks passed. No live completion was generated in this increment.
+
+Increment 9.2 verification: **34 passed** workflow, evidence/schema and completion
+contract tests. Real LangGraph execution was used with deterministic mocked
+completion calls. All source windows, document isolation, two repair limits,
+preflight input limits and save ordering were verified. Ruff checks passed.

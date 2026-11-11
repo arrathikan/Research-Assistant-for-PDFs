@@ -32,6 +32,18 @@ whitespace normalization). This establishes source identity and quote presence;
 it does not prove that a generated claim follows from the quote. Manually review
 scientific claims and use the later evaluation stage for quality measurement.
 
-Increment 9.1 adds the contracts and completion adapter. LangGraph orchestration,
-MongoDB publication, the HTTP endpoint and frontend connection follow in later
-Prompt 9 increments. Unit tests mock all completion calls and consume no credits.
+## LangGraph workflow
+
+`identify -> generate -> validate -> advance -> save`, with conditional edges
+back to `generate` for at most two targeted repairs. Long papers run extraction
+over all page-attributed chunks in bounded, heading-labelled windows, then combine
+validated notes through a reduction tree. Original source references are retained
+and checked at every level. No input text is silently truncated. A preflight
+checks all window/record limits before the first paid request. Reduction must
+make progress and is capped at eight rounds.
+
+The graph has no agents, tools, persistent checkpoints or hidden model fallback.
+Transport failures do not consume the schema-repair budget; each transport request
+has its own bounded retry budget. Failed jobs currently restart extraction on
+retry, so they may repeat successful paid calls. Save callbacks run only after
+successful validation. MongoDB publication and React integration follow next.

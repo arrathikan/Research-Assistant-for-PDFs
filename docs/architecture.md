@@ -347,3 +347,8 @@ completion adapter. Populated fields require verified chunk/page/quote reference
 missing fields remain explicit. Provider retries are bounded, redirects disabled,
 and raw request/response details excluded from safe errors. See
 [structured summaries](structured-summary.md) for limitations.
+
+Prompt 9.2 uses one controlled LangGraph with source-identification, generation,
+validation/targeted retry, reduction and save nodes. All source chunks are
+processed. Long-paper reduction retains original references and has bounded
+rounds, windows and payload sizes; no persistent checkpoint store is introduced.

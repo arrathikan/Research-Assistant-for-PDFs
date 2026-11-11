@@ -288,3 +288,7 @@ and remaining integration work are described in the
 Summary output contracts and the OpenRouter completion adapter now enforce
 explicit missing information and source references. See the
 [summary guide](docs/structured-summary.md) for configuration and current scope.
+
+The summary LangGraph now extracts bounded research windows, validates evidence,
+repairs invalid output at most twice, and combines long-paper notes without
+silently dropping chunks. Persistence and the frontend connection follow next.
