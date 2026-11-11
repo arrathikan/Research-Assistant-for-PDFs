@@ -185,7 +185,8 @@ development prompts. Prompts 0–2 are the existing rules, scaffolding and front
 - [x] Prompt 3.1: Gateway contracts, errors, JSON logging, CORS and backend tests.
 - [ ] Prompt 3.2: Frontend health connection indicator.
 - [x] Prompt 4: MongoDB Atlas-compatible / GridFS storage (Atlas deployment verification pending).
-- [ ] Prompts 5–15: Upload, parsing, chunking, embeddings, summary, hybrid RAG,
+- [x] Prompt 5: PDF upload, validation, deduplication and local verification.
+- [ ] Prompts 6–15: Parsing, chunking, embeddings, summary, hybrid RAG,
   citations, jobs, offline Ragas, deployment and final live QA.
 
 Prompt 3.1 verification: 17 backend tests passed. Health does not imply external
@@ -208,7 +209,7 @@ Atlas connectivity and frontend tests were not run for this storage stage.
 - [x] 5.1: Bounded validation of filename, MIME, PDF structure and page count.
 - [x] 5.2: Upload, metadata/status and original-PDF API routes.
 - [x] 5.3: Real frontend success/duplicate/failure states and upload tests.
-- [ ] 5.4: Isolated API/database integration verification and demo commands.
+- [x] 5.4: Isolated API/database integration verification and demo commands.
 
 The user approved pypdf for upload validation. Parsing/extraction remains Prompt 6.
 
@@ -219,3 +220,8 @@ The user approved pypdf for upload validation. Parsing/extraction remains Prompt
   upload, duplicate, status, original-file retrieval and concurrent requests.
 - Added the live upload integration tests to version control; private PDF data
   remains outside the repository. Atlas deployment verification is still pending.
+
+Local browser verification (2026-11-11): upload, duplicate detection, invalid-file
+rejection and recovery passed. Original downloads matched bytes/SHA-256; one
+metadata record and file remained. Full local frontend build and 22 tests passed.
+See [verification report](verification-report.md) for exact scope and limitations.
