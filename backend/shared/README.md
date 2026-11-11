@@ -97,3 +97,7 @@ test deployment, never a production account. Tests cover idempotent indexes, a
 17 MiB GridFS byte round trip, missing-file handling and eight simultaneous
 duplicate writes forced past the initial hash miss. Synthetic storage bytes do
 not validate PDF parsing. Without the opt-in URI, live tests are explicitly skipped.
+
+Stored document timestamps are normalized to UTC millisecond precision before
+saving and responding, so initial uploads, duplicate responses and metadata
+reads match BSON's timestamp representation.

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { DocumentMetadata } from '../types';
 import { DocumentCard } from '../components/dashboard/DocumentCard';
-import { EmptyState } from '../common/EmptyState';
+import { EmptyState } from '../components/common/EmptyState';
 import { BookOpen, Search, UploadCloud, Layers, Database } from 'lucide-react';
 
 interface DashboardViewProps {

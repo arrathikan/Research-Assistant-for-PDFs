@@ -201,3 +201,11 @@ The gateway now exposes `POST /api/v1/documents` (compatibility alias
 New uploads return 201; exact duplicates return 200 and the existing record.
 Documents remain `PENDING` until later processing stages are implemented.
 See [gateway API details](backend/gateway/README.md) for commands, errors and limits.
+
+### Local verification
+
+Upload, duplicate detection, invalid-file rejection, status and exact original
+PDF download have been verified with isolated local MongoDB and the browser UI.
+The backend suite passed 87 tests; the current frontend working checkout passed
+22 tests and a full production build. See [verification details](docs/verification-report.md)
+for scope, local workspace status and features still awaiting implementation.
