@@ -421,3 +421,11 @@ frame-checked source-region overlays. Unmatched/ambiguous text and incompatible
 geometry keep an honest page/quote fallback. Inline chat references and page
 buttons trigger the same navigation; late results and old-page overlays are
 suppressed. Citation checks remain separate from offline Ragas evaluation.
+
+
+Prompt 12.2 adds a MongoDB outbox in `processing_jobs`. Upload validation/GridFS
+storage remain synchronous, followed by durable scheduling only. A separate
+dispatcher confirms RabbitMQ publication before marking the precise job action
+sent. Pending retry/dead-letter actions survive broker downtime. Public job
+status excludes ownership tokens. Manual retry increments the job generation;
+unrequested legacy documents are excluded from reconciliation.

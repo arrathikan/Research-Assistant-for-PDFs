@@ -370,3 +370,7 @@ provider responses. See the [citation demo and scope](docs/pdf-citations.md#try-
 
 Prompt 12 is in progress: strict RabbitMQ message contracts, durable queues and
 confirmed publications are implemented. See [background jobs](docs/background-jobs.md).
+
+Uploads now save background job requests without requiring RabbitMQ to be online.
+The processing status/retry API is implemented; worker execution follows in the
+next Prompt 12 increment.

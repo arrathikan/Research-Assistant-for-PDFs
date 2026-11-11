@@ -104,7 +104,9 @@ async def upload_document(request: Request, response: Response) -> UploadRespons
         raise
     response.status_code = 200 if result.is_duplicate else 201
     message = (
-        "Identical PDF already stored" if result.is_duplicate else "PDF stored; processing pending"
+        "Identical PDF already stored"
+        if result.is_duplicate
+        else "PDF stored; background processing queued"
     )
     return UploadResponse(
         document=result.document, is_duplicate=result.is_duplicate, message=message

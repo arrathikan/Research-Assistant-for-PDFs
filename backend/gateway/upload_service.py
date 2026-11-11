@@ -3,6 +3,7 @@
 from typing import BinaryIO
 
 from backend.services.document_processor.upload import validate_pdf
+from backend.services.jobs.store import ensure_job_indexes, ensure_requested
 from backend.shared.config import Settings
 from backend.shared.database import connect_database, ensure_indexes
 from backend.shared.storage import StoredPdfResult, store_pdf
@@ -15,4 +16,7 @@ def persist_upload(
     with connect_database(settings) as database:
         # Never accept writes unless MongoDB's unique SHA-256 index is active.
         ensure_indexes(database)
-        return store_pdf(database, pdf.filename, pdf.content, page_count=pdf.page_count)
+        result = store_pdf(database, pdf.filename, pdf.content, page_count=pdf.page_count)
+        ensure_job_indexes(database)
+        ensure_requested(database, result.document.id, settings)
+        return result

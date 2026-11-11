@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from backend.gateway.documents import get_database
 from backend.gateway.main import app
+from backend.shared.config import get_settings
 from backend.shared.database import StorageUnavailable
 from backend.shared.storage import DocumentNotFound, StoredDocument, StoredPdfResult
 from bson import ObjectId
@@ -49,6 +50,7 @@ def test_upload_and_duplicate_contract(client, pdf, endpoint, duplicate, code):
         patch("backend.gateway.upload_service.connect_database") as connection,
         patch("backend.gateway.upload_service.ensure_indexes") as indexes,
         patch("backend.gateway.upload_service.store_pdf") as store,
+        patch("backend.gateway.upload_service.ensure_requested") as schedule,
     ):
         database = connection.return_value.__enter__.return_value
         store.return_value = StoredPdfResult(document=doc, is_duplicate=duplicate)
@@ -60,6 +62,7 @@ def test_upload_and_duplicate_contract(client, pdf, endpoint, duplicate, code):
         assert data["document"]["status"] == "PENDING"
         assert data["is_duplicate"] is duplicate
         assert data["message"]
+        schedule.assert_called_once_with(database, doc.id, get_settings())
         indexes.assert_called_once_with(database)
         store.assert_called_once_with(database, "paper.pdf", pdf, page_count=1)
 
