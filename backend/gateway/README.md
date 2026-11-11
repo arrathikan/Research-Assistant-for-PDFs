@@ -91,3 +91,10 @@ unknown document and 422 for malformed identifiers. This endpoint never starts a
 paid cloud call. Run the document processor CLI separately after configuration.
 Metadata now includes parsing_status and parsed_at; completed extraction alone
 does not mark a document READY for summaries/chat.
+
+## Published chunks (Prompt 7)
+
+`GET /api/v1/documents/{id}/chunks` returns the complete active chunk set with
+page spans, heading metadata and source references. It never starts chunking or
+embedding. Unfinished/current-parse mismatches return 409; unknown IDs 404,
+malformed IDs 422 and storage failures 503. CLI processing is separate.

@@ -279,3 +279,44 @@ A one-document CLI performs provider work in a separate process; the gateway's
 request is performed in the read route or on upload. RabbitMQ dispatch remains
 a later stage. Local database integration tests use mocked provider output;
 paid-provider verification is a separate opt-in test.
+
+## Markdown chunking (Prompt 7)
+
+MarkdownHeaderTextSplitter retains the six-level heading hierarchy and avoids
+interpreting fenced-code headings as research sections. Explicit inserted page
+markers carry page attribution through whitespace normalization and are removed
+from saved content. RecursiveCharacterTextSplitter enforces character limits
+within each section. Cross-page chunks have separate page evidence spans with
+exact offsets into the resulting chunk, not guessed PDF offsets.
+
+Source elements/coordinates attach only where supporting text is uniquely mapped
+on its source page; ambiguous text falls back to page attribution. The splitter
+normalizes whitespace, so original PDF bytes and parsed Markdown remain the
+authoritative artifacts. IDs include parsing provenance, configuration, actual
+splitter version and algorithm version. No embeddings are created in this stage.
+
+### Chunk-set publication
+
+Chunks are upserted by stable ID with set-on-insert semantics. A unique
+(document_id, chunk_set_id, chunk_index) index permits immutable generations.
+Only an ownership- and parse-version-checked metadata update publishes the
+active_chunk_set_id after every write. Readers filter by the active set and
+verify its count, order and parsing provenance. Prior generations remain intact;
+failed or interrupted attempts cannot expose partially written new output.
+
+A running claim prevents concurrent chunk writers. Repeating an active parse
+and configuration reuses the same set. Changing configuration creates a new set
+without overwriting prior output. Completed chunking still leaves the document
+PENDING for embeddings and summary generation; it never marks chat READY.
+
+The legacy (document_id, chunk_index) index is removed automatically only from
+an empty chunks collection. Populated legacy data is preserved and requires an
+operator-reviewed index migration. No chunk records are deleted automatically.
+
+### Chunking entry points
+
+A dedicated chunk_cli command works from published parsed pages without provider
+keys. The read-only GET /documents/{id}/chunks exposes only the complete active
+set. Downstream retrieval must filter both document_id and the active chunk_set_id
+to avoid using older immutable generations. No vectors, embedding calls, queue
+dispatch or RAG generation are added by Prompt 7.

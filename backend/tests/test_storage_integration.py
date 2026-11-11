@@ -44,7 +44,7 @@ def test_live_indexes_are_idempotent(database):
         "processing_jobs",
     }
     assert database.documents.index_information()["unique_sha256"]["unique"] is True
-    assert database.chunks.index_information()["document_chunk_index"]["unique"] is True
+    assert database.chunks.index_information()["document_chunk_set_index"]["unique"] is True
 
 
 def test_live_gridfs_round_trip_larger_than_bson_limit(database):

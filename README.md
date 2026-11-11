@@ -241,3 +241,29 @@ verification passed 141 tests with one paid provider smoke test skipped. Live
 cloud parsing was not run because no API key was configured. See the
 [extraction guide](backend/services/document_processor/README.md) for configuration,
 status transitions, recovery, source coordinates and opt-in live verification.
+
+### Markdown-aware chunking (Prompt 7)
+
+LangChain header-aware and recursive splitters now create bounded research
+chunks with heading paths, stable IDs, explicit page evidence spans and source
+references. Configure `CHUNK_SIZE=1200` and `CHUNK_OVERLAP=150` (character counts,
+not tokens). Overlap must be nonnegative and smaller than the chunk size.
+Unrelated sections remain separate; section continuation may span PDF pages.
+
+Chunk storage now keeps immutable generations and publishes only complete sets.
+Changing configuration preserves older output. Metadata includes chunking_status
+and chunked_at. The original unique chunk index can be upgraded automatically
+only while its collection is empty; populated legacy data requires review.
+
+Run chunking after the document has a published parse:
+
+```bash
+python -m backend.services.document_processor.chunk_cli DOCUMENT_ID
+curl http://localhost:8000/api/v1/documents/DOCUMENT_ID/chunks
+```
+
+This stage is local and needs no provider keys. The read endpoint returns only
+complete chunks for the current parsed version. Local MongoDB verification
+passed 178 tests with one paid parser test skipped. See the
+[chunking guide](docs/markdown-chunking.md) for page/source mapping, settings,
+versioned storage, index compatibility and recovery. Embeddings are Prompt 8.

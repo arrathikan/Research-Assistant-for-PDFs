@@ -47,7 +47,9 @@ def test_indexes_cover_domain_collections_and_duplicate_safety():
     ensure_indexes(database)
     database.documents.create_index.assert_any_call("sha256", unique=True, name="unique_sha256")
     database.chunks.create_index.assert_called_once_with(
-        [("document_id", 1), ("chunk_index", 1)], unique=True, name="document_chunk_index"
+        [("document_id", 1), ("chunk_set_id", 1), ("chunk_index", 1)],
+        unique=True,
+        name="document_chunk_set_index",
     )
     for name in ("source_elements", "summaries", "chat_messages", "processing_jobs"):
         getattr(database, name).create_index.assert_called_once()
