@@ -393,3 +393,9 @@ completion and deterministic claim/source validation. Answers reference only
 retrieved current chunks. The internal PipelineOutput contains response and
 EvaluationTrace separately; public routes must return only the response. Empty
 retrieval causes a deterministic abstention without an LLM request.
+
+Prompt 10.3 stores `chat_conversations` with source-generation identity and a
+per-conversation ownership token. `chat_turns` stores complete user/assistant
+pairs, sequence numbers and internal evaluation traces in one atomic insert.
+Public chat/history routes return response data only. Generation changes, failed
+models and concurrent turns are handled without mixing documents or partial turns.

@@ -332,7 +332,7 @@ index creation and retrieval remain to be implemented/verified separately.
 
 - [x] 10.1: Explicit Atlas vector/BM25 index management, scoped retrieval and RRF.
 - [x] 10.2: Grounded LangChain answers, source verification and internal evaluation traces.
-- [ ] 10.3: Document-scoped conversation persistence and HTTP API.
+- [x] 10.3: Document-scoped conversation persistence and HTTP API.
 - [ ] 10.4: React chat, opt-in live checks, integration verification and guide.
 
 Increment 10.1: **14 deterministic tests passed**; Ruff checks passed. This
@@ -342,3 +342,7 @@ verification remains pending; no measured retrieval-quality claim is made.
 Increment 10.2: **26 tests passed** across retrieval and grounded answer contracts;
 Ruff checks passed. Invalid pages/quotes/IDs, missing evidence, unsupported
 questions, trace privacy and document isolation were checked with mocked models.
+
+Increment 10.3: **302 backend tests passed, 2 skipped** with disposable local MongoDB.
+Conversation isolation, ordering, trace privacy, failure cleanup, source changes
+and public HTTP contracts passed. Atlas/provider requests were mocked here.

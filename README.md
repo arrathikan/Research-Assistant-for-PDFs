@@ -330,3 +330,8 @@ MongoDB connection; local storage success does not establish search readiness.
 The LangChain answer chain now validates claim-level source quotes and abstains
 when evidence is insufficient. Internal typed traces support later offline Ragas
 evaluation; no evaluation runs during ordinary chat requests.
+
+The chatbot API now supports document-scoped conversations and saved history:
+`POST /api/v1/documents/{id}/chat` and
+`GET /api/v1/documents/{id}/chat/{conversation_id}`. Successful turns are saved
+atomically; private retrieval traces are excluded from public responses.

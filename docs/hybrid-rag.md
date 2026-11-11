@@ -73,3 +73,31 @@ quote identity checks are not proof of scientific correctness.
 Source/history JSON is bounded by `RAG_CONTEXT_BYTES`. Old history is removed
 before excluding whole source chunks that do not fit; source text is never cut
 mid-chunk. Traces record only the chunks actually supplied to the model.
+
+## Chat API and saved history
+
+POST `/api/v1/documents/{id}/chat` accepts `message` and an optional existing
+`conversation_id`. GET `/api/v1/documents/{id}/chat/{conversation_id}` returns
+up to the last 100 completed turns. Conversation IDs are scoped to document,
+parse, chunk set and embedding profile; another document cannot reuse them.
+Concurrent sends in one conversation return 409. Each successful database insert
+contains the question, answer and private trace atomically, so failures cannot
+leave half a turn. Sequence numbers preserve ordering even for equal timestamps.
+
+API responses contain verified citation IDs, chunk/document/page references,
+quotes and an explicit unsupported-answer flag. Retrieval traces remain private
+in `chat_turns` and through the internal `chat_with_trace` function. History
+returns public turn data only. Real measured pipeline latency includes retrieval
+and generation, not full network delivery. Generation/source changes are checked
+before storing and returning; old-generation history is never returned for a new
+generation. No Ragas evaluation runs during a chat request.
+
+A crashed process can leave a conversation busy: inspect it before manually
+recovering its claim. No automatic lock stealing or exactly-once guarantee across
+lost HTTP responses is implemented. Completed turns and traces contain research
+text and should follow the deployment's retention/access policy; authentication
+and multi-user authorization have not been introduced by this stage.
+
+HTTP errors: 404 unknown document/conversation, 409 not-ready/busy/changed sources,
+422 invalid request, 503 unavailable storage/provider/search. There is no silent
+BM25-only or fake semantic fallback when Atlas is unavailable.
