@@ -366,3 +366,7 @@ Prompt 11 verification: **325 backend tests passed, 4 optional live checks skipp
 Browser QA confirmed two-line PDF highlights, zoom, repeated source navigation,
 page-only fallback and mobile navigation on a synthetic PDF with simulated
 provider responses. See the [citation demo and scope](docs/pdf-citations.md#try-it-locally).
+
+
+Prompt 12 is in progress: strict RabbitMQ message contracts, durable queues and
+confirmed publications are implemented. See [background jobs](docs/background-jobs.md).

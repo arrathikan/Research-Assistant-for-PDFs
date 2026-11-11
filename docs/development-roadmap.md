@@ -401,3 +401,15 @@ local data. **69 isolated frontend tests**, production build, and **325 backend
 tests** (4 optional live checks skipped) passed. Local API citation route and Atlas
 connectivity were verified without paid calls. Prompt 11 is complete within its
 conservative fallback contract; Prompt 12 queued jobs is next.
+
+
+### Prompt 12: RabbitMQ background processing
+
+- [x] 12.1: Durable queue/message contracts and bounded broker connections.
+- [ ] 12.2: Persisted upload scheduling, retries and processing status API.
+- [ ] 12.3: Ingestion/summary workers, acknowledgements and safe recovery.
+- [ ] 12.4: Upload progress, real-broker verification and operating guide.
+
+Increment 12.1: queue contracts/provider settings **26 tests passed**; Ruff checks
+and formatting passed. The unsupported look-ahead from the first attempt was
+replaced with a supported name pattern and explicit reserved-prefix validation.

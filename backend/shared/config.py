@@ -31,10 +31,36 @@ class Settings(BaseSettings):
     mongodb_timeout_ms: int = Field(default=5000, gt=0)
 
     # RabbitMQ Message Broker Configuration
-    rabbitmq_url: str = "amqp://guest:guest@localhost:5672/"
-    ingestion_queue: str = "document_ingestion_queue"
-    summary_queue: str = "document_summary_queue"
-    dlq_queue: str = "document_dlq"
+    rabbitmq_url: str = Field(default="amqp://guest:guest@localhost:5672/", repr=False)
+    ingestion_queue: str = Field(
+        default="document_ingestion_queue", pattern=r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,119}$"
+    )
+    summary_queue: str = Field(
+        default="document_summary_queue", pattern=r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,119}$"
+    )
+    dlq_queue: str = Field(default="document_dlq", pattern=r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,119}$")
+    rabbitmq_heartbeat_seconds: int = Field(default=60, ge=10, le=300)
+    rabbitmq_connection_timeout_seconds: int = Field(default=10, ge=1, le=60)
+    worker_ack_timeout_ms: int = Field(default=7200000, ge=60000)
+    job_max_attempts: int = Field(default=3, ge=1, le=5)
+    job_retry_base_seconds: int = Field(default=5, ge=1, le=300)
+    job_retry_max_seconds: int = Field(default=300, ge=1, le=3600)
+    job_poll_seconds: float = Field(default=2, ge=0.1, le=60)
+    job_lease_seconds: int = Field(default=300, ge=30, le=3600)
+    job_heartbeat_seconds: int = Field(default=30, ge=1, le=60)
+
+    @model_validator(mode="after")
+    def validate_job_settings(self) -> "Settings":
+        names = (self.ingestion_queue, self.summary_queue, self.dlq_queue)
+        if any(name.startswith("amq.") for name in names):
+            raise ValueError("Job queues cannot use the reserved amq. prefix")
+        if len(set(names)) != 3:
+            raise ValueError("Job queue names must be distinct")
+        if self.job_retry_max_seconds < self.job_retry_base_seconds:
+            raise ValueError("Job retry maximum must cover the base delay")
+        if self.job_lease_seconds < 3 * self.job_heartbeat_seconds:
+            raise ValueError("Job lease must cover at least three heartbeat intervals")
+        return self
 
     # PDF Extraction Configuration (LlamaParse)
     llama_cloud_api_key: str = Field(default="", repr=False)
