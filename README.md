@@ -291,4 +291,8 @@ explicit missing information and source references. See the
 
 The summary LangGraph now extracts bounded research windows, validates evidence,
 repairs invalid output at most twice, and combines long-paper notes without
-silently dropping chunks. Persistence and the frontend connection follow next.
+silently dropping chunks. Versioned persistence is implemented; the frontend connection follows next.
+
+Generate a parsed/chunked document summary with
+`python -m backend.services.summary_service.main DOCUMENT_ID`. Retrieve the saved
+result through `GET /api/v1/documents/{id}/summary`; this read never calls the LLM.

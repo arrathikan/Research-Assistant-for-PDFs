@@ -1,21 +1,14 @@
-# Summary Service (`backend/services/summary_service/`)
+# Summary service
 
-Microservice dedicated to synthesizing a 5-section academic summary using deterministic LangGraph orchestration.
-
----
-
-## The 5-Part Academic Summary
-
-1. **Title, Authors, and Abstract:** Core paper identity and concise overview.
-2. **Problem Statement:** Research problem, background motivation, and identified gaps.
-3. **Methodology:** Proposed theoretical models, algorithmic innovations, or experimental architectures.
-4. **Key Results:** Benchmark metrics, quantitative findings, and validation outcomes.
-5. **Conclusion:** Main takeaways, limitations, and potential future research directions.
-
----
-
-## Running Locally
+Runs a controlled LangGraph workflow over published, page-attributed Markdown
+chunks. It produces the five required research-summary sections through the
+configured OpenRouter gateway and verifies source IDs, pages and quoted text.
 
 ```bash
-python -m backend.services.summary_service.main
+python -m backend.services.summary_service.main DOCUMENT_ID
 ```
+
+Parsing/chunking must be completed first. This is an explicit job, not yet a
+RabbitMQ consumer. GET `/api/v1/documents/{id}/summary` reads the published result
+without a paid model call. See [the complete guide](../../../docs/structured-summary.md)
+for generation, retries, missing information, versioned storage and limitations.

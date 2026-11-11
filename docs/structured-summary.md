@@ -46,4 +46,41 @@ The graph has no agents, tools, persistent checkpoints or hidden model fallback.
 Transport failures do not consume the schema-repair budget; each transport request
 has its own bounded retry budget. Failed jobs currently restart extraction on
 retry, so they may repeat successful paid calls. Save callbacks run only after
-successful validation. MongoDB publication and React integration follow next.
+successful validation. MongoDB publication is implemented below; React integration follows next.
+
+## Generate and retrieve
+
+Run from the project root with the backend dependencies installed and MongoDB
+running. Use the real document ID returned by upload:
+
+```bash
+python -m backend.services.document_processor.main DOCUMENT_ID
+python -m backend.services.document_processor.chunk_cli DOCUMENT_ID
+python -m backend.services.summary_service.main DOCUMENT_ID
+curl http://localhost:8000/api/v1/documents/DOCUMENT_ID/summary
+```
+
+The parsing and summary commands can consume credits. Repeating an unchanged
+completed summary reuses the stored result. A missing model key does not prevent
+reading/reusing an existing valid summary. Generation is explicit until RabbitMQ
+orchestration is implemented; the GET endpoint never starts processing.
+
+`summary_runs` holds immutable results keyed by document, active chunk set and
+summary profile (model, schema, workflow and relevant limits). The document stores
+an active-summary pointer, parse/chunk generation, summary status and ownership
+token. Only the owning job can publish against an unchanged source generation.
+A saved result left by a publication failure can be reused on retry. Older results
+remain stored; switching models/configuration requires a matching result. Reads
+revalidate references against current chunk/page text and refuse stale results.
+
+The endpoint returns 404 for an unknown document, 409 for a missing/stale/in-progress
+summary and 503 for failed generation or unavailable/invalid storage. Responses
+include the five sections, verified source quotes, unavailable field names, model,
+profile and chunk-set identifiers.
+
+A completed summary sets the document to READY only when current configured
+embeddings for those chunks are also complete; otherwise it remains PENDING.
+Atlas index availability is a separate readiness check and is not established by
+summary completion. Failed jobs retain a safe failure status. A process crash may
+leave a RUNNING claim: inspect that job before manually recovering ownership;
+there is no automatic stale-claim takeover in this stage.

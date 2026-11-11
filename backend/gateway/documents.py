@@ -10,6 +10,8 @@ from backend.services.document_processor.chunk_models import DocumentChunk
 from backend.services.document_processor.chunk_storage import ChunkingNotReady, read_document_chunks
 from backend.services.document_processor.extraction import ParsingNotReady, read_parsed_document
 from backend.services.document_processor.parsed_models import ParsedDocument
+from backend.services.summary_service.models import SummaryError, SummaryResult
+from backend.services.summary_service.storage import SummaryNotReady, read_summary
 from backend.shared.config import get_settings
 from backend.shared.database import connect_database
 from backend.shared.models import DocumentStatus
@@ -169,3 +171,18 @@ def document_chunks(document_id: DocumentId, database: DatabaseDependency) -> li
         ) from None
     except DocumentNotFound:
         raise HTTPException(404, "Document not found") from None
+
+
+@router.get("/{document_id}/summary", response_model=SummaryResult)
+def document_summary(document_id: DocumentId, database: DatabaseDependency) -> SummaryResult:
+    """Read a published summary; never start a paid completion in an HTTP route."""
+    try:
+        return read_summary(database, document_id, get_settings())
+    except DocumentNotFound:
+        raise HTTPException(404, "Document not found") from None
+    except SummaryNotReady:
+        raise HTTPException(
+            409, "Summary is not complete for the current document and model"
+        ) from None
+    except SummaryError:
+        raise HTTPException(503, "Summary generation failed; retry the summary job") from None

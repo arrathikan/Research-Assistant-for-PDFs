@@ -352,3 +352,9 @@ Prompt 9.2 uses one controlled LangGraph with source-identification, generation,
 validation/targeted retry, reduction and save nodes. All source chunks are
 processed. Long-paper reduction retains original references and has bounded
 rounds, windows and payload sizes; no persistent checkpoint store is introduced.
+
+Prompt 9.3 persists immutable `summary_runs` with an active pointer and ownership
+token on `documents`. Publication checks the current parse and chunk set; a
+completed run can be reused without repeating LLM calls. Reads revalidate source
+references. Summary completion alone leaves PENDING until current embeddings
+are complete. `GET /api/v1/documents/{id}/summary` is read-only.

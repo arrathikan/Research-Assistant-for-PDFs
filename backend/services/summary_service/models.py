@@ -1,13 +1,14 @@
 """Strict model output and source-verified public summary contracts."""
 
 import json
+from datetime import datetime, timezone
 from hashlib import sha256
 from typing import Literal
 
 from backend.services.document_processor.chunk_models import DocumentChunk
 from backend.shared.config import Settings
 from backend.shared.models import StructuredSummary
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
 
 WORKFLOW_VERSION = "grounded-summary-v1"
 UNAVAILABLE = "Not stated in the document."
@@ -74,12 +75,21 @@ class SummarySource(Evidence):
 
 
 class SummaryResult(StructuredSummary):
+    model_config = ConfigDict(validate_default=True)
     chunk_set_id: str = Field(pattern=r"^[0-9a-f]{64}$")
     summary_profile_id: str = Field(pattern=r"^[0-9a-f]{64}$")
     llm_model: str
     workflow_version: str = WORKFLOW_VERSION
     sources: list[SummarySource]
     unavailable_fields: list[SummaryField]
+
+    @field_validator("generated_at")
+    @classmethod
+    def normalize_timestamp(cls, value: datetime) -> datetime:
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=timezone.utc)
+        value = value.astimezone(timezone.utc)
+        return value.replace(microsecond=value.microsecond // 1000 * 1000)
 
 
 def summary_profile_id(settings: Settings) -> str:
