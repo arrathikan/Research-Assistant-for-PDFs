@@ -467,10 +467,10 @@ results.
 
 ### Shared responsive frontend layout
 
-PageContainer owns the centered max-w-6xl (1152px) content boundary and shared
-responsive gutters used by Dashboard, Upload and Workspace. Both existing
-navigation components use the same boundary while their header backgrounds stay
-full-width. The upload's heading, selection card and status card use one nested
+PageContainer owns centered boundaries and shared responsive gutters: the default
+is 1152px for Dashboard/Upload, and the wide Workspace variant is capped at 1440px.
+Both existing navigation components select the matching boundary while their
+header backgrounds stay full-width. The upload's heading, selection card and status card use one nested
 max-w-3xl (768px) column. Document cards use auto-fit grid tracks so unused
 desktop columns collapse.
 
@@ -572,3 +572,19 @@ HTTPS; a friendly source error handles environments without it.
 No retrieval, parsing, stored chunking, embedding, summary generation, RabbitMQ
 or offline Ragas code changes are part of this refinement. See
 [verification](optional-pdf-workspace.md).
+
+
+### Balanced Workspace content width
+
+The former nested 1152px page / 768px content caps left summary cards much
+narrower than their toolbar. Workspace now requests PageContainer's wide mode
+(1440px maximum), keeping 16px mobile, 24px tablet and 32px desktop gutters.
+The closed-PDF toolbar row and summary/chat wrapper share one 1200px maximum,
+so their edges remain aligned. All five summary cards fill that wrapper; their
+paragraphs keep a 100ch line limit and consistent 24px desktop card padding.
+
+Chat uses the same content boundary and input alignment. Individual answers are
+capped at 90ch and question bubbles fit their content with an 85%/70ch limit.
+Opening the existing PDF removes the inner content cap and retains the 55/45 grid;
+closing it restores the wide centered content. No component identity, state,
+source resolution or backend processing behavior is changed by these CSS rules.

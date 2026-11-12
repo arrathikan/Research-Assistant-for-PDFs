@@ -89,7 +89,7 @@ export function DocumentSummaryPanel({ documentId, filename, onCitationClick }: 
   }
   return (
     <div className="min-w-0 w-full space-y-4 [overflow-wrap:anywhere]" aria-busy={loading}>
-      <header className="p-5 bg-white rounded-2xl border border-slate-200">
+      <header className="p-5 sm:p-6 bg-white rounded-2xl border border-slate-200">
         <p className="text-xs font-semibold text-blue-700">Research summary</p>
         <h2 className="text-base font-bold text-slate-900 mt-2">{current?.title ?? filename}</h2>
       </header>
@@ -108,9 +108,9 @@ export function DocumentSummaryPanel({ documentId, filename, onCitationClick }: 
         const sources = references.filter((source, position) => references.findIndex(other =>
           other.chunk_id === source.chunk_id && other.page_number === source.page_number && other.quote === source.quote) === position);
         return (
-          <section key={section.title} className="p-5 bg-white rounded-2xl border border-slate-200">
+          <section key={section.title} className="p-5 sm:p-6 bg-white rounded-2xl border border-slate-200">
             <h3 className="text-sm font-bold text-slate-800"><span aria-hidden="true">{index + 1}. </span>{section.title}</h3>
-            <div className="mt-3 text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
+            <div className="mt-3 max-w-[100ch] text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
               {current ? section.fields.map(field => (
                 <p key={field} className="mt-2">{field === 'authors'
                   ? `Authors: ${current.authors.length ? current.authors.join(', ') : 'Not stated in the document.'}`

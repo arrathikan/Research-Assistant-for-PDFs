@@ -1,5 +1,7 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+import { PageContainer } from '../components/layout/PageContainer';
+import { Navbar as UploadNavbar } from '../components/Navbar';
 import { AppLayout } from '../components/layout/AppLayout';
 import { DashboardView } from '../views/DashboardView';
 import { UploadView } from '../views/UploadView';
@@ -55,10 +57,30 @@ it('keeps workspace panes in one shared frame and preserves tab switching', asyn
   expect(screen.getAllByTestId('page-container')).toHaveLength(1);
   expect(screen.getAllByTestId('page-frame')).toHaveLength(1);
   const content = screen.getByTestId('page-container');
+  expect(content).toHaveClass('max-w-[1440px]');
+  expect(screen.getByTestId('navigation-container')).toHaveClass('max-w-[1440px]');
   expect(content).toContainElement(screen.getByRole('region', { name: 'Summary and chat' }));
   expect(screen.queryByRole('region', { name: 'Original PDF' })).not.toBeInTheDocument();
   expect(screen.queryByTestId('pdf-viewer-panel')).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'AI Chatbot' }));
   expect(screen.getByRole('textbox', { name: 'Question' })).toBeInTheDocument();
   expect(screen.getAllByTestId('page-container')).toHaveLength(1);
+});
+
+it('retains the ordinary page boundary for Dashboard and Upload navigation', () => {
+  const view = render(<AppLayout activeTab="dashboard" onSelectTab={vi.fn()} activeDoc={PDF_DOCUMENT}><PageContainer>Dashboard</PageContainer></AppLayout>);
+  expect(screen.getByTestId('navigation-container')).toHaveClass('max-w-6xl');
+  expect(screen.getByTestId('page-container')).toHaveClass('max-w-6xl');
+  view.rerender(<AppLayout activeTab="upload" onSelectTab={vi.fn()} activeDoc={PDF_DOCUMENT}><PageContainer>Upload</PageContainer></AppLayout>);
+  expect(screen.getByTestId('navigation-container')).toHaveClass('max-w-6xl');
+  expect(screen.getByTestId('page-container')).toHaveClass('max-w-6xl');
+});
+
+it('aligns the upload-to-workspace shell header with the same wide Workspace boundary', () => {
+  const view = render(<><UploadNavbar activeFilename={PDF_DOCUMENT.filename} /><PageContainer wide>Workspace</PageContainer></>);
+  expect(screen.getByTestId('navigation-container')).toHaveClass('max-w-[1440px]');
+  expect(screen.getByTestId('page-container')).toHaveClass('max-w-[1440px]');
+  view.rerender(<><UploadNavbar /><PageContainer>Upload</PageContainer></>);
+  expect(screen.getByTestId('navigation-container')).toHaveClass('max-w-6xl');
+  expect(screen.getByTestId('page-container')).toHaveClass('max-w-6xl');
 });

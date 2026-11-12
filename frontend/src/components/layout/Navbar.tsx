@@ -15,7 +15,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   return (
     <header className="z-10 w-full shrink-0 border-b border-slate-200 bg-white shadow-2xs">
-      <div data-testid="navigation-container" className="mx-auto flex min-w-0 w-full max-w-6xl flex-col gap-3 px-4 py-3 sm:h-16 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-0 lg:px-8">
+      <div data-testid="navigation-container" className={'mx-auto flex min-w-0 w-full flex-col gap-3 px-4 py-3 sm:h-16 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-0 lg:px-8' + (activeTab === 'workspace' ? ' max-w-[1440px]' : ' max-w-6xl')}>
         {/* Brand & Breadcrumb */}
         <div className="flex items-center gap-4">
           <button

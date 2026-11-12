@@ -88,10 +88,11 @@ function WorkspaceSession({ document: paper, initialTab = 'summary' }: Props) {
     showPdf();
   }
 
+  const contentWidth = pdfOpen ? '' : 'max-w-[1200px]';
   return (
-    <PageContainer scrollable={false}>
+    <PageContainer scrollable={false} wide>
       <div hidden={pdfOpen && mobile} className="shrink-0 border-b border-slate-200 bg-white py-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className={'mx-auto flex w-full min-w-0 flex-wrap items-center justify-between gap-3 ' + contentWidth}>
           <nav aria-label="Workspace panels" className="flex flex-wrap gap-1 text-xs font-semibold">
             <button type="button" aria-pressed={tab === 'summary'} onClick={() => setTab('summary')}
               className="flex min-h-10 items-center gap-2 rounded-lg px-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 aria-pressed:bg-blue-50 aria-pressed:text-blue-700">
@@ -114,7 +115,7 @@ function WorkspaceSession({ document: paper, initialTab = 'summary' }: Props) {
         <section aria-label="Summary and chat" hidden={pdfOpen && mobile}
           className={'min-h-0 min-w-0 overflow-y-auto bg-slate-50 py-5 '
             + (pdfOpen ? 'md:border-r md:border-slate-200 md:pr-5' : '')}>
-          <div className={'mx-auto w-full min-w-0 ' + (pdfOpen ? '' : 'max-w-3xl')}>
+          <div className={'mx-auto w-full min-w-0 ' + contentWidth}>
             {sourceError && <p role="alert" className="mb-4 rounded-lg border border-red-200 bg-white p-3 text-sm text-red-700">{sourceError}</p>}
             <div hidden={tab !== 'summary'}>
               <DocumentSummaryPanel documentId={paper.id} filename={paper.filename} onCitationClick={openSource} />
