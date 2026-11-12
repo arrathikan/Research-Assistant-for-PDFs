@@ -483,3 +483,16 @@ content limit. Summary paragraphs keep a 100ch line limit; chat bubbles have
 separate readable limits while the conversation and input use the wider content
 area. Desktop gutters are 32px. The optional PDF layout and state behavior are
 preserved. See [measured layout verification](docs/optional-pdf-workspace.md).
+
+
+### Refined research experience
+
+ResearchAI now opens the existing Dashboard with an honest empty library. Upload
+one real PDF to explore its saved summary or start a sourced conversation. The
+shared blue/neutral controls, accessible document articles, keyboard tabs and
+compact chat suggestions are consistent across pages. The optional PDF code loads
+only when requested and retains its viewer state while hidden.
+
+The library currently lasts for the App session; this frontend refinement adds no
+listing API or cross-reload persistence. See [frontend guidance, changed files,
+verification and limits](docs/frontend-experience.md).

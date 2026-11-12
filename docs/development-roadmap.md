@@ -637,3 +637,28 @@ summary cards and chat input aligned. Real summary/chat citations opened pages
 5, 4 and 10; reopening retained page 6 at 125% zoom with unchanged summary/chat.
 Existing PDF.js build warnings remain. Backend processing and pre-existing local
 files were unchanged. See [application layout verification](application-layout.md).
+
+
+### ResearchAI frontend experience refinement
+
+- [x] Consult current Modern Web Guidance for accessibility, forms, tabs, controls,
+  motion, performance and cards/container queries before implementing.
+- [x] Centralize the blue/neutral design tokens and reuse consistent controls.
+- [x] Integrate the existing Dashboard shell without fabricated READY samples.
+- [x] Preserve actual upload states and align selection/processing cards.
+- [x] Refine Summary and Chat, with optional starter ideas and explicit retry.
+- [x] Preserve source navigation, lazy-load one retained PDF viewer and contain
+  optional viewer failures without replacing the conversation.
+- [x] Verify 375, 768, 1024, 1280, 1440 and 1920px views and inspect screenshots.
+
+Verification: **131 local / 127 isolated frontend tests passed**; both final
+TypeScript/production builds passed. Initial JavaScript decreased from 575.00kB
+to approximately 203kB by deferring PDF code. Palette contrast was checked,
+keyboard controls/focus were verified, and the final tab had no console errors.
+A real duplicate upload, saved summary/history and sourced chat worked. Citations
+opened pages 4/5, a summary source highlighted exact text, and reopening retained
+page 6 at 125% zoom plus chat/draft state. No frontend lint script is configured;
+no standalone lint pass is claimed. The session-scoped document library and
+upstream PDF.js warning remain documented limits. Backend/RAG/processing behavior
+was unchanged. See [frontend experience](frontend-experience.md) for files,
+guidance, measurements and test details.

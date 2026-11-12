@@ -20,6 +20,7 @@ it('shows pending state then a sourced API answer', async () => {
   const cite = vi.fn();
   render(<DocumentChatPanel documentId={ID} onCitationClick={cite} />); send();
   expect(screen.getByText('Preparing your answer…')).toBeInTheDocument();
+  expect(screen.getByRole('log', { name: 'Chat messages' })).toHaveAttribute('aria-busy', 'true');
   expect(screen.getByRole('button', { name: 'Send Message' })).toBeDisabled();
   await act(async () => { finish(RESULT); });
   expect(screen.getByText('Synthetic answer', { exact: false })).toHaveTextContent(RESULT.answer);
@@ -86,4 +87,35 @@ it('opens inline citations while keeping supporting passages optional', async ()
   expect(screen.queryByRole('button', { name: /citation 9/ })).not.toBeInTheDocument();
   expect(screen.getByText(/Unknown \[9\]/)).toHaveTextContent('<img src=x>');
   expect(document.querySelector('img')).toBeNull();
+});
+
+
+it('fills and focuses a suggested question without sending a paid request', () => {
+  const send = vi.spyOn(api, 'sendChatQuery');
+  render(<DocumentChatPanel documentId={ID} />);
+  fireEvent.click(screen.getByRole('button', { name: 'What methodology was used?' }));
+  expect(screen.getByRole('textbox', { name: 'Question' })).toHaveValue('What methodology was used?');
+  expect(screen.getByRole('textbox', { name: 'Question' })).toHaveFocus();
+  expect(send).not.toHaveBeenCalled();
+});
+
+it('retries the restored question through the same chat API after a failure', async () => {
+  const post = vi.spyOn(api, 'sendChatQuery').mockRejectedValueOnce(new ApiError(503, 'unavailable')).mockResolvedValueOnce(RESULT);
+  render(<DocumentChatPanel documentId={ID} />); send();
+  fireEvent.click(await screen.findByRole('button', { name: 'Retry question' }));
+  expect(await screen.findByText('Synthetic answer', { exact: false })).toBeInTheDocument();
+  expect(post).toHaveBeenCalledTimes(2);
+  expect(post).toHaveBeenLastCalledWith(ID, 'Synthetic question?', undefined);
+});
+
+
+it('keeps additional ideas optional and fills them without sending a request', () => {
+  const post = vi.spyOn(api, 'sendChatQuery');
+  render(<DocumentChatPanel documentId={ID} />);
+  expect(screen.getByRole('button', { name: 'What methodology was used?' })).toBeVisible();
+  expect(screen.getByText('Who wrote this paper?')).not.toBeVisible();
+  fireEvent.click(screen.getByText('More question ideas'));
+  fireEvent.click(screen.getByRole('button', { name: 'Who wrote this paper?' }));
+  expect(screen.getByRole('textbox', { name: 'Question' })).toHaveValue('Who wrote this paper?');
+  expect(post).not.toHaveBeenCalled();
 });

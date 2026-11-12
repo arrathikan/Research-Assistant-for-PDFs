@@ -22,7 +22,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
         onSelectTab={onSelectTab}
         activeDoc={activeDoc}
       />
-      <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+      <main id="main-content" tabIndex={-1} className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         {children}
       </main>
     </div>

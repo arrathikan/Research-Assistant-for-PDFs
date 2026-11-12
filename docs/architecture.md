@@ -590,3 +590,19 @@ capped at 90ch and question bubbles fit their content with an 85%/70ch limit.
 Opening the existing PDF removes the inner content cap and retains the 55/45 grid;
 closing it restores the wide centered content. No component identity, state,
 source resolution or backend processing behavior is changed by these CSS rules.
+
+
+### Frontend experience and optional code boundary
+
+App uses the existing Dashboard/Upload/Workspace shell, with real upload metadata
+in a session-scoped library. Hardcoded sample READY documents were removed;
+SHA-256 prevents duplicate library cards and document shortcuts carry the requested
+summary/chat tab. No service APIs or processing state machines changed.
+
+Shared CSS tokens and component classes unify controls and typography. Document
+articles use inline-size container queries with a stacked fallback. Workspace
+uses explicit ARIA tabs and retains both content panels. The same existing PDF
+component is imported lazily outside the session component and retained after its
+first use. A focused error boundary protects the conversation from optional PDF
+code/render failures. The mobile overlay keeps existing focus containment and
+makes the global header inert until closed. See [guidance and verification](frontend-experience.md).

@@ -1,4 +1,4 @@
-import { useRef, useState, type ChangeEvent, type DragEvent } from 'react';
+import { useId, useRef, useState, type ChangeEvent, type DragEvent } from 'react';
 import { FileText, Loader2, UploadCloud, X } from 'lucide-react';
 import { formatFileSize } from './formatFileSize';
 
@@ -10,6 +10,7 @@ interface UploadZoneProps {
 }
 
 export function UploadZone({ onUpload, isUploading = false }: UploadZoneProps) {
+  const validationId = useId();
   const [isDragOver, setIsDragOver] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -58,10 +59,11 @@ export function UploadZone({ onUpload, isUploading = false }: UploadZoneProps) {
 
   return (
     <div className="w-full space-y-4">
-      {validationError && <p role="alert" className="rounded-lg border border-rose-200 bg-white px-4 py-3 text-sm leading-6 text-rose-700">{validationError}</p>}
+      {validationError && <p id={validationId} role="alert" className="rounded-lg border border-rose-200 bg-white px-4 py-3 text-sm leading-6 text-rose-700">{validationError}</p>}
       <input ref={fileInputRef} type="file" accept=".pdf,application/pdf" aria-label="Choose a PDF file" tabIndex={-1}
-        data-testid="file-input" onChange={choose} className="sr-only" disabled={isUploading} />
+        data-testid="file-input" onChange={choose} hidden disabled={isUploading} />
       <button type="button" data-testid="dropzone" disabled={isUploading}
+        aria-label="Choose PDF" aria-describedby={validationError ? validationId : undefined} aria-invalid={!!validationError}
         onDragOver={event => { event.preventDefault(); if (!isUploading) setIsDragOver(true); }}
         onDragLeave={() => setIsDragOver(false)} onDrop={drop} onClick={() => fileInputRef.current?.click()}
         className={'flex min-h-56 w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-4 disabled:cursor-wait sm:p-10 '
@@ -72,11 +74,11 @@ export function UploadZone({ onUpload, isUploading = false }: UploadZoneProps) {
         </> : <>
           <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600"><UploadCloud size={26} aria-hidden="true" /></span>
           <span className="text-base font-semibold text-slate-900">Drag & Drop your research paper here</span>
-          <span className="mt-1 text-sm text-slate-500">or <span className="font-medium text-blue-700">browse files</span></span>
+          <span className="mt-1 text-sm text-slate-500"><span className="ui-button ui-button-primary mt-2">Choose PDF</span></span>
           <span className="mt-5 text-xs leading-6 text-slate-500">PDF format only · Max 25 MB · One paper at a time</span>
         </>}
       </button>
-      {selectedFile && !isUploading && <div className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white p-4">
+      {selectedFile && !isUploading && <div className="ui-card flex flex-wrap items-center gap-3 p-4">
         <FileText size={22} aria-hidden="true" className="shrink-0 text-blue-700" />
         <div className="min-w-0 flex-1">
           <p className="break-words text-sm font-medium text-slate-900 [overflow-wrap:anywhere]">{selectedFile.name}</p>
@@ -85,7 +87,7 @@ export function UploadZone({ onUpload, isUploading = false }: UploadZoneProps) {
         <button type="button" aria-label="Remove selected PDF" onClick={() => setSelectedFile(null)}
           className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"><X size={18} aria-hidden="true" /></button>
         <button type="button" onClick={() => void submit()}
-          className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 sm:w-auto"><UploadCloud size={16} aria-hidden="true" />Upload paper</button>
+          className="ui-button ui-button-primary w-full sm:w-auto"><UploadCloud size={16} aria-hidden="true" />Upload paper</button>
       </div>}
     </div>
   );
