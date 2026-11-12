@@ -531,7 +531,7 @@ build warnings remain; no dependencies or backend APIs changed.
 
 - [x] RAG.1: Answer-first Markdown UI, optional Sources and compact PDF citation toolbar.
 - [x] RAG.2: Intent-sensitive context, summary reuse and contextual follow-up retrieval.
-- [ ] RAG.3: Intent evaluation, live checks and final documentation.
+- [x] RAG.3: Intent evaluation, live checks and final documentation.
 
 RAG.1 frontend verification: **99 tests passed** in the preserved local workspace.
 The backend baseline passed **410 tests, 4 optional checks skipped**. An initial
@@ -561,3 +561,20 @@ retained as a diagnostic collection rather than presented as a successful run.
 Broad selection now protects the highest-ranked nearby evidence before section
 diversity. Both live Atlas comparison contexts include the previously missing
 core result; final answer-quality evaluation follows on this revision.
+
+RAG.3 final verification: **463 backend tests passed, 4 optional checks skipped**;
+**99 local / 95 isolated frontend tests passed**, with both production/type builds
+passing. Dataset/report tests: **22 passed**. Scoped Ruff and actual PDF identity/
+page/anchor checks passed. Final real collection returned all 18 responses, and
+Ragas produced **60 values, 30 appropriate skips, 0 errors**. Both final factual
+citations resolved through the HTTP API to page 3 after a transient Atlas timeout
+recovered. Sources/citation and responsive browser checks passed.
+
+The [measured intent report](../evaluation/reports/2026-11-12-assistant/README.md)
+preserves initial failures, an unscored intermediate collection and all 18 final
+assistant reviews. Five responses have incomplete claim/citation support; one
+also misattributes an interpretation. These remain documented quality work.
+Implementation and verification are complete; no overall accuracy or hybrid
+superiority is claimed, and human review is not fabricated. The live saved-summary
+failure predates this refinement; cache reuse is covered by deterministic/storage
+tests and live overviews used section fallback.

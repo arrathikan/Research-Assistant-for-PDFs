@@ -454,3 +454,9 @@ otherwise bounded section samples support a qualified overview. Explicit general
 knowledge is labeled separately and carries no paper citations. Source-generation,
 embedding-profile and exact-quote validation remain mandatory. See
 [the architecture notes](docs/architecture.md#intent-sensitive-research-chat).
+
+The measured nine-question research-assistant check is available in
+[the intent evaluation report](evaluation/reports/2026-11-12-assistant/README.md).
+The final run generated all 18 paired responses and all 60 applicable Ragas
+values; assistant review still found five answers with incomplete citation
+support. These results do not establish overall scientific-answer accuracy.

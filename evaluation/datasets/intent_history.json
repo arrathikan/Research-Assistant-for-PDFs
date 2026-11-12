@@ -1,0 +1,8 @@
+{
+  "assistant-followup": [
+    {
+      "question": "How do the encoder-decoder models behave within their training-time context length?",
+      "answer": "Within their encoder training-time context length, Flan-UL2 and Flan-T5-XXL are relatively robust to the position of relevant information. Flan-UL2 was trained with 2,048-token sequences; Flan-T5-XXL with 512-token sequences."
+    }
+  ]
+}

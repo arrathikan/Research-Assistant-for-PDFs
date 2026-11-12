@@ -115,3 +115,32 @@ RAGAS_DO_NOT_TRACK=true python -m pytest backend/tests/test_benchmark_dataset.py
 The installed-Ragas adapter check uses local HTTP fixtures. All numeric fixture
 scores in unit tests are explicitly test data, never published benchmark results.
 See [the methodology](../docs/rag-evaluation.md) for interpreting real scores.
+
+## Research-assistant intent checks
+
+Use the separate nine-case dataset and curated follow-up seed history:
+
+```sh
+RAGAS_DO_NOT_TRACK=true python -m evaluation.evaluate validate \
+  --dataset evaluation/datasets/intent_test_cases.json --pdf /path/to/published-paper.pdf
+RAGAS_DO_NOT_TRACK=true python -m evaluation.evaluate collect \
+  --dataset evaluation/datasets/intent_test_cases.json \
+  --history evaluation/datasets/intent_history.json \
+  --bindings /private/path/to/document-bindings.json --limit 9 --live
+```
+
+Then score the saved collection using the existing score command. Both strategies
+share section samples for an overview and no retrieval for general knowledge;
+those rows compare generation behavior, not hybrid versus semantic ranking.
+Facts retain the configured narrow limit; other paper queries use the bounded
+broader context with section diversity for both strategies. Initial and corrected
+runs retain their actual pipeline commit, prompt hash, source identity and
+dataset hash.
+
+General-only cases are evaluated for clear labeling and absence of paper
+citations, not paper faithfulness. Mixed cases score paper faithfulness and
+reference correctness on the paper portion and answer relevance on the complete
+response. Ragas receives the literal current question for follow-ups; its
+single-turn relevance metric may underrate context-dependent wording. Review
+follow-ups with their recorded seed history and reference. Results do not
+establish general accuracy, and no human review is implied by assistant checks.

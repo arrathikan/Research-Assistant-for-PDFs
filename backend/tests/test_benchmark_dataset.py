@@ -103,3 +103,26 @@ def test_review_checklist_includes_provenance_pages_and_case_hashes():
     assert case_hash(dataset.cases[0]) in text
     assert "#page=5" in text
     assert "independent human review" in text
+
+
+def test_intent_dataset_covers_required_categories_and_preserves_seed_provenance():
+    dataset = load_dataset(Path("evaluation/datasets/intent_test_cases.json"))
+    assert {case.category for case in dataset.cases} == {
+        "summary",
+        "topic",
+        "fact",
+        "analysis",
+        "comparison",
+        "followup",
+        "unanswerable",
+        "general",
+        "mixed",
+    }
+    assert len(dataset.cases) == 9
+    assert all(dataset.approved(case) for case in dataset.cases)
+    assert {review.review_kind for review in dataset.reviews} == {"assistant"}
+    histories = json.loads(Path("evaluation/datasets/intent_history.json").read_text())
+    followup = next(case for case in dataset.cases if case.category == "followup")
+    assert set(histories) == {followup.sample_id}
+    assert "encoder-decoder" in histories[followup.sample_id][0]["question"]
+    assert "seed" in followup.review_note
