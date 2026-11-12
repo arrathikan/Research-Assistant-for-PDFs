@@ -13,7 +13,7 @@ export function CitedAnswer({ answer, citations, onCitationClick }: Props) {
       if (source && onCitationClick) return <button key={key} type="button"
         className="mx-0.5 inline-flex rounded-md bg-blue-50 px-1.5 font-medium text-blue-700 hover:bg-blue-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
         aria-label={'Open citation ' + match![1] + ', page ' + source.page_number}
-        onClick={() => onCitationClick(source)}>{part}</button>;
+        onClick={event => { event.currentTarget.focus(); onCitationClick(source); }}>{part}</button>;
       if (part.startsWith('**') && part.endsWith('**')) return <strong key={key} className="font-semibold text-slate-900">{inline(part.slice(2, -2), key)}</strong>;
       if (part.startsWith('`') && part.endsWith('`')) return <code key={key} className="rounded bg-slate-100 px-1 py-0.5 text-xs">{part.slice(1, -1)}</code>;
       if (part.startsWith('*') && part.endsWith('*')) return <em key={key}>{inline(part.slice(1, -1), key)}</em>;

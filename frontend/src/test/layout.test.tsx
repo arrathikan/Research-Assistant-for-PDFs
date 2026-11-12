@@ -56,8 +56,8 @@ it('keeps workspace panes in one shared frame and preserves tab switching', asyn
   expect(screen.getAllByTestId('page-frame')).toHaveLength(1);
   const content = screen.getByTestId('page-container');
   expect(content).toContainElement(screen.getByRole('region', { name: 'Summary and chat' }));
-  expect(content).toContainElement(screen.getByRole('region', { name: 'PDF pane' }));
-  expect(screen.getAllByTestId('pdf-viewer-panel')).toHaveLength(1);
+  expect(screen.queryByRole('region', { name: 'Original PDF' })).not.toBeInTheDocument();
+  expect(screen.queryByTestId('pdf-viewer-panel')).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'AI Chatbot' }));
   expect(screen.getByRole('textbox', { name: 'Question' })).toBeInTheDocument();
   expect(screen.getAllByTestId('page-container')).toHaveLength(1);

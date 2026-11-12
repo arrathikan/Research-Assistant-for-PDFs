@@ -1,21 +1,13 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { DocumentSummaryPanel } from '../components/summary/DocumentSummaryPanel';
+import { SUMMARY as RESULT } from './summaryFixtures';
 import { api, ApiError } from '../services/api';
 import type { SummaryResponse } from '../types/summary';
 
 const ID = '507f1f77bcf86cd799439011';
 const OTHER_ID = '507f1f77bcf86cd799439012';
-const RESULT: SummaryResponse = {
-  document_id: ID, title: 'Synthetic paper', authors: ['Ada Example'],
-  abstract: 'Synthetic abstract.', problem_statement: 'Synthetic problem.',
-  methodology: 'Synthetic method.', key_results: 'Synthetic result: 42.',
-  conclusion: 'Synthetic conclusion.', generated_at: '2026-11-11T00:00:00Z',
-  chunk_set_id: 'a'.repeat(64), summary_profile_id: 'b'.repeat(64),
-  llm_model: 'test/model', workflow_version: 'grounded-summary-v1',
-  sources: [{ field: 'methodology', chunk_id: 'c'.repeat(64), page_number: 2, quote: 'A synthetic source quote.' }],
-  unavailable_fields: [],
-};
+
 
 afterEach(() => { vi.restoreAllMocks(); vi.useRealTimers(); });
 
@@ -30,7 +22,9 @@ describe('DocumentSummaryPanel', () => {
     }
     expect(screen.getByText('Authors: Ada Example')).toBeInTheDocument();
     expect(screen.getByText('Page 2')).toBeInTheDocument();
-    expect(screen.getByText('A synthetic source quote.')).toBeInTheDocument();
+    expect(screen.getByText('A synthetic source quote.')).not.toBeVisible();
+    fireEvent.click(screen.getByText('Supporting passages'));
+    expect(screen.getByText('A synthetic source quote.')).toBeVisible();
   });
 
   it('keeps missing information explicit without sample authors', async () => {

@@ -64,6 +64,7 @@ export function PdfViewerPanel({ document: paper, activeCitation, onClearCitatio
     setSource(null); setSourceError(''); setHighlight({ kind: 'page', rects: [] }); setResolving(false);
     if (!activeCitation || !id || !valid) return;
     const citation = activeCitation;
+    if (!Number.isInteger(citation.page_number) || citation.page_number < 1) { setSourceError('That source page is not available. Try another citation.'); return; }
     if (citation.document_id !== id.toLowerCase()) { setSourceError('This citation belongs to a different document.'); return; }
     setResolving(true);
     void api.resolveCitation(id, citation).then(result => {
@@ -71,14 +72,21 @@ export function PdfViewerPanel({ document: paper, activeCitation, onClearCitatio
       if (result.document_id !== id.toLowerCase() || result.citation_id !== citation.citation_id || result.chunk_id !== citation.chunk_id || result.page_number !== citation.page_number || result.quote_snippet !== citation.quote_snippet || !result.chunk_set_id || !result.parse_run_id) {
         throw new Error('Citation source mismatch');
       }
-      setSource(result); setPage({ id, value: result.page_number });
+      setSource(result);
     }).catch((failure: unknown) => {
       if (!cancelled) setSourceError(failure instanceof ApiError && failure.status === 409
         ? 'This source changed. Load a current answer before opening the citation.'
-        : 'This citation could not be verified. No highlight was applied.');
+        : 'We couldn’t open this source. Try another citation or view the original PDF.');
     }).finally(() => { if (!cancelled) setResolving(false); });
     return () => { cancelled = true; };
   }, [id, valid, activeCitation]);
+
+  useEffect(() => {
+    if (source && source.document_id === id?.toLowerCase() && pages > 0
+      && Number.isInteger(source.page_number) && source.page_number >= 1 && source.page_number <= pages) {
+      setPage({ id, value: source.page_number });
+    }
+  }, [source, pages, id]);
 
   const textRendered = useCallback(() => setTextRevision(value => value + 1), []);
   const pageLoaded = useCallback((pdfPage: PDFPageProxy) => {
@@ -126,8 +134,8 @@ export function PdfViewerPanel({ document: paper, activeCitation, onClearCitatio
 
   const targetInvalid = !!anchor && pages > 0 && anchor.page_number > pages;
   return (
-    <section data-testid="pdf-viewer-panel" aria-label="PDF source viewer" className="flex min-h-0 h-full flex-col bg-slate-100">
-      <div className="flex flex-wrap items-center gap-2 border-b bg-white p-3 text-xs">
+    <section data-testid="pdf-viewer-panel" aria-label="PDF source viewer" className="flex min-h-0 min-w-0 h-full flex-col bg-slate-100">
+      <div className="flex shrink-0 flex-wrap items-center gap-2 border-b bg-white p-3 text-xs">
         <button type="button" aria-label="Previous Page" disabled={!pages || page <= 1} onClick={() => setPage({ id, value: page - 1 })}>Previous</button>
         <label>Page <input aria-label="PDF page number" type="number" min={1} max={pages || 1} value={page} disabled={!pages} onChange={event => { const next = Number(event.target.value); if (Number.isInteger(next) && next >= 1 && next <= pages) setPage({ id, value: next }); }} className="w-14 rounded border p-1" /></label>
         <span>of {pages || '…'}</span>
@@ -140,7 +148,7 @@ export function PdfViewerPanel({ document: paper, activeCitation, onClearCitatio
       </div>
       {resolving && <p role="status" className="p-3 text-sm">Opening citation…</p>}
       {sourceError && <p role="alert" className="p-3 text-sm text-red-700">{sourceError}</p>}
-      {targetInvalid && <p role="alert" className="p-3 text-sm text-red-700">The citation page is outside this PDF. No highlight was applied.</p>}
+      {targetInvalid && <p role="alert" className="p-3 text-sm text-red-700">That source page is not available in this PDF. Try another citation.</p>}
       {anchor && !targetInvalid && (
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-blue-100 bg-white px-3 py-2 text-xs text-slate-600">
           <p className="font-medium">Source — Page {anchor.page_number}</p>
