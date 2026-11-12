@@ -23,23 +23,11 @@ def dataset():
 
 
 def completion(system, prompt, schema):
-    source = json.loads(prompt)["contexts"][0]
-    page = source["pages"][0]
+    passage = json.loads(prompt)["contexts"][0]["pages"][0]["passages"][0]
     return json.dumps(
         {
-            "is_out_of_scope": False,
-            "claims": [
-                {
-                    "text": "Synthetic controlled answer.",
-                    "sources": [
-                        {
-                            "chunk_id": source["chunk_id"],
-                            "page_number": page["page_number"],
-                            "quote": page["text"][:40],
-                        }
-                    ],
-                }
-            ],
+            "general_background": "",
+            "claims": [{"text": "Synthetic controlled answer.", "source_keys": [passage["key"]]}],
         }
     )
 
@@ -124,3 +112,67 @@ def test_retrieval_failures_never_invent_contexts_or_answers():
     ):
         result = collect(MagicMock(), data, {key: DOCUMENT_ID}, SETTINGS, "synthetic")
     assert all(record.error_code == "retrieval_failed" for record in result.records)
+
+
+def test_seed_history_is_used_for_actual_retrieval_and_retained_without_chat_writes():
+    data, db = dataset(), MagicMock()
+    case = data.cases[0].model_copy(update={"user_question": "What about its title?"})
+    data = data.model_copy(update={"cases": [case], "reviews": []})
+    key = case.document_key
+    history = [
+        {"question": "What is the main topic of this paper?", "answer": "A controlled fixture."}
+    ]
+    hits = [RetrievalHit(chunk=CHUNKS[0])]
+    with (
+        patch(
+            "evaluation.collect.get_document",
+            return_value=SimpleNamespace(sha256=data.sources[key].pdf_sha256, page_count=17),
+        ),
+        patch("evaluation.collect.current_scope", return_value=(SCOPE, CHUNKS)),
+        patch(
+            "evaluation.collect.retrieve_variants",
+            return_value=(SCOPE, {"hybrid": hits, "semantic": hits}),
+        ) as retrieval,
+    ):
+        run = collect(
+            db,
+            data,
+            {key: DOCUMENT_ID},
+            SETTINGS,
+            "synthetic",
+            complete=completion,
+            history_by_sample={case.sample_id: history},
+        )
+    assert "main topic" in retrieval.call_args.args[2]
+    assert run.records[0].output.trace.configuration["conversation_history"] == history
+    assert (
+        run.records[0].output.trace.configuration["evaluation_history"]
+        == "seeded_history_no_chat_storage"
+    )
+    db.chat_turns.insert_one.assert_not_called()
+
+
+def test_summary_collection_uses_the_same_summary_context_path_as_chat():
+    data, db = dataset(), MagicMock()
+    case = data.cases[0].model_copy(update={"user_question": "Summarize this research paper."})
+    data = data.model_copy(update={"cases": [case], "reviews": []})
+    key = case.document_key
+    hits = [RetrievalHit(chunk=CHUNKS[0])]
+    with (
+        patch(
+            "evaluation.collect.get_document",
+            return_value=SimpleNamespace(sha256=data.sources[key].pdf_sha256, page_count=17),
+        ),
+        patch("evaluation.collect.current_scope", return_value=(SCOPE, CHUNKS)),
+        patch(
+            "evaluation.collect.summary_context",
+            return_value=(hits, None, {"context_strategy": "section_samples"}),
+        ) as summary,
+        patch("evaluation.collect.retrieve_variants") as retrieval,
+    ):
+        run = collect(db, data, {key: DOCUMENT_ID}, SETTINGS, "synthetic", complete=completion)
+    summary.assert_called_once()
+    retrieval.assert_not_called()
+    assert all(
+        item.output.trace.configuration["question_intent"] == "summary" for item in run.records
+    )

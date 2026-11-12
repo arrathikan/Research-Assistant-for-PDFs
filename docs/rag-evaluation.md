@@ -96,3 +96,35 @@ actual paired pipeline attempts, real Ragas values, explicit failures and
 assistant result reviews. It is a baseline with known problems, not a claim that
 the pipeline is ready for every research question. Consult the per-metric scored,
 skipped and error counts before interpreting its means.
+
+## Intent-based chat refinement
+
+A separate nine-case benchmark covers summary, gender topic, exact facts,
+analysis, comparison, contextual follow-up, missing information, general
+knowledge and mixed answers. Its references and curated seed exchange were
+checked against the same public source; assistant review provenance is explicit.
+The original 20-case dataset and reports remain unchanged.
+
+The initial research-assistant run uses pipeline v2; the final measured run uses v4.
+An intermediate v3 collection is retained without invented metric scores.
+Each retains its actual source generation, dataset identity, answer-model settings,
+prompt hash and code commit. Source normalization in v3 recovers paired Markdown
+emphasis from exact source words and may bind a known neighboring selected chunk
+only to the same verified page. It does not permit altered numbers or fuzzy
+source matching. General-only scope flags are server-derived from the absence of
+paper claims. No embedding migration or index replacement was performed.
+
+Read the per-record failures and assistant reviews alongside metric means.
+Overview rows use shared section coverage and general rows use no retrieval, so
+they do not measure the benefit of hybrid ranking. Single-turn Ragas relevance
+has limited meaning for a pronoun-dependent follow-up; recorded seed history and
+reference checks remain necessary. For mixed responses, paper grounding and
+correctness exclude the separately labeled general background.
+
+A bounded overview samples at most 20 chunks and is not a guarantee of complete
+coverage. The live benchmark document's saved summary was already failed, so
+live overview checks exercise section fallback. Current complete-summary reuse
+is covered by deterministic and database integration tests, without claiming a
+successful live saved-summary run. General background is unverified model
+knowledge. These one-paper measurements do not establish broad accuracy or a
+statistically reliable hybrid-search advantage.

@@ -30,26 +30,29 @@ it('renders the uploaded PDF and uses its actual page count', async () => {
 });
 it('verifies, jumps, highlights exact rendered text, and reopens the same source', async () => {
   const view = render(<PdfViewerPanel document={PDF_DOCUMENT} activeCitation={PDF_CITATION} />);
-  expect(await screen.findByText('Supporting text highlighted.')).toBeInTheDocument();
+  await waitFor(() => expect(screen.getByTestId('pdf-source-highlight')).toBeInTheDocument());
   expect(screen.getByRole('spinbutton', { name: 'PDF page number' })).toHaveValue(2);
   expect(screen.getByTestId('pdf-source-highlight')).toHaveStyle({ left: '60px', top: '80px' });
   fireEvent.click(screen.getByRole('button', { name: 'Next Page' }));
   await waitFor(() => expect(screen.queryByTestId('pdf-source-highlight')).not.toBeInTheDocument());
   view.rerender(<PdfViewerPanel document={PDF_DOCUMENT} activeCitation={{ ...PDF_CITATION }} />);
-  expect(await screen.findByText('Supporting text highlighted.')).toBeInTheDocument();
+  await waitFor(() => expect(screen.getByTestId('pdf-source-highlight')).toBeInTheDocument());
   expect(api.resolveCitation).toHaveBeenCalledTimes(2);
 });
 it('uses verified source regions when rendered text cannot be matched', async () => {
   pdfMock.text = 'Different extraction';
   render(<PdfViewerPanel document={PDF_DOCUMENT} activeCitation={PDF_CITATION} />);
-  expect(await screen.findByText('Source region shown; an exact text highlight is unavailable.')).toBeInTheDocument();
+  await waitFor(() => expect(screen.getByTestId('pdf-source-highlight')).toBeInTheDocument());
+  expect(screen.queryByText(/highlight is unavailable/)).not.toBeInTheDocument();
   expect(screen.getByTestId('pdf-source-highlight')).toHaveStyle({ width: '180px', height: '20px' });
 });
-it('honestly shows the page and quote when text and geometry are unavailable', async () => {
+it('opens the cited page quietly when exact text and geometry are unavailable', async () => {
   pdfMock.text = '';
   vi.mocked(api.resolveCitation).mockResolvedValue({ ...PDF_CITATION, bounding_boxes: [] });
   render(<PdfViewerPanel document={PDF_DOCUMENT} activeCitation={PDF_CITATION} />);
-  expect(await screen.findByText('Showing the cited page. An exact highlight is unavailable.')).toBeInTheDocument();
+  expect(await screen.findByText('Source — Page 2')).toBeInTheDocument();
+  expect(screen.queryByText(/highlight is unavailable/)).not.toBeInTheDocument();
+  expect(screen.queryByText(PDF_CITATION.quote_snippet)).not.toBeInTheDocument();
   expect(screen.queryByTestId('pdf-source-highlight')).not.toBeInTheDocument();
   expect(screen.getByText('Source — Page 2')).toBeInTheDocument();
 });

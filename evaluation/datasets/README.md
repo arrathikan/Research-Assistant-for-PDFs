@@ -27,3 +27,15 @@ Review hashes bind decisions to unchanged case content. Changing a case makes
 its old review invalid. The source-linked checklist is `MANUAL_REVIEW.md`.
 The original five-case `evaluation/benchmark_dataset.json` is a legacy, unverified
 scaffold and is not used by the new benchmark runner.
+
+
+The separate intent_test_cases.json adds nine assistant-reviewed cases for the
+research-chat refinement: overview, unsupported gender topic, exact count,
+analysis, comparison, follow-up, missing measurement, general knowledge and a
+mixed paper/background question. The same public source, license and exact PDF
+identity apply. INTENT_REVIEW.md records reference checks; intent_history.json
+contains one curated, source-checked seed exchange for the follow-up. That seed
+is evaluation input, not a claim about a previous generated answer or a human
+conversation. The original 20-case dataset and its result reviews are unchanged.
+General knowledge has no paper reference; metrics requiring paper grounding are
+inapplicable and labeling is reviewed separately.

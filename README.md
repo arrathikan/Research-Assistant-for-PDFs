@@ -436,3 +436,27 @@ Dashboard/Upload have one page scroll owner; Workspace keeps independent summary
 chat and PDF scrolling. Below the desktop breakpoint, the visible workspace pane
 uses the full column. Shared minimum-width/height rules and wrapping prevent
 page-level horizontal overflow. This refinement changes layout only.
+
+
+### Chat answer presentation
+
+Answers use safe Markdown headings, lists, emphasis, code and comparison tables.
+Verified inline citations open the existing PDF viewer. Supporting passages stay
+inside one collapsed Sources section per answer. The PDF viewer keeps exact text
+and verified-region highlighting, while page-only fallback is quiet and uses a
+compact source toolbar. No raw retrieved chunks or internal retrieval metadata
+are shown in normal chat.
+
+
+Chat now routes factual, topical, analytical, comparison, follow-up and whole-paper
+questions through the existing pipeline. Complete current summaries can be reused;
+otherwise bounded section samples support a qualified overview. Explicit general
+knowledge is labeled separately and carries no paper citations. Source-generation,
+embedding-profile and exact-quote validation remain mandatory. See
+[the architecture notes](docs/architecture.md#intent-sensitive-research-chat).
+
+The measured nine-question research-assistant check is available in
+[the intent evaluation report](evaluation/reports/2026-11-12-assistant/README.md).
+The final run generated all 18 paired responses and all 60 applicable Ragas
+values; assistant review still found five answers with incomplete citation
+support. These results do not establish overall scientific-answer accuracy.

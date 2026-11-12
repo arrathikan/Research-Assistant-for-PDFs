@@ -482,3 +482,64 @@ without growing the document or creating a second page scrollbar.
 
 Only JSX structure and CSS layout changed. API endpoints, processing states,
 summary/chat behavior and citation handling keep their existing contracts.
+
+
+### Intent-sensitive research chat
+
+A small English routing helper selects context without another model call. Facts
+keep the configured narrow retrieval limit. Topic, analysis and comparison queries
+use a bounded larger candidate selection with section diversity. The preceding
+user question supplies follow-up retrieval terms; prior assistant answers remain
+conversation context, never independent evidence. Atlas vector/BM25/RRF ranking,
+Voyage profiles, document filters and current-generation checks remain intact.
+
+Whole-paper requests first read the existing complete summary for the current
+summary profile and chunk generation. They never run a new summary job. Missing,
+incomplete or oversized saved summaries fall back to bounded samples across
+sections, with a context-coverage qualification required in the answer prompt.
+Unstructured documents receive samples distributed across their available chunks.
+This is bounded coverage, not a claim that every passage was read.
+
+The answer schema keeps paper claims separate from optional general background.
+General background requires an explicit/general-definition intent and is labeled
+"General background (not from this paper)". Mixed answers have separate paper and
+background sections. It is model knowledge, not verified external research.
+Server-side citations still require exact quotes on supplied current pages. One
+bounded correction attempt handles invalid output; unsupported output is rejected.
+The public chat request/response contract and queue workflows are unchanged.
+
+Offline collection uses the same routing/summary context and optionally accepts
+reviewed seed history through --history. Seed history is recorded in private run
+traces and never writes user conversations. For mixed answers, paper faithfulness
+and correctness score only the paper portion; relevance scores the whole response.
+General-only cases use explicit labeling/guardrail review rather than a fabricated
+paper-grounding score.
+
+
+Live intent checks exposed two output-contract problems. General-only responses
+now derive their outside-paper flag on the server. Citation recovery ignores only
+paired Markdown emphasis while finding the exact words, then stores the original
+source substring. A known neighboring selected chunk may be rebound only when
+that same page contains the exact quote. Unknown IDs, altered facts, disjoint
+quotes, other pages and other documents remain rejected. No fuzzy match or
+external source search is used. Short quotes reduce chunk-boundary errors.
+A single overview correction can ask for supported parts after global abstention;
+unsupported output still has to pass the same source checks.
+
+
+The current v4 completion handoff selects numbered source passages. The server
+serializes each selected page span into short exact windows, preserving every
+word, and the model returns only claim text plus numeric passage keys. The server
+constructs canonical source IDs, pages and quotes from those selected passages
+before the existing citation checks. Unknown/missing keys are rejected. No
+persisted Markdown chunk, embedding input, source generation or public API is
+changed by these prompt windows. Legacy injected completion adapters retain the
+validated draft contract for compatibility. General-only scope is derived from
+the absence of paper claims.
+
+Broader retrieval keeps a small prefix of the strongest ranked chunks before
+diversifying across sections. This prevents adjacent critical findings from
+being displaced by less relevant sections. Factual retrieval keeps its original
+limit and order. Live Atlas checks confirmed the previously missed near-perfect
+key-value result is now included in both comparison contexts; this establishes
+context inclusion, not answer correctness or a hybrid-search advantage.

@@ -13,6 +13,7 @@ from uuid import uuid4
 
 from pydantic import AwareDatetime, Field, model_validator
 
+from backend.services.rag_service.chain import GENERAL_HEADING
 from backend.services.rag_service.citations import citation_id
 from evaluation.dataset import StrictModel, normalized_source
 from evaluation.models import (
@@ -182,7 +183,7 @@ def deterministic_checks(record: CollectedCase) -> dict[str, bool | float | None
         ) in normalized_source(source[0])
     expected = set(record.case.expected_page_numbers)
     retrieved = {page for pages in trace.source_pages for page in pages}
-    return {
+    checks = {
         "answerability_correct": response.is_out_of_scope
         == (not record.case.is_answerable),
         "citations_present_when_answered": response.is_out_of_scope
@@ -193,6 +194,11 @@ def deterministic_checks(record: CollectedCase) -> dict[str, bool | float | None
         if expected
         else None,
     }
+
+    if record.case.category == "general":
+        checks["general_background_labeled"] = GENERAL_HEADING in response.answer
+        checks["general_has_no_paper_citations"] = not response.citations
+    return checks
 
 
 def summary(report: EvaluationReport) -> dict:
@@ -309,7 +315,7 @@ def markdown(report: EvaluationReport) -> str:
                 f"### {row.sample_id} / {row.strategy}",
                 "",
                 f"Question: {safe(record.case.user_question)}",
-                f"Reference: {safe(record.case.reference_answer or 'Not applicable: unsupported question; expected abstention.')}",
+                f"Reference: {safe(record.case.reference_answer or ('General knowledge: expected a labeled explanation without paper citations.' if record.case.category == 'general' else 'Not applicable: unsupported question; expected abstention.'))}",
                 f"Answer: {safe(record.output.response.answer) if record.output else 'Unavailable: ' + str(record.error_code)}",
             ]
         )

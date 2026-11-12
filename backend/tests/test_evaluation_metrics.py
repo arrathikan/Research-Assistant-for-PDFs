@@ -87,3 +87,22 @@ def test_metric_state_cannot_hide_a_failed_or_uncomputed_score():
 def test_invalid_response_shapes_are_explicit_errors(result):
     scores = score_record(record(), lambda *_: result)
     assert all(value.status == "error" and value.value is None for value in scores.values())
+
+
+def test_mixed_answers_score_paper_grounding_separately_from_full_answer_relevance():
+    from backend.services.rag_service.chain import GENERAL_HEADING
+
+    item = record()
+    item.output.response.answer += "\n\n" + GENERAL_HEADING + "\n\nA generic concept definition."
+    calls = []
+
+    def execute(sample, names):
+        calls.append((sample, names))
+        return {name: 0.5 for name in names}  # Synthetic unit fixture only.
+
+    scores = score_record(item, execute)
+    assert all(metric.status == "ok" for metric in scores.values())
+    assert GENERAL_HEADING not in calls[0][0]["response"]
+    assert "faithfulness" in calls[0][1]
+    assert calls[1][1] == ["answer_relevancy"]
+    assert GENERAL_HEADING in calls[1][0]["response"]

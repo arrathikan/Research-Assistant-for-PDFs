@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { api, ApiError } from '../../services/api';
 import type { ChatCitation, ChatTurn } from '../../types/chat';
@@ -73,32 +74,34 @@ export function DocumentChatPanel({ documentId, onCitationClick }: Props) {
   return (
     <section className="min-w-0 w-full space-y-4 [overflow-wrap:anywhere]" aria-label="Document chatbot">
       <div className="flex justify-between items-center">
-        <h2 className="font-semibold text-slate-800">Document chatbot</h2>
-        <button type="button" onClick={startNew} disabled={loading} className="text-sm underline disabled:opacity-50">New conversation</button>
+        <h2 className="font-semibold text-slate-800">Chat with your paper</h2>
+        <button type="button" onClick={startNew} disabled={loading} className="min-h-10 rounded-lg px-2 text-xs font-medium text-slate-600 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 disabled:opacity-50">New conversation</button>
       </div>
       {!valid && <p role="status">Upload a PDF to ask questions about it.</p>}
-      {valid && turns.length === 0 && !loading && <p className="text-sm text-slate-600">Ask a question about this paper. Answers include supporting sources when available.</p>}
+      {valid && turns.length === 0 && !loading && <p className="text-sm text-slate-600">Ask about the methods, findings or limitations—or request an overview.</p>}
       <div className="space-y-4" aria-label="Chat messages">
         {turns.map(turn => (
-          <div key={turn.response.turn_id} className="space-y-2">
-            <p className="ml-8 rounded-xl bg-blue-50 p-3 text-sm whitespace-pre-wrap">{turn.question}</p>
-            <div className="mr-8 rounded-xl bg-white border border-slate-200 p-3 text-sm whitespace-pre-wrap">
+          <article key={turn.response.turn_id} className="space-y-4">
+            <p className="ml-auto max-w-[90%] rounded-2xl rounded-tr-sm bg-blue-50 px-4 py-3 text-sm leading-6 text-slate-800 whitespace-pre-wrap">{turn.question}</p>
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+              <p className="mb-3 text-xs font-semibold text-blue-700">ResearchAI</p>
               <CitedAnswer answer={turn.response.answer} citations={turn.response.citations} onCitationClick={onCitationClick} />
-              {turn.response.citations.map(source => (
-                <div key={source.citation_id} className="mt-2 text-xs text-slate-600">
-                  {onCitationClick && <button type="button" className="font-semibold text-blue-700 underline" onClick={() => onCitationClick(source)}>Page {source.page_number}</button>}
-                  <details className="mt-1">
-                    <summary>Source: Page {source.page_number}</summary>
-                    <blockquote className="mt-2 border-l-2 pl-2">{source.quote_snippet}</blockquote>
-                  </details>
-                </div>
-              ))}
+              {turn.response.citations.length > 0 && <details className="mt-4 border-t border-slate-100 pt-3">
+                <summary className="w-fit cursor-pointer rounded text-xs font-medium text-slate-500 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600">Sources ({turn.response.citations.length})</summary>
+                <ol aria-label="Supporting sources" className="mt-3 space-y-3 text-xs text-slate-600">
+                  {turn.response.citations.map(source => <li key={source.citation_id} className="rounded-lg bg-slate-50 p-3">
+                    {onCitationClick ? <button type="button" className="rounded px-1 py-1 font-semibold text-blue-700 hover:bg-blue-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600" onClick={() => onCitationClick(source)}>Page {source.page_number}</button>
+                      : <span className="font-semibold">Page {source.page_number}</span>}
+                    <blockquote className="mt-1 leading-6">{source.quote_snippet}</blockquote>
+                  </li>)}
+                </ol>
+              </details>}
             </div>
-          </div>
+          </article>
         ))}
-        {pending && <p className="ml-8 rounded-xl bg-blue-50 p-3 text-sm">{pending}</p>}
+        {pending && <p className="ml-auto max-w-[90%] rounded-2xl bg-blue-50 p-3 text-sm">{pending}</p>}
       </div>
-      {loading && <p role="status">{pending ? 'Finding evidence and generating a response…' : 'Loading conversation…'}</p>}
+      {loading && <p role="status" className="flex items-center gap-2 text-xs text-slate-500"><Loader2 size={14} aria-hidden="true" className="motion-safe:animate-spin" />{pending ? 'Preparing your answer…' : 'Loading conversation…'}</p>}
       {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
       <form onSubmit={send} className="flex gap-2">
         <input aria-label="Question" placeholder="Ask a question about this research paper..." value={input} onChange={event => setInput(event.target.value)} maxLength={2000} disabled={!valid || loading} className="min-w-0 flex-1 rounded-lg border border-slate-300 p-3 text-sm" />
