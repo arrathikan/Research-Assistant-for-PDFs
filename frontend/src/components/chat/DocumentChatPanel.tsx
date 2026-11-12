@@ -1,5 +1,5 @@
-import { Loader2 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { ArrowUpRight, BookOpen, Loader2, MessageSquare, Plus, Send } from 'lucide-react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { api, ApiError } from '../../services/api';
 import type { ChatCitation, ChatTurn } from '../../types/chat';
 import { CitedAnswer } from './CitedAnswer';
@@ -7,6 +7,9 @@ import { CitedAnswer } from './CitedAnswer';
 interface Props { documentId?: string; onCitationClick?: (citation: ChatCitation) => void; }
 
 export function DocumentChatPanel({ documentId, onCitationClick }: Props) {
+  const inputId = useId();
+  const hintId = useId();
+  const inputRef = useRef<HTMLInputElement>(null);
   const [turns, setTurns] = useState<ChatTurn[]>([]);
   const [input, setInput] = useState('');
   const [pending, setPending] = useState('');
@@ -46,10 +49,9 @@ export function DocumentChatPanel({ documentId, onCitationClick }: Props) {
     setReset(value => value + 1);
   };
 
-  async function send(event: React.FormEvent) {
-    event.preventDefault();
-    if (!documentId || !valid || !input.trim() || loading) return;
-    const question = input.trim();
+  async function sendQuestion(value: string) {
+    if (!documentId || !valid || !value.trim() || loading) return;
+    const question = value.trim();
     const generation = epoch.current;
     const id = documentId.toLowerCase();
     setPending(question); setInput(''); setLoading(true); setError('');
@@ -71,41 +73,75 @@ export function DocumentChatPanel({ documentId, onCitationClick }: Props) {
     }
   }
 
+  const suggestions = [
+    'What methodology was used?', 'What are the main findings?', 'Who wrote this paper?',
+    'When was it published?', 'Summarize the research.', 'What are the limitations?',
+    'What does the research say about a specific topic?',
+  ];
+  const suggestionButton = (question: string) => <button type="button" key={question}
+    onClick={() => { setInput(question); inputRef.current?.focus(); }}
+    className="flex min-h-12 items-center justify-between gap-3 rounded-xl border border-slate-200 px-4 py-3 text-left text-sm text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700">
+    {question}<ArrowUpRight size={15} aria-hidden="true" className="shrink-0 text-slate-500" />
+  </button>;
+
   return (
-    <section className="min-w-0 w-full space-y-4 [overflow-wrap:anywhere]" aria-label="Document chatbot">
-      <div className="flex justify-between items-center">
-        <h2 className="font-semibold text-slate-800">Chat with your paper</h2>
-        <button type="button" onClick={startNew} disabled={loading} className="min-h-10 rounded-lg px-2 text-xs font-medium text-slate-600 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 disabled:opacity-50">New conversation</button>
+    <section className="min-w-0 w-full space-y-5 [overflow-wrap:anywhere]" aria-label="Document chatbot">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div><p className="ui-eyebrow mb-1">Ask. Understand. Explore.</p><h2 className="text-xl font-semibold tracking-tight text-slate-900">Chat with your paper</h2></div>
+        <button type="button" onClick={startNew} disabled={loading} className="ui-button ui-button-secondary"><Plus size={16} aria-hidden="true" />New conversation</button>
       </div>
-      {!valid && <p role="status">Upload a PDF to ask questions about it.</p>}
-      {valid && turns.length === 0 && !loading && <p className="text-sm text-slate-600">Ask about the methods, findings or limitations—or request an overview.</p>}
-      <div className="space-y-4" aria-label="Chat messages">
+      {!valid && <p role="status" className="ui-card p-5 text-sm text-slate-600">Choose an uploaded paper from your library to start a conversation.</p>}
+      {valid && turns.length === 0 && !loading && !error && <div className="ui-card p-5 sm:p-8">
+        <span className="mb-4 hidden h-12 w-12 sm:inline-flex items-center justify-center rounded-2xl bg-blue-50 text-blue-700"><MessageSquare size={23} aria-hidden="true" /></span>
+        <h3 className="text-lg font-semibold text-slate-900">Explore your paper</h3>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Ask a question, or start with an idea below.</p>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2" aria-label="Suggested questions">
+          {suggestions.slice(0, 2).map(suggestionButton)}
+        </div>
+        <details className="mt-3">
+          <summary className="min-h-8 w-fit cursor-pointer rounded py-1 text-xs font-semibold text-slate-600 hover:text-blue-700">More question ideas</summary>
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">{suggestions.slice(2).map(suggestionButton)}</div>
+        </details>
+      </div>}
+      <div className="space-y-6" role="log" aria-label="Chat messages" aria-live="polite" aria-relevant="additions" aria-busy={loading}>
         {turns.map(turn => (
           <article key={turn.response.turn_id} className="space-y-4">
-            <p className="ml-auto w-fit max-w-[85%] sm:max-w-[70ch] rounded-2xl rounded-tr-sm bg-blue-50 px-4 py-3 text-sm leading-6 text-slate-800 whitespace-pre-wrap">{turn.question}</p>
-            <div className="w-full max-w-[90ch] rounded-2xl border border-slate-200 bg-white p-4 text-sm sm:p-5">
-              <p className="mb-3 text-xs font-semibold text-blue-700">ResearchAI</p>
+            <p className="ml-auto w-fit max-w-[85%] sm:max-w-[70ch] rounded-2xl rounded-tr-sm border border-blue-100 bg-blue-50 px-4 py-3 text-sm leading-7 text-slate-800 whitespace-pre-wrap">{turn.question}</p>
+            <div className="ui-card w-full max-w-[90ch] p-5 sm:p-6">
+              <p className="mb-4 flex items-center gap-2 text-xs font-semibold text-blue-700"><BookOpen size={16} aria-hidden="true" />ResearchAI</p>
               <CitedAnswer answer={turn.response.answer} citations={turn.response.citations} onCitationClick={onCitationClick} />
-              {turn.response.citations.length > 0 && <details className="mt-4 border-t border-slate-100 pt-3">
-                <summary className="w-fit cursor-pointer rounded text-xs font-medium text-slate-500 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600">Sources ({turn.response.citations.length})</summary>
-                <ol aria-label="Supporting sources" className="mt-3 space-y-3 text-xs text-slate-600">
-                  {turn.response.citations.map(source => <li key={source.citation_id} className="rounded-lg bg-slate-50 p-3">
-                    {onCitationClick ? <button type="button" className="rounded px-1 py-1 font-semibold text-blue-700 hover:bg-blue-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600" onClick={() => onCitationClick(source)}>Page {source.page_number}</button>
+              {turn.response.citations.length > 0 && <details className="mt-5 border-t border-slate-100 pt-3">
+                <summary className="min-h-8 w-fit cursor-pointer rounded py-1 text-xs font-semibold text-slate-600 hover:text-blue-700">Sources ({turn.response.citations.length})</summary>
+                <ol aria-label="Supporting sources" className="mt-3 space-y-3 text-sm text-slate-600">
+                  {turn.response.citations.map(source => <li key={source.citation_id} className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                    {onCitationClick ? <button type="button" className="min-h-8 rounded-lg px-2 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-100" onClick={() => onCitationClick(source)}>Page {source.page_number}</button>
                       : <span className="font-semibold">Page {source.page_number}</span>}
-                    <blockquote className="mt-1 leading-6">{source.quote_snippet}</blockquote>
+                    <blockquote className="mt-1 leading-7">{source.quote_snippet}</blockquote>
                   </li>)}
                 </ol>
               </details>}
             </div>
           </article>
         ))}
-        {pending && <p className="ml-auto w-fit max-w-[85%] sm:max-w-[70ch] rounded-2xl bg-blue-50 p-3 text-sm">{pending}</p>}
+        {pending && <p className="ml-auto w-fit max-w-[85%] sm:max-w-[70ch] rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm leading-7">{pending}</p>}
       </div>
-      {loading && <p role="status" className="flex items-center gap-2 text-xs text-slate-500"><Loader2 size={14} aria-hidden="true" className="motion-safe:animate-spin" />{pending ? 'Preparing your answer…' : 'Loading conversation…'}</p>}
-      {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
-      <form onSubmit={send} className="flex gap-2">
-        <input aria-label="Question" placeholder="Ask a question about this research paper..." value={input} onChange={event => setInput(event.target.value)} maxLength={2000} disabled={!valid || loading} className="min-w-0 flex-1 rounded-lg border border-slate-300 p-3 text-sm" />
-        <button type="submit" aria-label="Send Message" disabled={!valid || loading || !input.trim()} className="rounded-lg bg-blue-600 text-white p-3 text-sm disabled:opacity-50">Send</button>
+      {loading && <div className="ui-card max-w-[90ch] p-5">
+        <p role="status" className="flex items-center gap-2 text-sm text-slate-600"><Loader2 size={16} aria-hidden="true" className="motion-safe:animate-spin" />{pending ? 'Preparing your answer…' : 'Loading conversation…'}</p>
+        <div aria-hidden="true" className="mt-4 space-y-2"><div className="ui-skeleton h-3 w-4/5" /><div className="ui-skeleton h-3 w-3/5" /></div>
+      </div>}
+      {error && <div className="rounded-xl border border-red-200 bg-white p-4">
+        <p role="alert" className="text-sm leading-6 text-red-700">{error}</p>
+        {input.trim() && <button type="button" disabled={loading} className="ui-button ui-button-secondary mt-3" onClick={() => void sendQuestion(input)}>Retry question</button>}
+      </div>}
+      <form onSubmit={event => { event.preventDefault(); void sendQuestion(input); }} className={(turns.length > 0 || pending ? 'sticky bottom-0 ' : '') + 'rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4'}>
+        <label htmlFor={inputId} className="mb-2 block text-xs font-semibold text-slate-700">Question</label>
+        <div className="flex gap-2">
+          <input id={inputId} ref={inputRef} aria-describedby={hintId} placeholder="Ask a question about this research paper..." value={input} onChange={event => setInput(event.target.value)}
+            onKeyDown={event => { if (event.key === 'Enter' && event.nativeEvent.isComposing) event.preventDefault(); }}
+            maxLength={2000} disabled={!valid || loading} className="ui-field min-w-0 flex-1" />
+          <button type="submit" aria-label="Send Message" disabled={!valid || loading || !input.trim()} className="ui-button ui-button-primary px-3 sm:px-4"><Send size={18} aria-hidden="true" /><span className="hidden sm:inline">Send</span></button>
+        </div>
+        <p id={hintId} className="mt-2 text-xs leading-5 text-slate-500">AI can miss details. Check the linked sources for important claims.</p>
       </form>
     </section>
   );

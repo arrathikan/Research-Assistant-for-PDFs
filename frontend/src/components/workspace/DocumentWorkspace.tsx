@@ -1,11 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useId, useRef, useState } from 'react';
 import { BookOpen, FileText, MessageSquare, X } from 'lucide-react';
 import { PageContainer } from '../layout/PageContainer';
 import type { DocumentMetadata, WorkspaceTab } from '../../types';
 import type { ChatCitation } from '../../types/chat';
 import { DocumentSummaryPanel } from '../summary/DocumentSummaryPanel';
 import { DocumentChatPanel } from '../chat/DocumentChatPanel';
-import { PdfViewerPanel } from '../pdf/PdfViewerPanel';
+import { LoadingSpinner } from '../common/LoadingSpinner';
+import { PdfViewerBoundary } from '../pdf/PdfViewerBoundary';
+import { DocumentStatusBadge } from '../common/DocumentStatusBadge';
+
+const PdfViewerPanel = lazy(() => import('../pdf/PdfViewerPanel').then(module => ({ default: module.PdfViewerPanel })));
 
 interface Props { document: DocumentMetadata; initialTab?: WorkspaceTab; }
 
@@ -15,6 +19,7 @@ export function DocumentWorkspace(props: Props) {
 }
 
 function WorkspaceSession({ document: paper, initialTab = 'summary' }: Props) {
+  const panelId = useId();
   const [tab, setTab] = useState(initialTab === 'chat' ? 'chat' : 'summary');
   const [pdfOpen, setPdfOpen] = useState(false);
   const [pdfLoaded, setPdfLoaded] = useState(false);
@@ -88,26 +93,48 @@ function WorkspaceSession({ document: paper, initialTab = 'summary' }: Props) {
     showPdf();
   }
 
+  function switchTab(event: React.KeyboardEvent<HTMLButtonElement>, next: 'summary' | 'chat') {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const target = event.key === 'Home' ? 'summary' : event.key === 'End' ? 'chat' : next;
+    setTab(target);
+    window.document.getElementById(panelId + '-' + target)?.focus();
+  }
+
+  useEffect(() => {
+    if (!pdfOpen || !mobile) return;
+    const header = window.document.querySelector('[data-app-header]');
+    const alreadyInert = header?.hasAttribute('inert');
+    header?.setAttribute('inert', '');
+    return () => { if (!alreadyInert) header?.removeAttribute('inert'); };
+  }, [pdfOpen, mobile]);
+
   const contentWidth = pdfOpen ? '' : 'max-w-[1200px]';
   return (
     <PageContainer scrollable={false}>
       <div hidden={pdfOpen && mobile} className="shrink-0 border-b border-slate-200 bg-white py-3">
-        <div className={'mx-auto flex w-full min-w-0 flex-wrap items-center justify-between gap-3 ' + contentWidth}>
-          <nav aria-label="Workspace panels" className="flex flex-wrap gap-1 text-xs font-semibold">
-            <button type="button" aria-pressed={tab === 'summary'} onClick={() => setTab('summary')}
-              className="flex min-h-10 items-center gap-2 rounded-lg px-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 aria-pressed:bg-blue-50 aria-pressed:text-blue-700">
+        <div className={'mx-auto w-full min-w-0 ' + contentWidth}>
+          <div className="mb-4 flex min-w-0 flex-wrap items-center gap-3">
+            <div className="min-w-0 flex-1"><p className="ui-eyebrow mb-1">Research workspace</p><h1 className="break-words text-base font-semibold text-slate-900 [overflow-wrap:anywhere] sm:text-lg">{paper.filename}</h1></div>
+            <DocumentStatusBadge status={paper.status} />
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+          <nav role="tablist" aria-label="Workspace panels" className="flex min-w-0 flex-wrap gap-1">
+            <button type="button" role="tab" id={panelId + '-summary'} aria-selected={tab === 'summary'} tabIndex={tab === 'summary' ? 0 : -1} onKeyDown={event => switchTab(event, 'chat')} onClick={() => setTab('summary')}
+              className="ui-tab">
               <BookOpen size={15} aria-hidden="true" />Structured Summary
             </button>
-            <button type="button" aria-pressed={tab === 'chat'} onClick={() => setTab('chat')}
-              className="flex min-h-10 items-center gap-2 rounded-lg px-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 aria-pressed:bg-blue-50 aria-pressed:text-blue-700">
+            <button type="button" role="tab" id={panelId + '-chat'} aria-selected={tab === 'chat'} tabIndex={tab === 'chat' ? 0 : -1} onKeyDown={event => switchTab(event, 'summary')} onClick={() => setTab('chat')}
+              className="ui-tab">
               <MessageSquare size={15} aria-hidden="true" />AI Chatbot
             </button>
           </nav>
           <button type="button" disabled={!validDocument} aria-expanded={pdfOpen} aria-controls="workspace-original-pdf"
             onClick={event => { event.currentTarget.focus(); if (pdfOpen) setPdfOpen(false); else showPdf(); }}
-            className="flex min-h-10 items-center justify-center gap-2 rounded-lg border border-blue-200 bg-white px-3 text-xs font-semibold text-blue-700 hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 disabled:opacity-50">
+            className="ui-button ui-button-secondary text-xs text-blue-700">
             <FileText size={15} aria-hidden="true" />{pdfOpen ? 'Close PDF' : 'View Original PDF'}
           </button>
+          </div>
         </div>
       </div>
       <div data-testid="workspace-grid" className={'grid min-h-0 min-w-0 flex-1 overflow-hidden '
@@ -117,10 +144,10 @@ function WorkspaceSession({ document: paper, initialTab = 'summary' }: Props) {
             + (pdfOpen ? 'md:border-r md:border-slate-200 md:pr-5' : '')}>
           <div className={'mx-auto w-full min-w-0 ' + contentWidth}>
             {sourceError && <p role="alert" className="mb-4 rounded-lg border border-red-200 bg-white p-3 text-sm text-red-700">{sourceError}</p>}
-            <div hidden={tab !== 'summary'}>
-              <DocumentSummaryPanel documentId={paper.id} filename={paper.filename} onCitationClick={openSource} />
+            <div role="tabpanel" aria-labelledby={panelId + '-summary'} hidden={tab !== 'summary'}>
+              <DocumentSummaryPanel documentId={paper.id} filename={paper.filename} documentStatus={paper.status} onCitationClick={openSource} />
             </div>
-            <div hidden={tab !== 'chat'}>
+            <div role="tabpanel" aria-labelledby={panelId + '-chat'} hidden={tab !== 'chat'}>
               <DocumentChatPanel documentId={paper.id} onCitationClick={openSource} />
             </div>
           </div>
@@ -134,12 +161,16 @@ function WorkspaceSession({ document: paper, initialTab = 'summary' }: Props) {
           {mobile && <div className="flex shrink-0 items-center justify-between gap-2 border-b border-slate-200 bg-white px-3 py-2">
             <p className="min-w-0 truncate text-xs font-semibold text-slate-700">Original PDF</p>
             <button ref={closeButton} type="button" onClick={() => setPdfOpen(false)}
-              className="flex min-h-10 items-center gap-1 rounded-lg px-3 text-xs font-semibold text-slate-600 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600">
+              className="ui-button ui-button-ghost">
               <X size={15} aria-hidden="true" />Close PDF
             </button>
           </div>}
           <div className="min-h-0 min-w-0 flex-1">
-            <PdfViewerPanel document={paper} activeCitation={citation} onClearCitation={() => setCitation(null)} />
+            <PdfViewerBoundary documentId={paper.id}>
+              <Suspense fallback={<LoadingSpinner label="Opening PDF viewer…" />}>
+                <PdfViewerPanel document={paper} activeCitation={citation} onClearCitation={() => setCitation(null)} />
+              </Suspense>
+            </PdfViewerBoundary>
           </div>
         </aside>}
       </div>

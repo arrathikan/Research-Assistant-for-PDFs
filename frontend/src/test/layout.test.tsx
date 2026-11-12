@@ -65,7 +65,7 @@ it('keeps workspace panes in one shared frame and preserves tab switching', asyn
   expect(content).toContainElement(screen.getByRole('region', { name: 'Summary and chat' }));
   expect(screen.queryByRole('region', { name: 'Original PDF' })).not.toBeInTheDocument();
   expect(screen.queryByTestId('pdf-viewer-panel')).not.toBeInTheDocument();
-  fireEvent.click(screen.getByRole('button', { name: 'AI Chatbot' }));
+  fireEvent.click(screen.getByRole('tab', { name: 'AI Chatbot' }));
   expect(screen.getByRole('textbox', { name: 'Question' })).toBeInTheDocument();
   expect(screen.getAllByTestId('page-container')).toHaveLength(1);
 });
@@ -97,7 +97,7 @@ it('preserves real document counts, filtering and selection in the responsive li
   render(<DashboardView documents={[PDF_DOCUMENT, other]} onSelectDocument={select} onNavigateUpload={vi.fn()} />);
   const stats = screen.getByRole('region', { name: 'Library statistics' });
   expect(within(stats).getByText('Total Research Papers').parentElement?.firstElementChild).toHaveTextContent('2');
-  expect(within(stats).getByText('Ready for Chat & RAG').parentElement?.firstElementChild).toHaveTextContent('1');
+  expect(within(stats).getByText('Ready to explore').parentElement?.firstElementChild).toHaveTextContent('1');
   expect(within(screen.getByRole('region', { name: 'Research papers' })).getAllByTestId('document-card')).toHaveLength(2);
   fireEvent.change(screen.getByRole('textbox', { name: 'Search papers' }), { target: { value: 'synthetic' } });
   const cards = screen.getByRole('region', { name: 'Research papers' });

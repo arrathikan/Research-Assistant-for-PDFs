@@ -3,13 +3,78 @@
 @tailwind utilities;
 
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--text-primary);
+  background: var(--surface-muted);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --surface-muted: #f8fafc;
+  --surface: #ffffff;
+  --border: #e2e8f0;
+  --control-border: #8793a5;
+  --success: #16a34a;
+  --error: #dc2626;
+  --card-shadow: 0 2px 8px rgb(15 23 42 / 0.025);
 }
 
-html,
-body,
-#root {
-  width: 100%;
-  min-width: 0;
-  min-height: 100%;
+html, body, #root { width: 100%; min-width: 0; min-height: 100%; }
+body { margin: 0; }
+button, input, textarea, select { font: inherit; }
+button, a, summary { -webkit-tap-highlight-color: transparent; }
+button:not(:disabled), summary { cursor: pointer; }
+:root :focus-visible { outline: 3px solid var(--primary); outline-offset: 3px; }
+[hidden] { display: none !important; }
+::selection { background: #dbeafe; color: var(--text-primary); }
+
+@layer components {
+  .ui-button {
+    @apply inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl border border-transparent px-4 py-2 text-sm font-semibold;
+    transition: background-color 150ms, border-color 150ms, color 150ms;
+  }
+  .ui-button:disabled { @apply cursor-not-allowed opacity-50; }
+  .ui-button-primary { background: var(--primary); color: white; }
+  .ui-button-primary:hover:not(:disabled) { background: var(--primary-hover); }
+  .ui-button-secondary { background: var(--surface); border-color: var(--border); @apply text-slate-700; }
+  .ui-button-secondary:hover:not(:disabled) { @apply border-blue-200 bg-blue-50 text-blue-700; }
+  .ui-button-ghost { @apply text-slate-600; }
+  .ui-button-ghost:hover:not(:disabled) { @apply bg-slate-100 text-slate-900; }
+  .ui-icon-button { @apply ui-button min-w-11 px-2; }
+  .ui-field {
+    @apply min-h-11 min-w-0 rounded-xl border bg-white px-3 py-2 text-base text-slate-900 placeholder:text-slate-500;
+    border-color: var(--control-border);
+  }
+  .ui-field:disabled { @apply bg-slate-50 text-slate-500; }
+  .ui-card { @apply min-w-0 rounded-2xl border border-slate-200 bg-white; box-shadow: var(--card-shadow); }
+  .ui-eyebrow { @apply text-xs font-semibold uppercase tracking-widest text-blue-700; }
+  .ui-page-title { @apply text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl; }
+  .ui-badge { @apply inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium; }
+  .ui-tab { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-transparent px-3 py-2 text-sm font-medium text-slate-600; }
+  .ui-tab[aria-selected="true"], .ui-tab[aria-current="page"] { @apply border-blue-200 bg-blue-50 text-blue-700; }
+  .ui-tab:hover { @apply bg-slate-50 text-blue-700; }
+  .ui-skeleton { @apply rounded bg-slate-100; }
+}
+
+@keyframes researchai-pulse { 50% { opacity: 0.55; } }
+@media (prefers-reduced-motion: no-preference) {
+  .ui-skeleton { animation: researchai-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+}
+@media (forced-colors: active) {
+  :root :focus-visible { outline-color: Highlight; }
+  .ui-button, .ui-tab, .ui-badge { border: 1px solid ButtonText; }
+  .ui-tab[aria-selected="true"], .ui-tab[aria-current="page"] { outline: 2px solid Highlight; outline-offset: -3px; }
+}
+
+/* Each paper adapts to its own width, including a single full-width library item. */
+.research-paper-card { container-type: inline-size; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-content: start; gap: 0.75rem; }
+.paper-card-icon { grid-column: 1; grid-row: 1 / span 2; }
+.paper-card-header, .paper-card-meta { grid-column: 2 / -1; }
+.paper-card-actions { grid-column: 1 / -1; }
+@container (min-width: 44rem) {
+  .paper-card-header, .paper-card-meta { grid-column: 2; }
+  .paper-card-actions { grid-column: 3; grid-row: 1 / span 2; align-self: center; border-top: 0; padding-top: 0; }
 }

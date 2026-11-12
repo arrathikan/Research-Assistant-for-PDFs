@@ -29,8 +29,8 @@ const BADGES: Record<UploadStage, { label: string; style: string }> = {
   failed: { label: 'Failed', style: 'bg-rose-50 text-rose-800 ring-rose-200' },
 };
 
-const ACTION = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-400';
-const TEXT_ACTION = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-60';
+const ACTION = 'ui-button ui-button-secondary';
+const TEXT_ACTION = 'ui-button ui-button-ghost text-blue-700';
 
 export function UploadStatusCard({
   filename, fileSize, stage, description, busy = false, notice, pdfUrl,
@@ -39,7 +39,7 @@ export function UploadStatusCard({
   const headingId = useId();
   const badge = BADGES[stage];
   return (
-    <section aria-labelledby={headingId} className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+    <section aria-labelledby={headingId} className="ui-card w-full p-5 sm:p-6">
       <div className="flex items-start gap-3">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
           <FileText size={22} aria-hidden="true" />

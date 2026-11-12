@@ -55,11 +55,11 @@ export function UploadView({ onUploadSuccess }: UploadViewProps) {
   return (
     <PageContainer>
       <div className="mx-auto min-w-0 w-full max-w-5xl">
-        <header className="mb-6 text-center">
+        <header className="mb-7 text-center">
           <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
             <Sparkles size={14} aria-hidden="true" />Your research, made clearer
           </div>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Upload a research paper</h2>
+          <h1 className="ui-page-title">Upload a research paper</h1>
           <p className="mt-2 text-sm leading-6 text-slate-600">Turn your PDF into a structured summary and a conversation grounded in your sources.</p>
         </header>
         <div className="min-w-0 w-full">

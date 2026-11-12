@@ -25,7 +25,7 @@ beforeEach(() => {
 });
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 async function ask(page = 2) {
-  fireEvent.click(screen.getByRole('button', { name: 'AI Chatbot' }));
+  fireEvent.click(screen.getByRole('tab', { name: 'AI Chatbot' }));
   fireEvent.change(screen.getByRole('textbox', { name: 'Question' }), { target: { value: 'Synthetic question?' } });
   fireEvent.click(screen.getByRole('button', { name: 'Send Message' }));
   return screen.findByRole('button', { name: 'Open citation 1, page ' + page });
@@ -105,8 +105,8 @@ it('opens summary sources in the same viewer and preserves summary across toggle
     chunk_set_id: SUMMARY.chunk_set_id, page_number: 2, quote_snippet: SUMMARY.sources[0].quote,
   }));
   close();
-  fireEvent.click(screen.getByRole('button', { name: 'AI Chatbot' }));
-  fireEvent.click(screen.getByRole('button', { name: 'Structured Summary' }));
+  fireEvent.click(screen.getByRole('tab', { name: 'AI Chatbot' }));
+  fireEvent.click(screen.getByRole('tab', { name: 'Structured Summary' }));
   expect(screen.getByText('Synthetic method.')).toBe(method);
   expect(api.getDocumentSummary).toHaveBeenCalledTimes(1);
 });
@@ -142,7 +142,7 @@ it.each([0, 9, 1.5])('rejects source page %s before loading a PDF', async page =
 it('rejects returned citations from another document', async () => {
   vi.mocked(api.sendChatQuery).mockResolvedValue({ ...response, citations: [{ ...PDF_CITATION, document_id: '507f1f77bcf86cd799439012' }] });
   render(<DocumentWorkspace document={PDF_DOCUMENT} />);
-  fireEvent.click(screen.getByRole('button', { name: 'AI Chatbot' }));
+  fireEvent.click(screen.getByRole('tab', { name: 'AI Chatbot' }));
   fireEvent.change(screen.getByRole('textbox', { name: 'Question' }), { target: { value: 'Question?' } });
   fireEvent.click(screen.getByRole('button', { name: 'Send Message' }));
   expect(await screen.findByRole('alert')).toHaveTextContent('Chat is unavailable');
@@ -154,11 +154,11 @@ it('resets navigation and ignores late source replies when selecting another doc
   let finish: (value: typeof PDF_CITATION) => void = () => {};
   vi.mocked(api.resolveCitation).mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
   const view = render(<DocumentWorkspace document={PDF_DOCUMENT} />);
-  fireEvent.click(await ask()); fireEvent.click(screen.getByRole('button', { name: 'Zoom In' }));
+  fireEvent.click(await ask()); fireEvent.click(await screen.findByRole('button', { name: 'Zoom In' }));
   await act(async () => { view.rerender(<DocumentWorkspace document={{ ...PDF_DOCUMENT, id: '507f1f77bcf86cd799439012' }} />); finish(PDF_CITATION); });
   expect(screen.queryByTestId('pdf-viewer-panel')).not.toBeInTheDocument();
   expect(screen.queryByRole('button', { name: 'Open citation 1, page 2' })).not.toBeInTheDocument();
-  expect(screen.getByRole('button', { name: 'Structured Summary' })).toHaveAttribute('aria-pressed', 'true');
+  expect(screen.getByRole('tab', { name: 'Structured Summary' })).toHaveAttribute('aria-selected', 'true');
   open(); await screen.findByText('of 3');
   expect(pageInput()).toHaveValue(1);
   expect(screen.getByLabelText('PDF zoom')).toHaveTextContent('100%');
@@ -168,6 +168,47 @@ it('preserves an explicitly requested chat tab while toggling PDF', async () => 
   await act(async () => { render(<DocumentWorkspace document={PDF_DOCUMENT} initialTab="chat" />); });
   await act(async () => { open(); });
   await screen.findByText('of 3'); close();
-  expect(screen.getByRole('button', { name: 'AI Chatbot' })).toHaveAttribute('aria-pressed', 'true');
+  expect(screen.getByRole('tab', { name: 'AI Chatbot' })).toHaveAttribute('aria-selected', 'true');
   expect(screen.getByRole('textbox', { name: 'Question' })).toBeInTheDocument();
+});
+
+
+it('supports arrow keys, Home and End on the Workspace tabs without discarding the summary', async () => {
+  render(<DocumentWorkspace document={PDF_DOCUMENT} />);
+  const method = await screen.findByText('Synthetic method.');
+  const summary = screen.getByRole('tab', { name: 'Structured Summary' });
+  const chat = screen.getByRole('tab', { name: 'AI Chatbot' });
+  summary.focus(); fireEvent.keyDown(summary, { key: 'ArrowRight' });
+  expect(chat).toHaveFocus(); expect(chat).toHaveAttribute('aria-selected', 'true');
+  expect(summary).toHaveAttribute('tabindex', '-1');
+  fireEvent.keyDown(chat, { key: 'Home' });
+  expect(summary).toHaveFocus(); expect(method).toBeVisible();
+  fireEvent.keyDown(summary, { key: 'End' }); expect(chat).toHaveFocus();
+  expect(api.getDocumentSummary).toHaveBeenCalledTimes(1);
+});
+
+it('makes the global header inert only while the mobile PDF overlay is open', async () => {
+  vi.stubGlobal('innerWidth', 375);
+  const view = render(<><header data-app-header><button>Global navigation</button></header><DocumentWorkspace document={PDF_DOCUMENT} /></>);
+  open();
+  expect(document.querySelector('[data-app-header]')).toHaveAttribute('inert');
+  close(); expect(document.querySelector('[data-app-header]')).not.toHaveAttribute('inert');
+  open(); view.unmount();
+  expect(document.querySelector('[data-app-header]')).toBeNull();
+});
+
+
+it('keeps the PDF open with the same page and zoom across responsive changes', async () => {
+  render(<DocumentWorkspace document={PDF_DOCUMENT} />); open();
+  await screen.findByText('of 3');
+  fireEvent.click(screen.getByRole('button', { name: 'Next Page' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Zoom In' }));
+  const pdf = screen.getByTestId('pdf-document');
+  for (const width of [375, 768, 1024, 1280, 1440, 1920]) {
+    act(() => { vi.stubGlobal('innerWidth', width); fireEvent(window, new Event('resize')); });
+    expect(screen.getByTestId('pdf-document')).toBe(pdf);
+    expect(pageInput()).toHaveValue(2);
+    expect(screen.getByLabelText('PDF zoom')).toHaveTextContent('125%');
+    expect(screen.getByRole(width < 768 ? 'dialog' : 'region', { name: 'Original PDF' })).toBeVisible();
+  }
 });

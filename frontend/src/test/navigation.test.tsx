@@ -30,7 +30,7 @@ describe('Navbar Component', () => {
     expect(screen.queryByText('Workspace')).not.toBeInTheDocument();
   });
 
-  it('displays active document filename, status badge, and workspace tab when document is selected', () => {
+  it('indicates the active workspace when a document is selected', () => {
     const onSelectTab = vi.fn();
     render(
       <Navbar
@@ -40,8 +40,8 @@ describe('Navbar Component', () => {
       />
     );
 
-    expect(screen.getByText('attention_is_all_you_need.pdf')).toBeInTheDocument();
-    expect(screen.getByTestId('document-status-pill')).toHaveTextContent('READY');
+    expect(screen.getByRole('button', { name: 'Workspace' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('button', { name: 'Dashboard' })).not.toHaveAttribute('aria-current');
     expect(screen.getByText('Workspace')).toBeInTheDocument();
   });
 

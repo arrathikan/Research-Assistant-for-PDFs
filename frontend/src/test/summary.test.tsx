@@ -38,7 +38,7 @@ describe('DocumentSummaryPanel', () => {
     vi.useFakeTimers();
     const get = vi.spyOn(api, 'getDocumentSummary').mockRejectedValueOnce(new ApiError(409, 'pending')).mockResolvedValueOnce(RESULT);
     await act(async () => { render(<DocumentSummaryPanel documentId={ID} filename="synthetic.pdf" />); });
-    expect(screen.getByText('Summary not ready yet. Checking for updates…')).toBeInTheDocument();
+    expect(screen.getByText('Your paper is being analyzed. The summary will appear here when it is ready.')).toBeInTheDocument();
     await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
     expect(screen.getByText('Synthetic method.')).toBeInTheDocument();
     expect(get).toHaveBeenCalledTimes(2);
@@ -75,7 +75,18 @@ describe('DocumentSummaryPanel', () => {
   it('does not fetch a sample or missing document ID', () => {
     const get = vi.spyOn(api, 'getDocumentSummary');
     render(<DocumentSummaryPanel documentId="doc_sample" filename="sample.pdf" />);
-    expect(screen.getByText('Upload a PDF to view its generated summary.')).toBeInTheDocument();
+    expect(screen.getByText('This paper’s summary is not available. Choose an uploaded paper from your library.')).toBeInTheDocument();
     expect(get).not.toHaveBeenCalled();
   });
+});
+
+
+it('shows a failed selected paper without endlessly polling or suggesting a new upload', async () => {
+  vi.useFakeTimers();
+  const get = vi.spyOn(api, 'getDocumentSummary').mockRejectedValue(new ApiError(409, 'not ready'));
+  await act(async () => { render(<DocumentSummaryPanel documentId={ID} filename="failed.pdf" documentStatus="FAILED" />); });
+  expect(screen.getByRole('alert')).toHaveTextContent('Analysis did not finish');
+  await act(async () => { await vi.advanceTimersByTimeAsync(15000); });
+  expect(get).toHaveBeenCalledTimes(1);
+  expect(screen.queryByText(/Upload a PDF/)).not.toBeInTheDocument();
 });

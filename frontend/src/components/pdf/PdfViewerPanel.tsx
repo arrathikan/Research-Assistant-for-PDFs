@@ -126,7 +126,7 @@ export function PdfViewerPanel({ document: paper, activeCitation, onClearCitatio
         const first = result.rects[0];
         const container = scroll.getBoundingClientRect();
         scroll.scrollTo({ top: first ? Math.max(0, bounds.top - container.top + scroll.scrollTop + first.top - 64) : 0,
-          left: first ? Math.max(0, bounds.left - container.left + scroll.scrollLeft + first.left - 32) : 0, behavior: 'smooth' });
+          left: first ? Math.max(0, bounds.left - container.left + scroll.scrollLeft + first.left - 32) : 0, behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
       }
     });
     return () => cancelAnimationFrame(tick);
@@ -135,16 +135,16 @@ export function PdfViewerPanel({ document: paper, activeCitation, onClearCitatio
   const targetInvalid = !!anchor && pages > 0 && anchor.page_number > pages;
   return (
     <section data-testid="pdf-viewer-panel" aria-label="PDF source viewer" className="flex min-h-0 min-w-0 h-full flex-col bg-slate-100">
-      <div className="flex shrink-0 flex-wrap items-center gap-2 border-b bg-white p-3 text-xs">
-        <button type="button" aria-label="Previous Page" disabled={!pages || page <= 1} onClick={() => setPage({ id, value: page - 1 })}>Previous</button>
-        <label>Page <input aria-label="PDF page number" type="number" min={1} max={pages || 1} value={page} disabled={!pages} onChange={event => { const next = Number(event.target.value); if (Number.isInteger(next) && next >= 1 && next <= pages) setPage({ id, value: next }); }} className="w-14 rounded border p-1" /></label>
+      <div role="group" aria-label="PDF controls" className="flex shrink-0 flex-wrap items-center gap-1 border-b border-slate-200 bg-white p-2 text-xs">
+        <button type="button" className="ui-button ui-button-ghost px-2 text-xs" aria-label="Previous Page" disabled={!pages || page <= 1} onClick={() => setPage({ id, value: page - 1 })}>Previous</button>
+        <label className="flex items-center gap-2">Page <input aria-label="PDF page number" type="number" min={1} max={pages || 1} value={page} disabled={!pages} onChange={event => { const next = Number(event.target.value); if (Number.isInteger(next) && next >= 1 && next <= pages) setPage({ id, value: next }); }} className="ui-field w-14 px-2" /></label>
         <span>of {pages || '…'}</span>
-        <button type="button" aria-label="Next Page" disabled={!pages || page >= pages} onClick={() => setPage({ id, value: page + 1 })}>Next</button>
-        <button type="button" aria-label="Zoom Out" disabled={zoom <= 50} onClick={() => setZoom(value => Math.max(50, value - 25))}>−</button>
+        <button type="button" className="ui-button ui-button-ghost px-2 text-xs" aria-label="Next Page" disabled={!pages || page >= pages} onClick={() => setPage({ id, value: page + 1 })}>Next</button>
+        <button type="button" className="ui-icon-button ui-button-ghost" title="Zoom out" aria-label="Zoom Out" disabled={zoom <= 50} onClick={() => setZoom(value => Math.max(50, value - 25))}>−</button>
         <span aria-label="PDF zoom">{zoom}%</span>
-        <button type="button" aria-label="Zoom In" disabled={zoom >= 200} onClick={() => setZoom(value => Math.min(200, value + 25))}>+</button>
-        <button type="button" aria-label="Reset Zoom" onClick={() => setZoom(100)}>Reset zoom</button>
-        {valid && id && <a className="ml-auto underline" href={api.getPdfStreamUrl(id)} target="_blank" rel="noreferrer">Open original PDF</a>}
+        <button type="button" className="ui-icon-button ui-button-ghost" title="Zoom in" aria-label="Zoom In" disabled={zoom >= 200} onClick={() => setZoom(value => Math.min(200, value + 25))}>+</button>
+        <button type="button" className="ui-button ui-button-ghost px-2 text-xs" aria-label="Reset Zoom" onClick={() => setZoom(100)}>Reset zoom</button>
+        {valid && id && <a className="ui-button ui-button-ghost ml-auto px-2 text-xs text-blue-700" href={api.getPdfStreamUrl(id)} target="_blank" rel="noreferrer">Open original PDF</a>}
       </div>
       {resolving && <p role="status" className="p-3 text-sm">Opening citation…</p>}
       {sourceError && <p role="alert" className="p-3 text-sm text-red-700">{sourceError}</p>}
@@ -153,8 +153,8 @@ export function PdfViewerPanel({ document: paper, activeCitation, onClearCitatio
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-blue-100 bg-white px-3 py-2 text-xs text-slate-600">
           <p className="font-medium">Source — Page {anchor.page_number}</p>
           <div className="flex items-center gap-2">
-            {page !== anchor.page_number && <button type="button" onClick={() => setPage({ id, value: anchor.page_number })} className="rounded px-2 py-1 font-medium text-blue-700 hover:bg-blue-50">Return to source</button>}
-            {onClearCitation && <button type="button" className="rounded px-2 py-1 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600" onClick={onClearCitation}>Clear source</button>}
+            {page !== anchor.page_number && <button type="button" onClick={() => setPage({ id, value: anchor.page_number })} className="ui-button ui-button-ghost px-2 text-xs text-blue-700">Return to source</button>}
+            {onClearCitation && <button type="button" className="ui-button ui-button-ghost px-2 text-xs" onClick={onClearCitation}>Clear source</button>}
           </div>
         </div>
       )}
@@ -175,7 +175,7 @@ export function PdfViewerPanel({ document: paper, activeCitation, onClearCitatio
             )}
           </Document>
         )}
-        {pdfError && <button type="button" onClick={() => { setPdfError(''); setLoaded(null); setRetry(value => value + 1); }} className="mt-3 underline">Retry PDF</button>}
+        {pdfError && <button type="button" onClick={() => { setPdfError(''); setLoaded(null); setRetry(value => value + 1); }} className="ui-button ui-button-secondary mt-3">Retry PDF</button>}
       </div>
     </section>
   );
