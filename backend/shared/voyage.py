@@ -105,3 +105,8 @@ def embed_documents(texts: list[str], settings: Settings) -> list[list[float]]:
 
 def embed_query(question: str, settings: Settings) -> list[float]:
     return _embed([question], "query", settings)[0]
+
+
+def embed_queries(questions: list[str], settings: Settings) -> list[list[float]]:
+    """Batch query-to-query comparison embeddings for offline answer relevancy."""
+    return _embed(questions, "query", settings)

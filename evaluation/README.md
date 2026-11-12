@@ -38,3 +38,19 @@ per-strategy latency comparison. Answers are independent single turns and are
 not inserted into user chat history. Failed retrieval/generation is recorded
 without fabricated contexts or answers. PDF hash/page count and the current
 source generation are checked before paid work and after generation.
+
+
+The five implemented metrics are faithfulness, answer relevancy, reference-based
+context precision, context recall and factual correctness (F1). Ragas 0.2.15
+uses `EvaluationDataset` / `evaluate()` with explicit provider adapters. All judge
+completions go through OpenRouter; relevancy embeddings use Voyage query vectors
+for both original and generated questions. No default OpenAI provider is used.
+Anonymous Ragas telemetry is disabled in the evaluation process.
+
+`EVAL_*` settings in `.env.example` bound evaluator timeouts, concurrency, output
+size, question count and request/input budgets. Failed/invalid/non-finite scores
+remain null with a reason. Genuine zero scores are retained. Unsupported cases
+use separate abstention/manual checks; reference-dependent metrics are skipped
+when references are absent, and empty-context/abstention cases are explicitly
+marked as inapplicable where necessary. Means must state their sample coverage.
+Ragas is optional and is not installed as a required serving dependency.
