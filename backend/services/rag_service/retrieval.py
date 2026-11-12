@@ -146,27 +146,55 @@ def _candidates(
     return scope, parallel["dense"], parallel["keyword"]
 
 
+def _select(hits: list[RetrievalHit], limit: int, diversify: bool) -> list[RetrievalHit]:
+    if not 1 <= limit <= 20:
+        raise ValueError("Context limit must be between 1 and 20")
+    if not diversify:
+        return hits[:limit]
+    selected, remaining, sections = [], [], set()
+    for hit in hits:
+        key = tuple(sorted(hit.chunk.heading_path.items())) or (
+            ("page", str(hit.chunk.page_number)),
+        )
+        if key in sections:
+            remaining.append(hit)
+        else:
+            sections.add(key)
+            selected.append(hit)
+    return (selected + remaining)[:limit]
+
+
 def retrieve(
-    database: Database, document_id: str, question: str, settings: Settings
+    database: Database,
+    document_id: str,
+    question: str,
+    settings: Settings,
+    *,
+    context_limit: int | None = None,
+    diversify: bool = False,
 ) -> tuple[RetrievalScope, list[RetrievalHit]]:
     scope, dense, keyword = _candidates(database, document_id, question, settings)
-    return scope, rrf(dense, keyword, settings.rag_context_k, settings.rag_rrf_constant)
+    ranked = rrf(dense, keyword, settings.rag_candidate_k * 2, settings.rag_rrf_constant)
+    return scope, _select(ranked, context_limit or settings.rag_context_k, diversify)
 
 
 def retrieve_variants(
-    database: Database, document_id: str, question: str, settings: Settings
+    database: Database,
+    document_id: str,
+    question: str,
+    settings: Settings,
+    *,
+    context_limit: int | None = None,
+    diversify: bool = False,
 ) -> tuple[RetrievalScope, dict[str, list[RetrievalHit]]]:
-    """Paired offline comparison from one query vector and identical source candidates.
-
-    Semantic results preserve vector ranking; keyword results affect only hybrid.
-    Retrieval time is shared and must not be reported as per-strategy latency.
-    """
+    """Share one query vector/source snapshot; semantic ignores keyword ranks."""
     scope, dense, keyword = _candidates(database, document_id, question, settings)
-    unique_dense = {chunk.id: chunk for chunk in dense}
     semantic = [
-        RetrievalHit(chunk=chunk) for chunk in list(unique_dense.values())[: settings.rag_context_k]
+        RetrievalHit(chunk=chunk) for chunk in {chunk.id: chunk for chunk in dense}.values()
     ]
+    hybrid = rrf(dense, keyword, settings.rag_candidate_k * 2, settings.rag_rrf_constant)
+    limit = context_limit or settings.rag_context_k
     return scope, {
-        "hybrid": rrf(dense, keyword, settings.rag_context_k, settings.rag_rrf_constant),
-        "semantic": semantic,
+        "hybrid": _select(hybrid, limit, diversify),
+        "semantic": _select(semantic, limit, diversify),
     }

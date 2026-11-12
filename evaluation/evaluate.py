@@ -108,6 +108,11 @@ def main(argv: list[str] | None = None) -> int:
         item.add_argument("--bindings", type=Path, required=True)
         item.add_argument("--limit", type=int, default=20)
         item.add_argument("--sample-id", action="append")
+        item.add_argument(
+            "--history",
+            type=Path,
+            help="Optional reviewed seed question/answer history by sample ID",
+        )
         item.add_argument("--strategy", choices=("hybrid", "semantic"), action="append")
         item.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
         item.add_argument("--allow-unreviewed", action="store_true")
@@ -189,6 +194,9 @@ def main(argv: list[str] | None = None) -> int:
                     limit=args.limit,
                     strategies=tuple(args.strategy or ("hybrid", "semantic")),
                     sample_ids=args.sample_id,
+                    history_by_sample=json.loads(args.history.read_text())
+                    if args.history
+                    else None,
                 )
             path = save_collection(run, args.output)
             logger.info(f"Saved real pipeline collection: {path}")

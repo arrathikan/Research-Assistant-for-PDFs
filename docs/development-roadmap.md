@@ -530,10 +530,18 @@ build warnings remain; no dependencies or backend APIs changed.
 ### Research-assistant chatbot improvements
 
 - [x] RAG.1: Answer-first Markdown UI, optional Sources and compact PDF citation toolbar.
-- [ ] RAG.2: Intent-sensitive context, summary reuse and contextual follow-up retrieval.
+- [x] RAG.2: Intent-sensitive context, summary reuse and contextual follow-up retrieval.
 - [ ] RAG.3: Intent evaluation, live checks and final documentation.
 
 RAG.1 frontend verification: **99 tests passed** in the preserved local workspace.
 The backend baseline passed **410 tests, 4 optional checks skipped**. An initial
 JSX regression was corrected before proceeding. Source/cross-document validation
 and exact text/region overlays remain in place; only their presentation changed.
+
+RAG.2 verification: **439 backend tests passed, 4 optional checks skipped**,
+including real disposable MongoDB/RabbitMQ integration with simulated provider
+boundaries. Scoped Ruff checks passed. New tests cover saved-summary reuse,
+section spread, question categories, contextual follow-ups, unsupported topics,
+background labeling and citation/schema correction. No new dependencies were
+added and the public chat API remains compatible. Live quality evaluation follows
+in RAG.3; these deterministic tests do not establish answer accuracy.

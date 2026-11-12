@@ -5,6 +5,8 @@ from time import perf_counter
 from uuid import uuid4
 
 from backend.services.rag_service.chain import answer_with_trace
+from backend.services.rag_service.document_context import summary_context
+from backend.services.rag_service.intent import plan_question
 from backend.services.rag_service.models import (
     ChatRequest,
     ChatResponse,
@@ -100,7 +102,7 @@ def chat_with_trace(
     """The real request path, also used by offline evaluation; no Ragas here."""
     started = perf_counter()
     try:
-        scope, _ = current_scope(database, document_id, settings)
+        scope, chunks = current_scope(database, document_id, settings)
         database.chat_turns.create_index(
             [("document_id", 1), ("conversation_id", 1), ("sequence", -1)],
             name="document_conversation_turns",
@@ -135,9 +137,28 @@ def chat_with_trace(
                 if settings.rag_history_turns
                 else []
             )
-            retrieved_scope, hits = retrieve(database, document_id, request.message, settings)
-            if retrieved_scope != scope:
-                raise RagConflict("Document changed before answer generation")
+            history_context = [
+                {"question": turn.question, "answer": turn.response.answer} for turn in history
+            ]
+            plan = plan_question(request.message, history_context, settings.voyage_max_input_bytes)
+            cached = None
+            info = {"context_strategy": "hybrid", "total_document_chunks": len(chunks)}
+            if plan.intent == "summary":
+                hits, cached, info = summary_context(database, scope, chunks, settings)
+            elif plan.intent == "general":
+                hits = []
+                info["context_strategy"] = "general_background"
+            else:
+                retrieved_scope, hits = retrieve(
+                    database,
+                    document_id,
+                    plan.retrieval_query,
+                    settings,
+                    context_limit=plan.context_limit(settings.rag_context_k),
+                    diversify=plan.intent != "fact",
+                )
+                if retrieved_scope != scope:
+                    raise RagConflict("Document changed before answer generation")
             output = answer_with_trace(
                 request.message,
                 scope,
@@ -145,10 +166,11 @@ def chat_with_trace(
                 settings,
                 conversation_id,
                 turn_id,
-                history=[
-                    {"question": turn.question, "answer": turn.response.answer} for turn in history
-                ],
+                history=history_context,
                 complete=complete,
+                plan=plan,
+                cached_summary=cached,
+                context_info=info,
             )
             after, _ = current_scope(database, document_id, settings)
             if after != scope:

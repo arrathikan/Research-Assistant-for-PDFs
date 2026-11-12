@@ -164,3 +164,19 @@ def test_paired_strategies_share_one_query_vector_and_keep_semantic_vector_order
     assert scope == SCOPE
     assert variants["semantic"][0].chunk == variants["hybrid"][0].chunk == CHUNKS[0]
     assert variants["semantic"][0].rrf_score == 0
+
+
+def test_broad_context_selection_covers_sections_before_repeating_one_section():
+    from backend.services.rag_service.models import RetrievalHit
+    from backend.services.rag_service.retrieval import _select
+
+    a = CHUNKS[0].model_copy(update={"heading_path": {"h2": "Methods"}})
+    b = summary_chunks(text="# Methods\n\nSecond evidence passage.")[0].model_copy(
+        update={"heading_path": {"h2": "Methods"}}
+    )
+    c = summary_chunks(text="# Results\n\nA different section.")[0].model_copy(
+        update={"heading_path": {"h2": "Results"}}
+    )
+    hits = [RetrievalHit(chunk=chunk) for chunk in [a, b, c]]
+    assert [hit.chunk.id for hit in _select(hits, 2, True)] == [a.id, c.id]
+    assert [hit.chunk.id for hit in _select(hits, 2, False)] == [a.id, b.id]

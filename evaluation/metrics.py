@@ -7,6 +7,7 @@ import os
 from collections.abc import Callable
 from importlib.metadata import version
 
+from backend.services.rag_service.chain import GENERAL_HEADING
 from backend.shared.config import Settings
 from evaluation.judge import RequestBudget, build_evaluator
 from evaluation.models import METRIC_NAMES, CollectedCase, MetricValue
@@ -60,7 +61,23 @@ def score_record(
     if record.case.reference_answer:
         sample["reference"] = record.case.reference_answer
     try:
-        raw = execute(sample, selected) if selected else {}
+        if GENERAL_HEADING in output.response.answer and selected:
+            paper_answer = output.response.answer.split(GENERAL_HEADING, 1)[0].strip()
+            grounded = [name for name in selected if name != "answer_relevancy"]
+            raw = (
+                execute({**sample, "response": paper_answer}, grounded)
+                if grounded
+                else {}
+            )
+            if not isinstance(raw, dict):
+                raise ValueError("Invalid metric result")
+            if "answer_relevancy" in selected:
+                relevance = execute(sample, ["answer_relevancy"])
+                if not isinstance(relevance, dict):
+                    raise ValueError("Invalid metric result")
+                raw.update(relevance)
+        else:
+            raw = execute(sample, selected) if selected else {}
     except Exception:  # noqa: BLE001 -- provider boundary: retain failure states without leaking raw evaluator output.
         return {
             **results,

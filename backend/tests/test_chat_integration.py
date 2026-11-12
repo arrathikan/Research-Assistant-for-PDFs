@@ -153,3 +153,77 @@ def test_source_change_during_generation_prevents_turn_save(database):
                 database, identifier, ChatRequest(message="Question"), SETTINGS, changed
             )
     assert database.chat_turns.count_documents({}) == 0
+
+
+def test_follow_up_retrieval_uses_real_stored_conversation_subject(database):
+    identifier, scope, hits = seed(database)
+    with patch(
+        "backend.services.rag_service.service.retrieve", return_value=(scope, hits)
+    ) as retrieve:
+        first = chat_with_trace(
+            database,
+            identifier,
+            ChatRequest(message="What does the paper say about gender?"),
+            SETTINGS,
+            completion,
+        )
+        second = chat_with_trace(
+            database,
+            identifier,
+            ChatRequest(
+                message="What about limitations of those findings?",
+                conversation_id=first.response.conversation_id,
+            ),
+            SETTINGS,
+            completion,
+        )
+    query = retrieve.call_args.args[2]
+    assert "gender" in query and "limitations" in query
+    assert second.trace.configuration["uses_conversation_context"]
+    assert second.trace.configuration["conversation_history"][0]["question"] == first.trace.question
+    assert second.response.document_id == identifier
+
+
+def test_summary_question_reuses_current_saved_summary_without_regenerating(database):
+    from backend.services.summary_service.storage import summarize_stored_document
+    from backend.tests.test_summary_workflow import context_completion
+
+    identifier, _, _ = seed(database)
+    saved = summarize_stored_document(database, identifier, SETTINGS, context_completion)
+    runs = database.summary_runs.count_documents({})
+    with patch("backend.services.rag_service.service.retrieve") as retrieve:
+        output = chat_with_trace(
+            database,
+            identifier,
+            ChatRequest(message="Summarize this research paper."),
+            SETTINGS,
+            completion,
+        )
+    retrieve.assert_not_called()
+    assert output.trace.configuration["summary_reused"]
+    assert output.trace.configuration["saved_summary"]["methodology"] == saved.methodology
+    assert database.summary_runs.count_documents({}) == runs
+    assert output.response.citations
+
+
+def test_general_question_keeps_document_conversation_scope_without_paid_retrieval(database):
+    from backend.services.rag_service.chain import GENERAL_HEADING
+
+    identifier, _, _ = seed(database)
+    model = Mock(
+        return_value=json.dumps(
+            {
+                "is_out_of_scope": True,
+                "claims": [],
+                "general_background": "RAG combines retrieval and generation.",
+            }
+        )
+    )
+    with patch("backend.services.rag_service.service.retrieve") as retrieve:
+        output = chat_with_trace(
+            database, identifier, ChatRequest(message="In general, what is RAG?"), SETTINGS, model
+        )
+    retrieve.assert_not_called()
+    assert GENERAL_HEADING in output.response.answer
+    assert not output.response.citations and output.response.document_id == identifier
+    assert output.trace.configuration["context_strategy"] == "general_background"

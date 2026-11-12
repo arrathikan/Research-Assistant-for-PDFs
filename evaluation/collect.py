@@ -9,6 +9,8 @@ from bson import ObjectId
 from pymongo.database import Database
 
 from backend.services.rag_service.chain import answer_with_trace
+from backend.services.rag_service.document_context import summary_context
+from backend.services.rag_service.intent import plan_question
 from backend.services.rag_service.models import RagNotReady, RagUnavailable
 from backend.services.rag_service.retrieval import current_scope, retrieve_variants
 from backend.services.summary_service.workflow import Completion
@@ -29,6 +31,7 @@ def collect(
     strategies: tuple[Strategy, ...] = ("hybrid", "semantic"),
     sample_ids: list[str] | None = None,
     complete: Completion | None = None,
+    history_by_sample: dict[str, list[dict[str, str]]] | None = None,
 ) -> CollectionRun:
     if (
         not 1 <= limit <= 100
@@ -48,7 +51,27 @@ def collect(
     ):
         raise DatasetError("Selected benchmark cases do not exist")
     cases = cases[:limit]
-    scopes = {}
+    if history_by_sample is not None and not isinstance(history_by_sample, dict):
+        raise DatasetError("History must map sample IDs to question/answer pairs")
+    histories = history_by_sample or {}
+    if set(histories) - {case.sample_id for case in dataset.cases}:
+        raise DatasetError("History refers to an unknown benchmark case")
+    for turns in histories.values():
+        if not isinstance(turns, list) or len(turns) > settings.rag_history_turns:
+            raise DatasetError("History exceeds the configured conversation window")
+        for turn in turns:
+            if (
+                not isinstance(turn, dict)
+                or set(turn) != {"question", "answer"}
+                or any(
+                    not isinstance(value, str)
+                    or not value.strip()
+                    or len(value) > 14000
+                    for value in turn.values()
+                )
+            ):
+                raise DatasetError("History needs nonempty question/answer pairs")
+    scopes, source_chunks = {}, {}
     # Validate every source before the first paid question embedding or model call.
     for key in {case.document_key for case in cases}:
         identifier = bindings.get(key, "")
@@ -64,18 +87,43 @@ def collect(
             or document.page_count != source.page_count
         ):
             raise DatasetError("Bound document does not match the exact benchmark PDF")
-        scopes[key], _ = current_scope(database, identifier, settings)
+        scopes[key], source_chunks[key] = current_scope(database, identifier, settings)
     records = []
     for case in cases:
         key, scope = case.document_key, scopes[case.document_key]
         review = next(
             (item for item in dataset.reviews if item.sample_id == case.sample_id), None
         )
+        history = histories.get(case.sample_id, [])
+        plan = plan_question(
+            case.user_question, history, settings.voyage_max_input_bytes
+        )
+        cached = None
+        info = {
+            "context_strategy": "hybrid",
+            "total_document_chunks": len(source_chunks[key]),
+        }
         started = perf_counter()
         try:
-            current, variants = retrieve_variants(
-                database, scope.document_id, case.user_question, settings
-            )
+            if plan.intent == "summary":
+                hits, cached, info = summary_context(
+                    database, scope, source_chunks[key], settings
+                )
+                variants = {"hybrid": hits, "semantic": hits}
+                current = scope
+            elif plan.intent == "general":
+                variants = {"hybrid": [], "semantic": []}
+                current = scope
+                info["context_strategy"] = "general_background"
+            else:
+                current, variants = retrieve_variants(
+                    database,
+                    scope.document_id,
+                    plan.retrieval_query,
+                    settings,
+                    context_limit=plan.context_limit(settings.rag_context_k),
+                    diversify=plan.intent != "fact",
+                )
             if current != scope:
                 raise DatasetError("Source changed")
         except (RagNotReady, RagUnavailable, StorageUnavailable, DatasetError):
@@ -102,6 +150,10 @@ def collect(
                     uuid4().hex,
                     uuid4().hex,
                     complete=complete,
+                    history=history,
+                    plan=plan,
+                    cached_summary=cached,
+                    context_info=info,
                 )
                 after, _ = current_scope(database, scope.document_id, settings)
                 if after != scope:
@@ -119,7 +171,9 @@ def collect(
                     {
                         "retrieval": strategy,
                         "shared_retrieval_ms": elapsed,
-                        "evaluation_history": "single_turn_no_chat_storage",
+                        "evaluation_history": "seeded_history_no_chat_storage"
+                        if history
+                        else "single_turn_no_chat_storage",
                     }
                 )
                 records.append(

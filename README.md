@@ -446,3 +446,11 @@ inside one collapsed Sources section per answer. The PDF viewer keeps exact text
 and verified-region highlighting, while page-only fallback is quiet and uses a
 compact source toolbar. No raw retrieved chunks or internal retrieval metadata
 are shown in normal chat.
+
+
+Chat now routes factual, topical, analytical, comparison, follow-up and whole-paper
+questions through the existing pipeline. Complete current summaries can be reused;
+otherwise bounded section samples support a qualified overview. Explicit general
+knowledge is labeled separately and carries no paper citations. Source-generation,
+embedding-profile and exact-quote validation remain mandatory. See
+[the architecture notes](docs/architecture.md#intent-sensitive-research-chat).

@@ -47,6 +47,7 @@ class AnswerClaim(StrictModel):
 
 class AnswerDraft(StrictModel):
     is_out_of_scope: bool
+    general_background: str = Field(default="", max_length=4000)
     claims: list[AnswerClaim] = Field(max_length=8)
 
     @model_validator(mode="after")
