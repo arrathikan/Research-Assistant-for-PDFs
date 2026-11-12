@@ -28,3 +28,13 @@ installed version. [Official API](https://docs.ragas.io/en/v0.2.15/references/ev
 
 Local `results/` artifacts are ignored because they may contain paper/context
 text. Publish only deliberately reviewed shareable reports under `reports/`.
+
+
+Collection now uses the actual RAG answer composition and document-scoped Atlas
+query/filter validation. A paired helper shares one query vector and candidate
+snapshot between semantic and hybrid rankings. Semantic ignores keyword results;
+hybrid uses the existing RRF. Retrieval duration is shared and is not a valid
+per-strategy latency comparison. Answers are independent single turns and are
+not inserted into user chat history. Failed retrieval/generation is recorded
+without fabricated contexts or answers. PDF hash/page count and the current
+source generation are checked before paid work and after generation.

@@ -443,7 +443,7 @@ Prompt 13 offline Ragas/manual evaluation is next.
 ### Prompt 13: Offline Ragas evaluation
 
 - [x] 13.1: Versioned, evidence-grounded benchmark and explicit manual-review provenance.
-- [ ] 13.2: Collect real pipeline traces and paired hybrid/semantic retrieval.
+- [x] 13.2: Collect real pipeline traces and paired hybrid/semantic retrieval.
 - [ ] 13.3: Five Ragas metrics with bounded evaluator calls and honest failure handling.
 - [ ] 13.4: JSON/Markdown reports, manual result checklist and reproducible CLI.
 - [ ] 13.5: Real evaluation verification, regression checks and methodology docs.
@@ -452,3 +452,8 @@ Increment 13.1: 20 source-grounded cases, PDF hash/page checks and review hashes
 implemented. All case anchors matched the downloaded CC-BY 4.0 source. **16
 dataset/schema tests passed**; scoped Ruff passed. Reviews are assistant source
 cross-checks requested by the user, not claimed human approvals.
+
+Increment 13.2: collector uses the real source-validated answer chain, while a
+paired retrieval helper shares one query vector and the same document generation
+for semantic/hybrid outputs. **32 retrieval/collection/dataset tests passed**;
+scoped Ruff passed. No chat turns are persisted by benchmark collection.

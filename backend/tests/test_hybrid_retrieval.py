@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from backend.services.rag_service.indexes import check_indexes, definitions
 from backend.services.rag_service.models import RagNotReady, RagUnavailable, RetrievalScope
-from backend.services.rag_service.retrieval import retrieve, rrf
+from backend.services.rag_service.retrieval import retrieve, retrieve_variants, rrf
 from backend.shared.config import Settings
 from backend.tests.summary_fixtures import DOCUMENT_ID, summary_chunks
 
@@ -147,3 +147,20 @@ def test_generation_change_during_search_rejects_stale_results():
     ):
         with pytest.raises(RagNotReady):
             retrieve(db, DOCUMENT_ID, "question", SETTINGS)
+
+
+def test_paired_strategies_share_one_query_vector_and_keep_semantic_vector_order():
+    db = MagicMock()
+    db.chunk_embeddings.aggregate.return_value = [record()]
+    with (
+        patch("backend.services.rag_service.retrieval.current_scope", return_value=(SCOPE, CHUNKS)),
+        patch("backend.services.rag_service.retrieval.check_indexes"),
+        patch(
+            "backend.services.rag_service.retrieval.embed_query", return_value=[0.1] * 1024
+        ) as embed,
+    ):
+        scope, variants = retrieve_variants(db, DOCUMENT_ID, "synthetic question", SETTINGS)
+    embed.assert_called_once()
+    assert scope == SCOPE
+    assert variants["semantic"][0].chunk == variants["hybrid"][0].chunk == CHUNKS[0]
+    assert variants["semantic"][0].rrf_score == 0

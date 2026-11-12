@@ -444,3 +444,10 @@ Readiness is shown only after the persisted document is ready; transient failure
 remain retryable without fabricating a result. RabbitMQ ports are loopback-only
 for local development. Real-broker tests exercise the actual HTTP/storage/queue
 path with simulated provider boundaries and isolated queues/databases.
+
+
+Prompt 13.2 introduces an offline collector outside the gateway. It invokes the
+same answer chain and canonical retrieval helpers used by chat. Paired retrieval
+shares a single query vector and source snapshot, preserving vector ranking for
+the semantic baseline and the existing RRF for hybrid. Collection writes private
+artifacts instead of user conversations. Ragas remains outside request handling.
