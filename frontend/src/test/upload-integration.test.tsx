@@ -1,90 +1,121 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { UploadView } from '../views/UploadView';
-import { api } from '../services/api';
-import { UploadResponse } from '../types';
+import { api, ApiError } from '../services/api';
+import type { UploadResponse } from '../types';
+import type { ProcessingStatus } from '../types/processing';
+import { ID, OTHER_ID, PAPER, QUEUED, READY, STORED, SUMMARY } from './uploadFixtures';
 
-const stored: UploadResponse = {
-  document: {
-    id: '507f1f77bcf86cd799439011', sha256: 'a'.repeat(64), filename: 'paper.pdf',
-    file_size_bytes: 200, page_count: 1, status: 'PENDING',
-    created_at: '2026-11-10T00:00:00Z', updated_at: '2026-11-10T00:00:00Z',
-  },
-  message: 'PDF stored; processing pending', is_duplicate: false,
-};
-
-afterEach(() => { vi.restoreAllMocks(); });
-
-function selectAndUpload() {
-  const file = new File(['%PDF-1.7 test'], 'paper.pdf', { type: 'application/pdf' });
-  fireEvent.change(screen.getByTestId('file-input'), { target: { files: [file] } });
-  fireEvent.click(screen.getByText('Process Paper'));
+beforeEach(() => {
+  vi.useFakeTimers();
+  vi.spyOn(api, 'uploadDocument').mockResolvedValue(STORED);
+  vi.spyOn(api, 'getDocument').mockResolvedValue(PAPER);
+  vi.spyOn(api, 'getProcessingStatus').mockResolvedValue(QUEUED);
+  vi.spyOn(api, 'getDocumentSummary').mockResolvedValue(SUMMARY);
+});
+afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); });
+async function selectAndUpload(name = 'paper.pdf') {
+  const file = new File(['%PDF-1.7 synthetic'], name, { type: 'application/pdf' });
+  await act(async () => {
+    fireEvent.change(screen.getByTestId('file-input'), { target: { files: [file] } });
+    fireEvent.click(screen.getByRole('button', { name: 'Upload paper' }));
+  });
   return file;
 }
 
-describe('live upload states', () => {
-  it('shows persisted status and an original-file link without opening a pending workspace', async () => {
-    const upload = vi.spyOn(api, 'uploadDocument').mockResolvedValue(stored);
-    const onSuccess = vi.fn();
-    render(<UploadView onUploadSuccess={onSuccess} />);
-    const file = selectAndUpload();
-    expect(await screen.findByText('Upload successful')).toBeInTheDocument();
-    expect(screen.getByText(/Status: PENDING/)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Open original PDF' })).toHaveAttribute('href', api.getPdfStreamUrl(stored.document.id!));
-    expect(upload).toHaveBeenCalledWith(file);
-    expect(onSuccess).not.toHaveBeenCalled();
-  });
-
-  it('shows duplicate status and opens a workspace only when the stored document is READY', async () => {
-    const response = { ...stored, is_duplicate: true, document: { ...stored.document, status: 'READY' as const } };
-    vi.spyOn(api, 'uploadDocument').mockResolvedValue(response);
-    const onSuccess = vi.fn();
-    render(<UploadView onUploadSuccess={onSuccess} />);
-    selectAndUpload();
-    expect(await screen.findByText('Duplicate detected')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Open workspace' }));
-    expect(onSuccess).toHaveBeenCalledWith(response.document);
-  });
-
-  it('reports failure without inventing a document and allows retry', async () => {
-    const upload = vi.spyOn(api, 'uploadDocument').mockRejectedValueOnce(new Error('Document storage temporarily unavailable')).mockResolvedValueOnce(stored);
-    const onSuccess = vi.fn();
-    render(<UploadView onUploadSuccess={onSuccess} />);
-    selectAndUpload();
-    expect(await screen.findByRole('alert')).toHaveTextContent('Document storage temporarily unavailable');
-    expect(onSuccess).not.toHaveBeenCalled();
-    expect(screen.queryByText('Upload successful')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByText('Process Paper'));
-    expect(await screen.findByText('Upload successful')).toBeInTheDocument();
-    expect(upload).toHaveBeenCalledTimes(2);
-  });
-
-  it('shows uploading until the real request resolves', async () => {
-    let finish: (result: UploadResponse) => void = () => {};
-    vi.spyOn(api, 'uploadDocument').mockImplementation(() => new Promise(resolve => { finish = resolve; }));
-    render(<UploadView onUploadSuccess={vi.fn()} />);
-    selectAndUpload();
-    expect(screen.getByText('Uploading and checking research PDF...')).toBeInTheDocument();
-    expect(screen.getByTestId('file-input')).toBeDisabled();
-    finish(stored);
-    await waitFor(() => expect(screen.getByText('Upload successful')).toBeInTheDocument());
-  });
-});
-
-
-it('enables opening the workspace only after background progress and metadata confirm readiness', async () => {
-  vi.useFakeTimers();
-  try {
-    vi.spyOn(api, 'uploadDocument').mockResolvedValue(stored);
-    const ready = { ...stored.document, status: 'READY' as const };
-    vi.spyOn(api, 'getDocument').mockResolvedValue(ready);
-    vi.spyOn(api, 'getProcessingStatus').mockResolvedValue({ document_id: ready.id!, job_id: 'a'.repeat(64), status: 'COMPLETED', stage: 'summary', step: 'complete', generation: 1, attempt: 1, max_attempts: 3, retry_at: null, error_code: null, requires_review: false });
+describe('upload status card', () => {
+  it('shows one compact saved file with no raw IDs, API messages or repeated upload actions', async () => {
     const open = vi.fn();
     render(<UploadView onUploadSuccess={open} />);
-    await act(async () => { selectAndUpload(); });
-    expect(screen.queryByRole('button', { name: 'Open workspace' })).not.toBeInTheDocument();
+    const file = await selectAndUpload();
+    expect(screen.getByText('Uploaded')).toBeInTheDocument();
+    expect(screen.getAllByText('paper.pdf')).toHaveLength(1);
+    expect(screen.getByText('PDF · 1.0 MB')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Open PDF/ })).toHaveAttribute('href', api.getPdfStreamUrl(ID));
+    expect(screen.getByRole('button', { name: 'View Summary' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Chat with Paper' })).toBeDisabled();
+    expect(screen.queryByText(/Raw internal|PENDING|Document ID|Upload successful|100%/)).not.toBeInTheDocument();
+    expect(screen.queryByTestId('dropzone')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Upload paper' })).not.toBeInTheDocument();
+    expect(api.uploadDocument).toHaveBeenCalledWith(file);
+    expect(open).not.toHaveBeenCalled();
+  });
+
+  it('uses real completed data for duplicate uploads and opens the requested workspace panel', async () => {
+    vi.mocked(api.uploadDocument).mockResolvedValue({ ...STORED, document: READY, is_duplicate: true });
+    vi.mocked(api.getDocument).mockResolvedValue(READY);
+    vi.mocked(api.getProcessingStatus).mockResolvedValue({ ...QUEUED, status: 'COMPLETED' });
+    const open = vi.fn();
+    render(<UploadView onUploadSuccess={open} />);
+    await selectAndUpload();
+    expect(screen.queryByText('Ready')).not.toBeInTheDocument();
     await act(async () => { await vi.advanceTimersByTimeAsync(2000); });
-    fireEvent.click(screen.getByRole('button', { name: 'Open workspace' }));
-    expect(open).toHaveBeenCalledWith(ready);
-  } finally { vi.useRealTimers(); }
+    expect(screen.getByText('Ready')).toBeInTheDocument();
+    expect(screen.getAllByText('paper.pdf')).toHaveLength(1);
+    fireEvent.click(screen.getByRole('button', { name: 'View Summary' }));
+    expect(open).toHaveBeenLastCalledWith(READY, 'summary');
+    fireEvent.click(screen.getByRole('button', { name: 'Chat with Paper' }));
+    expect(open).toHaveBeenLastCalledWith(READY, 'chat');
+  });
+
+  it('shows uploading until the actual upload response and prevents another submission', async () => {
+    let finish!: (result: UploadResponse) => void;
+    vi.mocked(api.uploadDocument).mockImplementation(() => new Promise(resolve => { finish = resolve; }));
+    render(<UploadView onUploadSuccess={vi.fn()} />);
+    await selectAndUpload();
+    expect(screen.getByText('Uploading')).toBeInTheDocument();
+    expect(screen.getAllByText('paper.pdf')).toHaveLength(1);
+    expect(screen.queryByTestId('file-input')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Upload another paper' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Open PDF' })).toBeDisabled();
+    expect(api.getProcessingStatus).not.toHaveBeenCalled();
+    await act(async () => { finish(STORED); });
+    expect(screen.getByText('Uploaded')).toBeInTheDocument();
+  });
+
+  it('retries a failed upload using the retained file and a real upload call', async () => {
+    vi.mocked(api.uploadDocument).mockRejectedValueOnce(new ApiError(503, 'private details ' + ID)).mockResolvedValueOnce(STORED);
+    const open = vi.fn();
+    render(<UploadView onUploadSuccess={open} />);
+    const file = await selectAndUpload();
+    expect(screen.getByText('Failed')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('Check your connection');
+    expect(screen.queryByText(/private details/)).not.toBeInTheDocument();
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Retry upload' })); });
+    expect(screen.getByText('Uploaded')).toBeInTheDocument();
+    expect(api.uploadDocument).toHaveBeenNthCalledWith(2, file);
+    expect(open).not.toHaveBeenCalled();
+  });
+
+  it('asks for a different file instead of retrying an invalid PDF', async () => {
+    vi.mocked(api.uploadDocument).mockRejectedValue(new ApiError(400, 'corrupt'));
+    render(<UploadView onUploadSuccess={vi.fn()} />);
+    await selectAndUpload();
+    expect(screen.getByText('Failed')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Retry upload' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Choose a different PDF' }));
+    expect(screen.getByTestId('file-input')).toBeInTheDocument();
+    expect(screen.queryByText('paper.pdf')).not.toBeInTheDocument();
+  });
+
+  it('isolates repeated uploads from a previous document’s late ready response', async () => {
+    let oldStatus!: (value: ProcessingStatus) => void;
+    let newUpload!: (value: UploadResponse) => void;
+    vi.mocked(api.getProcessingStatus).mockImplementationOnce(() => new Promise(resolve => { oldStatus = resolve; }));
+    vi.mocked(api.getDocument).mockResolvedValue(READY);
+    render(<UploadView onUploadSuccess={vi.fn()} />);
+    await selectAndUpload();
+    await act(async () => { vi.advanceTimersByTime(2000); });
+    fireEvent.click(screen.getByRole('button', { name: 'Upload another paper' }));
+    vi.mocked(api.uploadDocument).mockImplementationOnce(() => new Promise(resolve => { newUpload = resolve; }));
+    await selectAndUpload('new-paper.pdf');
+    await act(async () => { oldStatus({ ...QUEUED, status: 'COMPLETED' }); });
+    expect(screen.queryByText('Ready')).not.toBeInTheDocument();
+    expect(screen.queryByText('paper.pdf')).not.toBeInTheDocument();
+    expect(screen.getAllByText('new-paper.pdf')).toHaveLength(1);
+    expect(api.getDocumentSummary).not.toHaveBeenCalled();
+    await act(async () => { newUpload({ ...STORED, document: { ...PAPER, id: OTHER_ID, filename: 'new-paper.pdf' } }); });
+    expect(screen.getByText('Uploaded')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Chat with Paper' })).toBeDisabled();
+  });
 });

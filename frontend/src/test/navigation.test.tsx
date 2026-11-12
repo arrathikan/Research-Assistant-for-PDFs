@@ -62,3 +62,16 @@ describe('Navbar Component', () => {
     expect(onSelectTab).toHaveBeenCalledWith('workspace');
   });
 });
+
+
+it('keeps the previous paper status out of the upload screen while preserving workspace navigation', () => {
+  const document: DocumentMetadata = {
+    id: '507f1f77bcf86cd799439011', sha256: 'a'.repeat(64), filename: 'previous.pdf',
+    file_size_bytes: 200, status: 'READY',
+    created_at: '2026-11-12T00:00:00Z', updated_at: '2026-11-12T00:00:00Z',
+  };
+  render(<Navbar activeTab="upload" onSelectTab={vi.fn()} activeDoc={document} />);
+  expect(screen.queryByText('previous.pdf')).not.toBeInTheDocument();
+  expect(screen.queryByTestId('document-status-pill')).not.toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Workspace' })).toBeInTheDocument();
+});

@@ -65,10 +65,10 @@ describe('UploadZone Component', () => {
 
     await waitFor(() => {
       expect(screen.getByText('attention_is_all_you_need.pdf')).toBeInTheDocument();
-      expect(screen.getByText('Process Paper')).toBeInTheDocument();
+      expect(screen.getByText('Upload paper')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText('Process Paper'));
+    fireEvent.click(screen.getByText('Upload paper'));
     expect(onUpload).toHaveBeenCalledWith(validPdf);
   });
 
@@ -76,7 +76,46 @@ describe('UploadZone Component', () => {
     const onUpload = vi.fn();
     render(<UploadZone onUpload={onUpload} isUploading={true} />);
 
-    expect(screen.getByText(/Uploading and checking research PDF.../i)).toBeInTheDocument();
-    expect(screen.getByText(/Computing SHA-256 hash & checking duplicates/i)).toBeInTheDocument();
+    expect(screen.getByText(/Uploading your paper…/i)).toBeInTheDocument();
+    expect(screen.getByTestId('file-input')).toBeDisabled();
+    expect(screen.getByTestId('dropzone')).toBeDisabled();
   });
+});
+
+
+it('supports drag and drop, empty-file validation, and exactly one PDF', () => {
+  render(<UploadZone onUpload={vi.fn()} />);
+  fireEvent.drop(screen.getByTestId('dropzone'), { dataTransfer: { files: [new File([], 'empty.pdf', { type: 'application/pdf' })] } });
+  expect(screen.getByRole('alert')).toHaveTextContent('empty');
+  const file = new File(['%PDF-1.7'], 'dropped.pdf');
+  fireEvent.drop(screen.getByTestId('dropzone'), { dataTransfer: { files: [file, file] } });
+  expect(screen.getByRole('alert')).toHaveTextContent('exactly one');
+  fireEvent.drop(screen.getByTestId('dropzone'), { dataTransfer: { files: [file] } });
+  expect(screen.getByText('dropped.pdf')).toBeInTheDocument();
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+});
+
+it('provides a keyboard-focusable picker and allows removing/reselecting the same PDF', () => {
+  render(<UploadZone onUpload={vi.fn()} />);
+  const input = screen.getByTestId('file-input');
+  const click = vi.spyOn(input, 'click');
+  const picker = screen.getByTestId('dropzone');
+  expect(picker.tagName).toBe('BUTTON');
+  fireEvent.click(picker);
+  expect(click).toHaveBeenCalledOnce();
+  const file = new File(['pdf'], 'repeat.pdf', { type: 'application/pdf' });
+  fireEvent.change(input, { target: { files: [file] } });
+  fireEvent.click(screen.getByRole('button', { name: 'Remove selected PDF' }));
+  expect(screen.queryByText('repeat.pdf')).not.toBeInTheDocument();
+  fireEvent.change(input, { target: { files: [file] } });
+  expect(screen.getAllByText('repeat.pdf')).toHaveLength(1);
+});
+
+it('prevents duplicate submissions while a request is pending', () => {
+  const upload = vi.fn().mockImplementation(() => new Promise(() => {}));
+  render(<UploadZone onUpload={upload} />);
+  fireEvent.change(screen.getByTestId('file-input'), { target: { files: [new File(['pdf'], 'paper.pdf')] } });
+  fireEvent.click(screen.getByRole('button', { name: 'Upload paper' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Upload paper' }));
+  expect(upload).toHaveBeenCalledTimes(1);
 });

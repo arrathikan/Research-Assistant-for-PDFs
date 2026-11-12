@@ -8,7 +8,7 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ activeFilename, status }) => {
   return (
-    <header className="h-16 border-b border-slate-200 bg-white px-6 flex items-center justify-between shadow-sm">
+    <header className="flex min-h-16 shrink-0 flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3 shadow-sm sm:h-16 sm:flex-nowrap sm:px-6">
       <div className="flex items-center gap-3">
         <div className="p-2 bg-blue-600 rounded-lg text-white">
           <BookOpen className="w-5 h-5" />
@@ -19,11 +19,11 @@ export const Navbar: React.FC<NavbarProps> = ({ activeFilename, status }) => {
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="hidden min-w-0 items-center gap-4 sm:flex">
         {activeFilename ? (
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-md border border-slate-200 text-xs text-slate-700">
+          <div className="flex min-w-0 items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-md border border-slate-200 text-xs text-slate-700">
             <FileText className="w-4 h-4 text-slate-500" />
-            <span className="font-medium truncate max-w-xs">{activeFilename}</span>
+            <span className="font-medium truncate max-w-[12rem] lg:max-w-xs">{activeFilename}</span>
             {status && (
               <span className="ml-2 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-700">
                 {status}
