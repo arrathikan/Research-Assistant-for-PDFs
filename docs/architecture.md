@@ -463,3 +463,22 @@ and immutable result hashes; adding them to a saved report uses no provider call
 Neither evaluation nor benchmark artifacts are imported into the gateway's chat
 path. See [methodology](rag-evaluation.md) for limitations and actual baseline
 results.
+
+
+### Shared responsive frontend layout
+
+PageContainer owns the centered max-w-6xl (1152px) content boundary and shared
+responsive gutters used by Dashboard, Upload and Workspace. Both existing
+navigation components use the same boundary while their header backgrounds stay
+full-width. The upload's heading, selection card and status card use one nested
+max-w-3xl (768px) column. Document cards use auto-fit grid tracks so unused
+desktop columns collapse.
+
+Ordinary pages scroll in the page frame. Workspace sets scrollable=false and
+uses a one-column/two-column grid whose actual content panes handle scrolling.
+The hidden mobile pane has no grid width. The shell's min-h-0 / min-w-0,
+container-relative width and dynamic viewport height allow children to shrink
+without growing the document or creating a second page scrollbar.
+
+Only JSX structure and CSS layout changed. API endpoints, processing states,
+summary/chat behavior and citation handling keep their existing contracts.

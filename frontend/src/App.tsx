@@ -12,11 +12,12 @@ export const App: React.FC = () => {
     setWorkspaceTab(tab);
   };
   return (
-    <div className="h-screen w-screen flex flex-col overflow-hidden bg-slate-50">
+    <div className="h-dvh w-full min-w-0 flex flex-col overflow-hidden bg-slate-50">
       <Navbar activeFilename={activeDoc?.filename} status={activeDoc?.status} />
-      {activeDoc ? <DocumentWorkspace document={activeDoc} initialTab={workspaceTab} /> : (
-        <div className="flex-1 overflow-auto"><UploadView onUploadSuccess={handleUploadSuccess} /></div>
-      )}
+      <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+        {activeDoc ? <DocumentWorkspace document={activeDoc} initialTab={workspaceTab} />
+          : <UploadView onUploadSuccess={handleUploadSuccess} />}
+      </main>
     </div>
   );
 };

@@ -497,3 +497,31 @@ proposed frontend passed **90 tests** and its production build. The local build
 also passed. Browser checks covered 320, 390, 768 and 1440 pixel widths, the real
 stored-PDF failure state, and direct navigation to chat. Existing PDF.js build
 warnings remain. No new dependencies were added.
+
+
+### Responsive page layout refinement
+
+- [x] Measure the app shell, upload width caps and dashboard grid before editing.
+- [x] Share a 1152px page/navigation boundary and a readable upload column.
+- [x] Collapse unused dashboard tracks and hidden mobile workspace panes.
+- [x] Verify heading, picker, selection and status-card alignment.
+- [x] Add shared-layout/navigation tests and check responsive geometry.
+
+Inspection found a full-width upload shell constrained by nested 768px and 576px
+caps, plus a three-column dashboard grid with only two cards. The upload was
+centered in the measured desktop viewport; the dashboard had a real unused third
+column. The new upload column is 768px on desktop, and the two dashboard cards
+fill their available row. No backend or business logic changes are included.
+
+Browser verification covered 375, 768, 1280 and 1440px for Dashboard, Upload,
+Summary and Chat, plus both mobile PDF-pane widths. Page/navigation containers
+are 1152px on desktop, with equal margins. Upload widths are 343, 720, 768 and
+768px respectively. No page-level horizontal overflow or nested vertical
+scrollbars were found. File-selection/status cards align with the heading, and
+the hidden workspace pane reserves zero width.
+
+Final verification: **96 tests passed** in the preserved local workspace; the
+isolated proposed frontend passed **92 tests** and its production build. The
+local production build also passed. All 22 browser page/viewport checks passed,
+plus selection/status alignment checks at each target width. Existing PDF.js
+build warnings remain; no dependencies or backend APIs changed.
