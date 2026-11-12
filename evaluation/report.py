@@ -125,6 +125,24 @@ class EvaluationReport(StrictModel):
         return self
 
 
+def attach_manual_reviews(
+    report: EvaluationReport, reviews: dict[str, ManualAssessment]
+) -> EvaluationReport:
+    """Create a new report revision without rerunning collection or paid metrics."""
+    data = report.model_dump(mode="json")
+    keys = {row.sample_id + ":" + row.strategy for row in report.rows}
+    if not reviews or set(reviews) - keys:
+        raise ValueError("Reviews must identify existing sample/strategy results")
+    data["evaluation_id"] = uuid4().hex
+    data["created_at"] = datetime.now(UTC).isoformat()
+    data["evaluator"]["manual_review_of"] = report.evaluation_id
+    for row in data["rows"]:
+        review = reviews.get(row["sample_id"] + ":" + row["strategy"])
+        if review is not None:
+            row["manual"] = review.model_dump(mode="json")
+    return EvaluationReport.model_validate(data)
+
+
 def deterministic_checks(record: CollectedCase) -> dict[str, bool | float | None]:
     if record.output is None:
         return {
@@ -353,7 +371,7 @@ def write_report(report: EvaluationReport, directory: Path) -> tuple[Path, Path]
     ):
         descriptor = os.open(target, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
         with os.fdopen(descriptor, "w") as stream:
-            stream.write(content + "\n")
+            stream.write(content.rstrip() + "\n")
     return path, md
 
 

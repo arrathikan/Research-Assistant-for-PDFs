@@ -1,6 +1,7 @@
 """Deterministic reporting tests: controlled fixture scores are not benchmark claims."""
 
 import json
+from datetime import UTC, datetime
 
 import pytest
 from backend.tests.test_evaluation_metrics import record
@@ -11,6 +12,7 @@ from evaluation.report import (
     EvaluationReport,
     ManualAssessment,
     ScoredCase,
+    attach_manual_reviews,
     deterministic_checks,
     markdown,
     paired_comparison,
@@ -94,6 +96,7 @@ def test_json_and_markdown_export_is_valid_private_and_never_overwrites(tmp_path
     assert EvaluationReport.model_validate_json(path.read_text()) == result
     assert path.stat().st_mode & 0o777 == 0o600
     assert "Metric means and coverage" in md.read_text()
+    assert md.read_text().endswith("\n") and not md.read_text().endswith("\n\n")
     assert json.loads(path.read_text())["status"] == "complete"
     assert json.loads(path.read_text())["metric_summary"]["hybrid"]["faithfulness"]["mean"] == 0
     with pytest.raises(FileExistsError):
@@ -127,3 +130,31 @@ def test_paired_comparison_rejects_different_case_content():
     data["collection"]["records"][1]["case"]["user_question"] = "Different question"
     with pytest.raises(ValidationError):
         EvaluationReport.model_validate(data)
+
+
+def test_review_revision_preserves_measured_scores_without_mutating_original():
+    from evaluation.report import result_hash
+
+    original = report()
+    assessment = ManualAssessment(
+        result_sha256=result_hash(original.collection.records[0]),
+        reviewer="Unit fixture",
+        review_kind="assistant",
+        reviewed_at=datetime.now(UTC),
+        outcomes={key: "not_applicable" for key in CRITERIA},
+        notes="Synthetic review fixture; not a benchmark result.",
+    )
+    revised = attach_manual_reviews(original, {original.rows[0].sample_id + ":hybrid": assessment})
+    assert original.rows[0].manual is None
+    assert revised.rows[0].manual == assessment
+    assert revised.rows[1].manual is None
+    assert revised.collection == original.collection
+    assert revised.metric_summary == original.metric_summary
+    assert revised.request_usage == original.request_usage
+    assert revised.evaluation_id != original.evaluation_id
+    assert revised.evaluator["manual_review_of"] == original.evaluation_id
+    with pytest.raises(ValueError):
+        attach_manual_reviews(original, {"unknown:hybrid": assessment})
+    wrong = assessment.model_copy(update={"result_sha256": "f" * 64})
+    with pytest.raises(ValidationError):
+        attach_manual_reviews(original, {original.rows[0].sample_id + ":hybrid": wrong})

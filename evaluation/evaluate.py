@@ -23,6 +23,7 @@ from evaluation.report import (
     EvaluationReport,
     ManualAssessment,
     ScoredCase,
+    attach_manual_reviews,
     deterministic_checks,
     result_hash,
     write_report,
@@ -116,6 +117,10 @@ def main(argv: list[str] | None = None) -> int:
     score.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     score.add_argument("--manual", type=Path)
     score.add_argument("--live", action="store_true", required=True)
+    review = commands.add_parser("review")
+    review.add_argument("--report", type=Path, required=True)
+    review.add_argument("--manual", type=Path, required=True)
+    review.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     manual = commands.add_parser("manual-template")
     manual.add_argument("--collection", type=Path, required=True)
     manual.add_argument("--output", type=Path, required=True)
@@ -144,6 +149,16 @@ def main(argv: list[str] | None = None) -> int:
             with args.output.open("x") as stream:
                 json.dump(template, stream, indent=2)
             logger.info("Created pending manual-review template")
+            return 0
+        if args.command == "review":
+            previous = EvaluationReport.model_validate_json(args.report.read_text())
+            reviews = {
+                key: ManualAssessment.model_validate(value)
+                for key, value in json.loads(args.manual.read_text()).items()
+            }
+            report = attach_manual_reviews(previous, reviews)
+            path, md = write_report(report, args.output)
+            logger.info(f"Saved reviewed report without provider calls: {path}; {md}")
             return 0
         config, settings = EvaluationSettings(), get_settings()
         if args.command in ("collect", "run"):

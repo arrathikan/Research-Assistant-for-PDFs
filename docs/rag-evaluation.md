@@ -66,6 +66,9 @@ pages, source-text matching and unsupported-question handling. Record pass/fail,
 not-applicable or pending, plus reviewer, provenance, timestamp and comments.
 Do not replace these checks with a Ragas score. Page-coverage diagnostics are
 coarse indicators, not Ragas context recall or proof of citation correctness.
+Use the offline `review` command to attach completed checks to an existing report
+without rerunning paid metric calls. Revisions retain the original result hashes,
+measured values and request counts; the previous artifact remains unchanged.
 
 ## Commands and privacy
 
@@ -84,3 +87,12 @@ qualifiers and low scores before making retrieval or prompting changes.
 References: [Ragas API](https://docs.ragas.io/en/v0.2.15/references/evaluate/),
 [metric definitions](https://docs.ragas.io/en/v0.2.15/references/metrics/),
 [source paper](https://aclanthology.org/2024.tacl-1.9/).
+
+
+## First measured benchmark
+
+The [2026-11-12 benchmark](../evaluation/reports/2026-11-12/README.md) contains
+actual paired pipeline attempts, real Ragas values, explicit failures and
+assistant result reviews. It is a baseline with known problems, not a claim that
+the pipeline is ready for every research question. Consult the per-metric scored,
+skipped and error counts before interpreting its means.

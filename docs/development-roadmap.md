@@ -446,7 +446,7 @@ Prompt 13 offline Ragas/manual evaluation is next.
 - [x] 13.2: Collect real pipeline traces and paired hybrid/semantic retrieval.
 - [x] 13.3: Five Ragas metrics with bounded evaluator calls and honest failure handling.
 - [x] 13.4: JSON/Markdown reports, manual result checklist and reproducible CLI.
-- [ ] 13.5: Real evaluation verification, regression checks and methodology docs.
+- [x] 13.5: Real evaluation verification, regression checks and methodology docs.
 
 Increment 13.1: 20 source-grounded cases, PDF hash/page checks and review hashes
 implemented. All case anchors matched the downloaded CC-BY 4.0 source. **16
@@ -467,3 +467,15 @@ Increment 13.4: offline CLI, validated JSON/Markdown reports, exact-case paired
 comparisons, citation diagnostics and result-bound manual reviews implemented.
 **27 report/collection/metric tests passed**; PDF/source validation CLI and scoped
 Ruff passed. Real provider benchmarking follows after document readiness.
+
+
+Increment 13.5: real 20-question paired collection/scoring and 40 assistant result
+reviews are versioned in [the measured baseline](../evaluation/reports/2026-11-12/README.md).
+The run is partial because it includes actual generation failures; those states
+are retained. A separate one-question live smoke run produced all five metrics
+for both strategies. The offline `review` command adds result-bound checks
+without new provider calls. Final backend regression: **410 passed, 4 optional
+live checks skipped**; scoped Ruff lint/format passed. No human review or overall
+RAG accuracy is claimed. Prompt 13 implementation is complete; measured RAG
+quality and the benchmark document’s separate summary failure remain documented
+follow-up issues. Prompts 14–15 have not been implemented in this stage.

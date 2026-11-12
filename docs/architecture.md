@@ -451,3 +451,15 @@ same answer chain and canonical retrieval helpers used by chat. Paired retrieval
 shares a single query vector and source snapshot, preserving vector ranking for
 the semantic baseline and the existing RRF for hybrid. Collection writes private
 artifacts instead of user conversations. Ragas remains outside request handling.
+
+
+The Prompt 13 evaluator is an optional, separately installed command-line tool.
+A reviewed source dataset is bound to actual database IDs only after original PDF
+hash/page checks. Its collector records real single-turn outputs, while bounded
+OpenRouter/Voyage adapters run Ragas 0.2.15 `EvaluationDataset` / `evaluate()`.
+JSON/Markdown exports keep each metric's score, skip or error state and compare
+only matching strategy/case pairs. Result reviews include provenance, timestamps
+and immutable result hashes; adding them to a saved report uses no provider calls.
+Neither evaluation nor benchmark artifacts are imported into the gateway's chat
+path. See [methodology](rag-evaluation.md) for limitations and actual baseline
+results.

@@ -11,7 +11,8 @@ the references against the PDF; these are explicitly assistant reviews, not
 human approval. Case hashes invalidate review records when content changes.
 
 The original five-case `benchmark_dataset.json` is an unverified legacy scaffold
-and is not used by the new runner. No benchmark scores have been computed yet.
+and is not used by the new runner. Real benchmark outputs and verification notes
+are published under [reports](reports/README.md).
 
 Use a separate environment to keep optional evaluation dependencies away from
 running gateway/workers:
@@ -88,10 +89,18 @@ Generate a pending result-review template:
 python -m evaluation.evaluate manual-template --collection evaluation/results/collection-RUN_ID.json --output /absolute/path/to/manual-review.json
 ```
 
-Fill it only after actually reviewing the corresponding answers/evidence. Then
-pass `--manual /absolute/path/to/manual-review.json` to `score`. Editing a report
-or pairing a review with a changed result fails validation. To render an existing
-score artifact without paid calls:
+Fill it only after actually reviewing the corresponding answers/evidence. Add
+reviews to an existing scored report without provider calls:
+
+```bash
+python -m evaluation.evaluate review --report evaluation/results/evaluation-EVALUATION_ID.json --manual /absolute/path/to/manual-review.json
+```
+
+This creates a new evaluation ID linked to the original report, preserves measured
+scores/request counts, and validates that each review matches the unchanged
+result. Unknown sample/strategy keys are rejected. Alternatively, supply `--manual`
+to `score` when scoring for the first time. To render an existing score artifact
+without paid calls:
 
 ```bash
 python -m evaluation.report evaluation/results/evaluation-EVALUATION_ID.json --output /absolute/path/to/new-report.md

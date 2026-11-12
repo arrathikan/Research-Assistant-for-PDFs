@@ -393,7 +393,15 @@ job integration checks; no Ragas accuracy scores are claimed here.
 Isolated frontend verification: **75 tests passed** and production build passed.
 
 
-Prompt 13 is in progress: a versioned 20-case source-grounded benchmark and
-review provenance are available in [evaluation](evaluation/README.md). Source
-reviews were performed by the assistant at the user's request. No quality scores
-have been fabricated.
+Prompt 13 implements [offline Ragas evaluation](evaluation/README.md), with a
+20-case source-grounded dataset, paired hybrid/semantic collection, five metrics,
+validated JSON/Markdown reports and result-bound manual reviews. At the user's
+request, source and generated-answer checks were performed by Codex and are
+explicitly recorded as assistant reviews.
+
+The [first measured baseline](evaluation/reports/2026-11-12/README.md) covers all
+20 questions with both strategies. It records real generation failures, false
+abstentions and incorrect answers; metric coverage and limitations remain visible.
+The evaluation workflow is implemented; the baseline exposes RAG quality issues
+that still need improvement. Final backend checks: **410 passed, 4 optional live
+checks skipped**. Evaluation never runs during ordinary chat requests.
