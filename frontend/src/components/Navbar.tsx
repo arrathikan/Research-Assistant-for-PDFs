@@ -9,7 +9,7 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({ activeFilename, status }) => {
   return (
     <header className="w-full shrink-0 border-b border-slate-200 bg-white shadow-sm">
-      <div data-testid="navigation-container" className={'mx-auto flex min-w-0 w-full flex-wrap items-center justify-between gap-3 px-4 py-3 sm:min-h-16 sm:flex-nowrap sm:px-6 lg:px-8' + (activeFilename ? ' max-w-[1440px]' : ' max-w-6xl')}>
+      <div data-testid="navigation-container" className="mx-auto flex min-w-0 w-full flex-wrap items-center justify-between gap-3 px-4 py-3 sm:min-h-16 sm:flex-nowrap sm:px-6 lg:px-8 max-w-[1440px]">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-blue-600 rounded-lg text-white">
             <BookOpen className="w-5 h-5" />

@@ -41,6 +41,9 @@ it('uses one shared content frame when navigating between dashboard and upload',
   expect(screen.getAllByTestId('page-container')).toHaveLength(1);
   expect(screen.getByTestId('page-container')).toContainElement(screen.getByRole('heading', { name: 'Upload a research paper' }));
   expect(screen.getByTestId('page-container')).toContainElement(screen.getByTestId('dropzone'));
+  const uploadColumn = screen.getByRole('heading', { name: 'Upload a research paper' }).parentElement?.parentElement;
+  expect(uploadColumn).toHaveClass('max-w-5xl');
+  expect(uploadColumn).toContainElement(screen.getByTestId('dropzone'));
   expect(screen.queryByRole('heading', { name: 'Paper Library' })).not.toBeInTheDocument();
   expect(screen.queryByRole('region', { name: 'PDF pane' })).not.toBeInTheDocument();
 });
@@ -67,20 +70,41 @@ it('keeps workspace panes in one shared frame and preserves tab switching', asyn
   expect(screen.getAllByTestId('page-container')).toHaveLength(1);
 });
 
-it('retains the ordinary page boundary for Dashboard and Upload navigation', () => {
+it('uses the same application boundary for Dashboard and Upload navigation', () => {
   const view = render(<AppLayout activeTab="dashboard" onSelectTab={vi.fn()} activeDoc={PDF_DOCUMENT}><PageContainer>Dashboard</PageContainer></AppLayout>);
-  expect(screen.getByTestId('navigation-container')).toHaveClass('max-w-6xl');
-  expect(screen.getByTestId('page-container')).toHaveClass('max-w-6xl');
+  expect(screen.getByTestId('navigation-container')).toHaveClass('max-w-[1440px]');
+  expect(screen.getByTestId('page-container')).toHaveClass('max-w-[1440px]');
   view.rerender(<AppLayout activeTab="upload" onSelectTab={vi.fn()} activeDoc={PDF_DOCUMENT}><PageContainer>Upload</PageContainer></AppLayout>);
-  expect(screen.getByTestId('navigation-container')).toHaveClass('max-w-6xl');
-  expect(screen.getByTestId('page-container')).toHaveClass('max-w-6xl');
+  expect(screen.getByTestId('navigation-container')).toHaveClass('max-w-[1440px]');
+  expect(screen.getByTestId('page-container')).toHaveClass('max-w-[1440px]');
 });
 
 it('aligns the upload-to-workspace shell header with the same wide Workspace boundary', () => {
-  const view = render(<><UploadNavbar activeFilename={PDF_DOCUMENT.filename} /><PageContainer wide>Workspace</PageContainer></>);
+  const view = render(<><UploadNavbar activeFilename={PDF_DOCUMENT.filename} /><PageContainer>Workspace</PageContainer></>);
   expect(screen.getByTestId('navigation-container')).toHaveClass('max-w-[1440px]');
   expect(screen.getByTestId('page-container')).toHaveClass('max-w-[1440px]');
   view.rerender(<><UploadNavbar /><PageContainer>Upload</PageContainer></>);
-  expect(screen.getByTestId('navigation-container')).toHaveClass('max-w-6xl');
-  expect(screen.getByTestId('page-container')).toHaveClass('max-w-6xl');
+  expect(screen.getByTestId('navigation-container')).toHaveClass('max-w-[1440px]');
+  expect(screen.getByTestId('page-container')).toHaveClass('max-w-[1440px]');
+});
+
+it('preserves real document counts, filtering and selection in the responsive library', () => {
+  const select = vi.fn();
+  const other: typeof PDF_DOCUMENT = {
+    ...PDF_DOCUMENT, id: '507f1f77bcf86cd799439012', sha256: '2'.repeat(64),
+    filename: 'other-research.pdf', status: 'PENDING',
+  };
+  render(<DashboardView documents={[PDF_DOCUMENT, other]} onSelectDocument={select} onNavigateUpload={vi.fn()} />);
+  const stats = screen.getByRole('region', { name: 'Library statistics' });
+  expect(within(stats).getByText('Total Research Papers').parentElement?.firstElementChild).toHaveTextContent('2');
+  expect(within(stats).getByText('Ready for Chat & RAG').parentElement?.firstElementChild).toHaveTextContent('1');
+  expect(within(screen.getByRole('region', { name: 'Research papers' })).getAllByTestId('document-card')).toHaveLength(2);
+  fireEvent.change(screen.getByRole('textbox', { name: 'Search papers' }), { target: { value: 'synthetic' } });
+  const cards = screen.getByRole('region', { name: 'Research papers' });
+  expect(within(cards).getAllByTestId('document-card')).toHaveLength(1);
+  fireEvent.click(within(cards).getByRole('button', { name: 'Workspace' }));
+  expect(select).toHaveBeenCalledWith(PDF_DOCUMENT);
+  fireEvent.change(screen.getByRole('textbox', { name: 'Search papers' }), { target: { value: 'missing-paper' } });
+  expect(screen.getByRole('heading', { name: 'No matching papers found' })).toBeInTheDocument();
+  expect(screen.queryByTestId('document-card')).not.toBeInTheDocument();
 });

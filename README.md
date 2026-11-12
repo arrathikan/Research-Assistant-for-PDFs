@@ -425,17 +425,19 @@ announcements. No processing APIs or worker logic were changed.
 
 ### Responsive page layout
 
-Dashboard and Upload keep their centered 1152px boundary. Workspace and its
-navigation use a wider 1440px boundary, with matching responsive gutters. The upload heading, form and result cards share
-one readable column capped at 768px; competing 576px inner limits were removed.
-Dashboard uses an auto-fit document grid so two papers do not reserve a third
-empty desktop column.
+Dashboard, Upload and Workspace now share a centered 1440px outer boundary,
+including both existing navigation components. Gutters are 16px on mobile, 24px
+on tablet and 32px on desktop. Upload headings, selection and status cards share
+one focused 1024px column; summary/chat retain their readable 1200px boundary.
+Dashboard uses its existing responsive statistics and auto-fit document grids,
+so unused document columns collapse without adding metrics or changing data.
 
 The app shell uses the available container width and dynamic viewport height.
 Dashboard/Upload have one page scroll owner; Workspace keeps independent summary/
 chat and PDF scrolling. An open PDF uses a 55/45 split from 768px and a full-screen
 viewer on smaller displays. Shared minimum-width/height rules and wrapping prevent
-page-level horizontal overflow. This refinement changes layout only.
+page-level horizontal overflow. This refinement changes layout only. See
+[application layout verification](docs/application-layout.md).
 
 
 ### Chat answer presentation
