@@ -391,3 +391,9 @@ Real RabbitMQ/disposable MongoDB verification: **366 backend tests passed,
 job integration checks; no Ragas accuracy scores are claimed here.
 
 Isolated frontend verification: **75 tests passed** and production build passed.
+
+
+Prompt 13 is in progress: a versioned 20-case source-grounded benchmark and
+review provenance are available in [evaluation](evaluation/README.md). Source
+reviews were performed by the assistant at the user's request. No quality scores
+have been fabricated.

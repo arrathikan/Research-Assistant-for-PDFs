@@ -438,3 +438,17 @@ background supervisor are running; ingestion/summary each have one consumer.
 Gateway processing routes, Atlas connectivity and an existing-document HTTP read
 were verified. Legacy uploads were left unscheduled. Prompt 12 is complete;
 Prompt 13 offline Ragas/manual evaluation is next.
+
+
+### Prompt 13: Offline Ragas evaluation
+
+- [x] 13.1: Versioned, evidence-grounded benchmark and explicit manual-review provenance.
+- [ ] 13.2: Collect real pipeline traces and paired hybrid/semantic retrieval.
+- [ ] 13.3: Five Ragas metrics with bounded evaluator calls and honest failure handling.
+- [ ] 13.4: JSON/Markdown reports, manual result checklist and reproducible CLI.
+- [ ] 13.5: Real evaluation verification, regression checks and methodology docs.
+
+Increment 13.1: 20 source-grounded cases, PDF hash/page checks and review hashes
+implemented. All case anchors matched the downloaded CC-BY 4.0 source. **16
+dataset/schema tests passed**; scoped Ruff passed. Reviews are assistant source
+cross-checks requested by the user, not claimed human approvals.
