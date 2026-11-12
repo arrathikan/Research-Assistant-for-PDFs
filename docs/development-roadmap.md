@@ -553,3 +553,11 @@ requests supported partial coverage. The initial run is retained with its actual
 failures; it is not presented as a successful benchmark. A new test fixture first
 failed because its source span length was stale; the fixture was corrected and
 the focused tests passed before the final full regression.
+
+RAG.3b replaces fragile model-copied citation metadata with server-built numbered
+passages, retaining strict canonical citation validation and public API contracts.
+The intermediate v3 collection still had six generation failures, so it is
+retained as a diagnostic collection rather than presented as a successful run.
+Broad selection now protects the highest-ranked nearby evidence before section
+diversity. Both live Atlas comparison contexts include the previously missing
+core result; final answer-quality evaluation follows on this revision.

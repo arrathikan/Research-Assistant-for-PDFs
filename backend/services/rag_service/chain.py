@@ -6,6 +6,11 @@ from hashlib import sha256
 from time import perf_counter
 from typing import Any
 
+from backend.services.rag_service.answer_selection import (
+    SelectedAnswer,
+    materialize_answer,
+    source_passages,
+)
 from backend.services.rag_service.citations import exact_source_quote, make_citation
 from backend.services.rag_service.intent import QuestionPlan, plan_question
 from backend.services.rag_service.models import (
@@ -25,7 +30,7 @@ from backend.shared.openrouter import OpenRouterClient
 from langchain_core.runnables import RunnableLambda
 from pydantic import ValidationError
 
-PIPELINE_VERSION = "research-assistant-rag-v3"
+PIPELINE_VERSION = "research-assistant-rag-v4"
 GENERAL_HEADING = "## General background (not from this paper)"
 ABSTENTION = "I couldn’t find enough evidence in this document to answer that question."
 SYSTEM_PROMPT = """You are an intelligent academic research assistant helping users understand the selected paper.
@@ -44,17 +49,18 @@ Answer supported parts even when one requested aspect is missing; say what is no
 For an overview, missing limitations alone is not a reason to discard supported methods/findings.
 Keep most answers to 1–4 concise claims; overviews may use up to 6 structured claims.
 Use concise Markdown headings, paragraphs, bullets or tables as appropriate. Return the required
-JSON schema. Each paper claim needs one or more supplied chunk IDs, page numbers, and short exact
-CONTIGUOUS quotes, preferably 10–25 words and at most 150 characters. Never abbreviate quotes with ellipses, alter their
-Markdown, or combine disjoint text. Put citations only in sources; the server adds reference numbers.
+JSON schema. Each paper claim needs 1–3 numeric source_keys from supplied passages that support
+the complete claim. Select only passage keys that actually exist in the context. The server builds
+exact quotes, pages and citations; do not copy or invent source metadata. Never insert reference
+markers into claim text; the server adds them. Synthesize across passages rather than repeating them.
 Never print chunk IDs, vector scores, database metadata or retrieval diagnostics in answer text.
 
 General background is allowed ONLY when allow_general is true. Put it exclusively in
 general_background, with NO paper citations or invented paper findings. It comes from existing
 model knowledge and is not verified external research. For mixed questions keep paper claims and
 general background separate. Otherwise general_background must be an empty string.
-If the paper evidence is insufficient, set is_out_of_scope=true and claims=[]; do not guess.
-is_out_of_scope means no paper-supported claims, even when general_background is provided.
+If the paper evidence is insufficient, return claims=[]; do not guess.
+General-only answers also have claims=[] and their explanation belongs in general_background.
 Always prioritize the user's question and preserve qualifications in the paper."""
 
 
@@ -79,6 +85,7 @@ def _context(
         "contexts": [],
     }
     selected = []
+    next_key = 1
 
     def encode() -> str:
         return json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
@@ -93,13 +100,12 @@ def _context(
             scope.parse_run_id,
         ):
             raise RagUnavailable("Answer sources do not belong to the selected document generation")
-        record = {
-            "chunk_id": chunk.id,
-            "heading_path": chunk.heading_path,
-            "pages": [
-                {"page_number": span.page_number, "text": span.text} for span in chunk.page_spans
-            ],
-        }
+        pages = []
+        for span in chunk.page_spans:
+            passages = source_passages(span.text, next_key)
+            next_key += len(passages)
+            pages.append({"page_number": span.page_number, "passages": passages})
+        record = {"chunk_id": chunk.id, "heading_path": chunk.heading_path, "pages": pages}
         payload["contexts"].append(record)
         while len(encode().encode()) > settings.rag_context_bytes - 1024 and payload["history"]:
             payload["history"].pop(0)
@@ -234,7 +240,7 @@ def answer_with_trace(
     payload, selected = _context(
         question, scope, hits, history or [], settings, plan, cached_summary, context_info or {}
     )
-    schema = AnswerDraft.model_json_schema()
+    schema = SelectedAnswer.model_json_schema()
     schema["required"] = list(schema["properties"])
     schema["properties"]["general_background"].pop("default", None)
 
@@ -254,7 +260,7 @@ def answer_with_trace(
         raw = chain.invoke(payload)
         try:
             response = _answer(
-                raw,
+                materialize_answer(raw, payload),
                 scope,
                 selected,
                 conversation_id,
@@ -267,7 +273,7 @@ def answer_with_trace(
                 correction["correction"] = (
                     "Provide a qualified overview of supported topic/methods/findings from the supplied passages. "
                     "A missing requested subsection does not require global abstention. "
-                    "Use short exact quotes from one supplied chunk/page per source. Abstain only if no supported overview can be given."
+                    "Select existing numeric passage keys that support each complete claim. Abstain only if no supported overview can be given."
                 )
                 payload = json.dumps(correction, ensure_ascii=False, separators=(",", ":"))
                 if len(payload.encode()) > settings.rag_context_bytes:
@@ -279,7 +285,7 @@ def answer_with_trace(
                 raise
             correction = json.loads(payload)
             correction["correction"] = (
-                "The previous output failed validation. Use the schema and only supplied source IDs/pages with exact 10–25 word quotes from a SINGLE chunk/page; never combine chunks, omit Markdown inside a quote, use ellipses or invent reference markers."
+                "The previous output failed validation. Use the schema with claims containing text and 1–3 existing numeric source_keys. Do not return quotes, source IDs, pages, an out-of-scope flag or inline reference markers."
             )
             payload = json.dumps(correction, ensure_ascii=False, separators=(",", ":"))
             if len(payload.encode()) > settings.rag_context_bytes:
@@ -297,6 +303,8 @@ def answer_with_trace(
         latency_ms=(perf_counter() - started) * 1000,
         configuration={
             "pipeline_version": PIPELINE_VERSION,
+            "citation_contract": "numbered_passages_v1",
+            "context_diversity_policy": "ranked_prefix_then_sections",
             "question_intent": plan.intent,
             "retrieval_query": plan.retrieval_query,
             "uses_conversation_context": plan.uses_history,

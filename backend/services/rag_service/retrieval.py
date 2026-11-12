@@ -151,11 +151,19 @@ def _select(hits: list[RetrievalHit], limit: int, diversify: bool) -> list[Retri
         raise ValueError("Context limit must be between 1 and 20")
     if not diversify:
         return hits[:limit]
-    selected, remaining, sections = [], [], set()
-    for hit in hits:
-        key = tuple(sorted(hit.chunk.heading_path.items())) or (
+
+    def section(hit: RetrievalHit) -> tuple:
+        return tuple(sorted(hit.chunk.heading_path.items())) or (
             ("page", str(hit.chunk.page_number)),
         )
+
+    # Keep the strongest neighboring evidence before spreading the remaining
+    # budget across sections. Diversity must not discard the core finding.
+    anchors = min(3, max(1, limit // 3))
+    selected, remaining = hits[:anchors], []
+    sections = {section(hit) for hit in selected}
+    for hit in hits[anchors:]:
+        key = section(hit)
         if key in sections:
             remaining.append(hit)
         else:

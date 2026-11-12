@@ -525,3 +525,21 @@ quotes, other pages and other documents remain rejected. No fuzzy match or
 external source search is used. Short quotes reduce chunk-boundary errors.
 A single overview correction can ask for supported parts after global abstention;
 unsupported output still has to pass the same source checks.
+
+
+The current v4 completion handoff selects numbered source passages. The server
+serializes each selected page span into short exact windows, preserving every
+word, and the model returns only claim text plus numeric passage keys. The server
+constructs canonical source IDs, pages and quotes from those selected passages
+before the existing citation checks. Unknown/missing keys are rejected. No
+persisted Markdown chunk, embedding input, source generation or public API is
+changed by these prompt windows. Legacy injected completion adapters retain the
+validated draft contract for compatibility. General-only scope is derived from
+the absence of paper claims.
+
+Broader retrieval keeps a small prefix of the strongest ranked chunks before
+diversifying across sections. This prevents adjacent critical findings from
+being displaced by less relevant sections. Factual retrieval keeps its original
+limit and order. Live Atlas checks confirmed the previously missed near-perfect
+key-value result is now included in both comparison contexts; this establishes
+context inclusion, not answer correctness or a hybrid-search advantage.

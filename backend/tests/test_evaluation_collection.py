@@ -23,23 +23,11 @@ def dataset():
 
 
 def completion(system, prompt, schema):
-    source = json.loads(prompt)["contexts"][0]
-    page = source["pages"][0]
+    passage = json.loads(prompt)["contexts"][0]["pages"][0]["passages"][0]
     return json.dumps(
         {
-            "is_out_of_scope": False,
-            "claims": [
-                {
-                    "text": "Synthetic controlled answer.",
-                    "sources": [
-                        {
-                            "chunk_id": source["chunk_id"],
-                            "page_number": page["page_number"],
-                            "quote": page["text"][:40],
-                        }
-                    ],
-                }
-            ],
+            "general_background": "",
+            "claims": [{"text": "Synthetic controlled answer.", "source_keys": [passage["key"]]}],
         }
     )
 

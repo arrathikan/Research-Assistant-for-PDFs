@@ -180,3 +180,16 @@ def test_broad_context_selection_covers_sections_before_repeating_one_section():
     hits = [RetrievalHit(chunk=chunk) for chunk in [a, b, c]]
     assert [hit.chunk.id for hit in _select(hits, 2, True)] == [a.id, c.id]
     assert [hit.chunk.id for hit in _select(hits, 2, False)] == [a.id, b.id]
+
+
+def test_broad_diversity_keeps_adjacent_highly_ranked_core_evidence():
+    from backend.services.rag_service.models import RetrievalHit
+    from backend.services.rag_service.retrieval import _select
+
+    core = [
+        CHUNKS[0].model_copy(update={"heading_path": {"h2": "Results"}, "id": str(index) * 64})
+        for index in (1, 2, 3)
+    ]
+    other = CHUNKS[0].model_copy(update={"heading_path": {"h2": "Discussion"}, "id": "4" * 64})
+    selected = _select([RetrievalHit(chunk=chunk) for chunk in [*core, other]], 12, True)
+    assert [hit.chunk.id for hit in selected] == [chunk.id for chunk in [*core, other]]

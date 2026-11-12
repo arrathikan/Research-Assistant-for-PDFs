@@ -40,23 +40,11 @@ def seed(database):
 
 
 def completion(system, prompt, schema):
-    record = json.loads(prompt)["contexts"][0]
-    page = record["pages"][0]
+    passage = json.loads(prompt)["contexts"][0]["pages"][0]["passages"][0]
     return json.dumps(
         {
-            "is_out_of_scope": False,
-            "claims": [
-                {
-                    "text": "Synthetic answer.",
-                    "sources": [
-                        {
-                            "chunk_id": record["chunk_id"],
-                            "page_number": page["page_number"],
-                            "quote": page["text"][:100],
-                        }
-                    ],
-                }
-            ],
+            "general_background": "",
+            "claims": [{"text": "Synthetic answer.", "source_keys": [passage["key"]]}],
         }
     )
 
