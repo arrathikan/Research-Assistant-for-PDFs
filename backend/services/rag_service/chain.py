@@ -6,7 +6,7 @@ from hashlib import sha256
 from time import perf_counter
 from typing import Any
 
-from backend.services.rag_service.citations import make_citation
+from backend.services.rag_service.citations import exact_source_quote, make_citation
 from backend.services.rag_service.intent import QuestionPlan, plan_question
 from backend.services.rag_service.models import (
     AnswerDraft,
@@ -25,7 +25,7 @@ from backend.shared.openrouter import OpenRouterClient
 from langchain_core.runnables import RunnableLambda
 from pydantic import ValidationError
 
-PIPELINE_VERSION = "research-assistant-rag-v2"
+PIPELINE_VERSION = "research-assistant-rag-v3"
 GENERAL_HEADING = "## General background (not from this paper)"
 ABSTENTION = "I couldn’t find enough evidence in this document to answer that question."
 SYSTEM_PROMPT = """You are an intelligent academic research assistant helping users understand the selected paper.
@@ -40,9 +40,12 @@ For topic questions, combine relevant sections. For factual questions give exact
 and numbers. For analysis connect methods/results/discussion and explicitly label your interpretation.
 For comparisons present supported similarities/differences clearly; never invent unreported differences.
 
+Answer supported parts even when one requested aspect is missing; say what is not established.
+For an overview, missing limitations alone is not a reason to discard supported methods/findings.
+Keep most answers to 1–4 concise claims; overviews may use up to 6 structured claims.
 Use concise Markdown headings, paragraphs, bullets or tables as appropriate. Return the required
 JSON schema. Each paper claim needs one or more supplied chunk IDs, page numbers, and short exact
-CONTIGUOUS quotes of at most 400 characters. Never abbreviate quotes with ellipses, alter their
+CONTIGUOUS quotes, preferably 10–25 words and at most 150 characters. Never abbreviate quotes with ellipses, alter their
 Markdown, or combine disjoint text. Put citations only in sources; the server adds reference numbers.
 Never print chunk IDs, vector scores, database metadata or retrieval diagnostics in answer text.
 
@@ -80,7 +83,7 @@ def _context(
     def encode() -> str:
         return json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
 
-    while payload["history"] and len(encode().encode()) > settings.rag_context_bytes - 256:
+    while payload["history"] and len(encode().encode()) > settings.rag_context_bytes - 1024:
         payload["history"].pop(0)
     for hit in hits:
         chunk = hit.chunk
@@ -98,9 +101,9 @@ def _context(
             ],
         }
         payload["contexts"].append(record)
-        while len(encode().encode()) > settings.rag_context_bytes - 256 and payload["history"]:
+        while len(encode().encode()) > settings.rag_context_bytes - 1024 and payload["history"]:
             payload["history"].pop(0)
-        if len(encode().encode()) > settings.rag_context_bytes - 256:
+        if len(encode().encode()) > settings.rag_context_bytes - 1024:
             payload["contexts"].pop()
             continue
         selected.append(hit)
@@ -156,15 +159,30 @@ def _answer(
         references = []
         for source in claim.sources:
             chunk = by_id.get(source.chunk_id)
-            if chunk is None or not any(
-                span.page_number == source.page_number
-                and " ".join(source.quote.split()) in " ".join(span.text.split())
-                for span in chunk.page_spans
-            ):
+            if chunk is None:
+                raise RagUnavailable("Answer citation references an unknown source")
+            # The model may choose a neighboring retrieved chunk on the same page.
+            # Resolve only exact text from this selected generation; never search
+            # another page/document or accept a fuzzy/substantially altered quote.
+            matched = next(
+                (
+                    (candidate, canonical)
+                    for candidate in [
+                        chunk,
+                        *(item for item in by_id.values() if item.id != chunk.id),
+                    ]
+                    for span in candidate.page_spans
+                    if span.page_number == source.page_number
+                    and (canonical := exact_source_quote(span.text, source.quote))
+                ),
+                None,
+            )
+            if matched is None:
                 raise RagUnavailable(
                     "Answer citation failed source validation; no answer was saved"
                 )
-            citation = make_citation(chunk, source.page_number, source.quote)
+            chunk, quote = matched
+            citation = make_citation(chunk, source.page_number, quote)
             if citation not in citations:
                 citations.append(citation)
             references.append(citations.index(citation) + 1)
@@ -244,13 +262,24 @@ def answer_with_trace(
                 plan.allow_general,
                 plan.intent == "mixed",
             )
+            if attempt == 0 and plan.intent == "summary" and selected and response.is_out_of_scope:
+                correction = json.loads(payload)
+                correction["correction"] = (
+                    "Provide a qualified overview of supported topic/methods/findings from the supplied passages. "
+                    "A missing requested subsection does not require global abstention. "
+                    "Use short exact quotes from one supplied chunk/page per source. Abstain only if no supported overview can be given."
+                )
+                payload = json.dumps(correction, ensure_ascii=False, separators=(",", ":"))
+                if len(payload.encode()) > settings.rag_context_bytes:
+                    raise RagUnavailable("Correction context exceeds the configured byte guard")
+                continue
             break
         except RagUnavailable:
             if attempt:
                 raise
             correction = json.loads(payload)
             correction["correction"] = (
-                "The previous output failed validation. Use the schema and only supplied source IDs/pages with short contiguous exact quotes; no ellipses or invented reference markers."
+                "The previous output failed validation. Use the schema and only supplied source IDs/pages with exact 10–25 word quotes from a SINGLE chunk/page; never combine chunks, omit Markdown inside a quote, use ellipses or invent reference markers."
             )
             payload = json.dumps(correction, ensure_ascii=False, separators=(",", ":"))
             if len(payload.encode()) > settings.rag_context_bytes:

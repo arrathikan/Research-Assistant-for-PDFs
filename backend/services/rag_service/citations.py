@@ -1,5 +1,6 @@
 """Resolve citations from current canonical chunks, never client-supplied geometry."""
 
+import re
 from hashlib import sha256
 from math import isfinite
 
@@ -38,6 +39,43 @@ def citation_id(document_id: str, chunk_id: str, page: int, quote: str) -> str:
 
 def _normalized(text: str) -> str:
     return " ".join(text.split())
+
+
+def exact_source_quote(text: str, quote: str) -> str | None:
+    """Match exact words while ignoring paired Markdown emphasis, never fuzzy text."""
+    if not quote.strip():
+        return None
+    if _normalized(quote) in _normalized(text):
+        return quote
+
+    def plain(value: str) -> tuple[str, list[int]]:
+        omitted = set()
+        pattern = r"(?<!\w)(\*{1,2}|_{1,2})(?=\S)(.+?)(?<=\S)\1(?!\w)"
+        for match in re.finditer(pattern, value, re.S):
+            omitted.update(range(match.start(1), match.end(1)))
+            omitted.update(range(match.end() - len(match[1]), match.end()))
+        chars, offsets = [], []
+        for index, char in enumerate(value):
+            if index in omitted:
+                continue
+            char = " " if char.isspace() else char
+            if char == " " and (not chars or chars[-1] == " "):
+                continue
+            chars.append(char)
+            offsets.append(index)
+        return "".join(chars).rstrip(), offsets
+
+    source, offsets = plain(text)
+    needle, _ = plain(quote)
+    if not needle:
+        return None
+    start = source.find(needle)
+    if start < 0:
+        return None
+    # Return original source bytes/formatting so canonical citation validation
+    # and later PDF resolution keep the existing exact-source contract.
+    canonical = _normalized(text[offsets[start] : offsets[start + len(needle) - 1] + 1])
+    return canonical if len(canonical) <= 400 else None
 
 
 def make_citation(chunk: DocumentChunk, page: int, quote: str) -> ChatCitation:

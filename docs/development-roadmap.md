@@ -545,3 +545,11 @@ section spread, question categories, contextual follow-ups, unsupported topics,
 background labeling and citation/schema correction. No new dependencies were
 added and the public chat API remains compatible. Live quality evaluation follows
 in RAG.3; these deterministic tests do not establish answer accuracy.
+
+RAG.3a addresses failures from the first nine-case live intent collection: short
+paper questions keep document scope, general-only flags are server-derived,
+Markdown emphasis is recovered from exact source text, and overview generation
+requests supported partial coverage. The initial run is retained with its actual
+failures; it is not presented as a successful benchmark. A new test fixture first
+failed because its source span length was stale; the fixture was corrected and
+the focused tests passed before the final full regression.

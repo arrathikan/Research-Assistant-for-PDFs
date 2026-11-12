@@ -184,3 +184,52 @@ def test_table_citations_are_outside_the_final_markdown_row():
     raw["claims"][0]["text"] = "| Group | Count |\n| --- | --- |\n| Synthetic | 42 |"
     output = generate(raw)
     assert output.response.answer.endswith("|\n\n[1]")
+
+
+@pytest.mark.parametrize(
+    "question,expected",
+    [
+        ("What are the limitations?", "analysis"),
+        ("What are the main findings?", "topic"),
+        ("Explain the proposed approach.", "analysis"),
+        ("What is this about?", "summary"),
+        ("In general, what are the limitations of language models?", "general"),
+    ],
+)
+def test_short_paper_questions_keep_document_scope(question, expected):
+    plan = plan_question(question)
+    assert plan.intent == expected
+    assert plan.allow_general == (expected == "general")
+
+
+def test_general_only_scope_flag_is_derived_without_weakening_paper_guards():
+    raw = {
+        "is_out_of_scope": False,
+        "claims": [],
+        "general_background": "RAG retrieves evidence before generating.",
+    }
+    output = generate(raw, "In general, what is RAG?", hits=[])
+    assert output.response.is_out_of_scope and not output.response.citations
+    assert GENERAL_HEADING in output.response.answer
+    with pytest.raises(RagUnavailable):
+        generate(raw, "How many participants were in the study?")
+    raw["general_background"] = ""
+    with pytest.raises(RagUnavailable):
+        generate(raw)
+
+
+def test_summary_can_correct_an_unnecessary_global_abstention_once():
+    model = Mock(
+        side_effect=[json.dumps({"is_out_of_scope": True, "claims": []}), json.dumps(raw_answer())]
+    )
+    output = answer_with_trace(
+        "Summarize this paper.",
+        SCOPE,
+        [RetrievalHit(chunk=CHUNKS[0])],
+        SETTINGS,
+        "b" * 32,
+        "c" * 32,
+        complete=model,
+    )
+    assert output.response.citations and model.call_count == 2
+    assert "qualified overview" in json.loads(model.call_args.args[1])["correction"]

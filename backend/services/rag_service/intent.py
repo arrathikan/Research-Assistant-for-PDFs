@@ -43,17 +43,25 @@ def plan_question(
             lower,
         )
     )
+    paper_focus = bool(
+        re.search(
+            r"\b(findings?|results?|conclusions?|limitations?|contributions?|objectives?|"
+            r"hypotheses?|experiments?|proposed|approach|methods?|methodology|this|these|those|their)\b",
+            lower,
+        )
+    )
     definition = bool(re.search(r"^\s*(?:please\s+)?(what is|what are|define|explain)\b", lower))
     general = explicit_general or (
         definition
         and not paper
         and not fact
+        and not paper_focus
         and not follow_up
         and not re.search(r"\b(these|those|their|this finding|this result)\b", lower)
     )
     summary = bool(
         re.search(
-            r"\b(summari[sz]e|summary|overview)\b|what (?:is|was) .*(?:paper|study|article) about",
+            r"\b(summari[sz]e|summary|overview)\b|what (?:is|was) .*(?:paper|study|article) about|what is this about",
             lower,
         )
     )

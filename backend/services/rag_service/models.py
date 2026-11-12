@@ -52,6 +52,10 @@ class AnswerDraft(StrictModel):
 
     @model_validator(mode="after")
     def require_claims_or_abstention(self) -> "AnswerDraft":
+        # A general-only explanation has no paper evidence, regardless of the
+        # model's interpretation of "out of scope". The server owns this flag.
+        if self.general_background and not self.claims:
+            self.is_out_of_scope = True
         if bool(self.claims) == self.is_out_of_scope:
             raise ValueError(
                 "Supported answers need sourced claims; unsupported answers need no claims"

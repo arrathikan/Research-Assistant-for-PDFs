@@ -514,3 +514,14 @@ traces and never writes user conversations. For mixed answers, paper faithfulnes
 and correctness score only the paper portion; relevance scores the whole response.
 General-only cases use explicit labeling/guardrail review rather than a fabricated
 paper-grounding score.
+
+
+Live intent checks exposed two output-contract problems. General-only responses
+now derive their outside-paper flag on the server. Citation recovery ignores only
+paired Markdown emphasis while finding the exact words, then stores the original
+source substring. A known neighboring selected chunk may be rebound only when
+that same page contains the exact quote. Unknown IDs, altered facts, disjoint
+quotes, other pages and other documents remain rejected. No fuzzy match or
+external source search is used. Short quotes reduce chunk-boundary errors.
+A single overview correction can ask for supported parts after global abstention;
+unsupported output still has to pass the same source checks.
