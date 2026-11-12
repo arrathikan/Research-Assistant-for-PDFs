@@ -7,7 +7,7 @@ from uuid import uuid4
 from pydantic import AwareDatetime, Field, model_validator
 
 from backend.services.rag_service.models import PipelineOutput, RetrievalScope
-from evaluation.dataset import BenchmarkCase, ManualReview, StrictModel
+from evaluation.dataset import BenchmarkCase, ManualReview, StrictModel, case_hash
 
 Strategy = Literal["hybrid", "semantic"]
 MetricName = Literal[
@@ -42,6 +42,8 @@ class CollectedCase(StrictModel):
             raise ValueError(
                 "Collection requires either a real output or an explicit failure"
             )
+        if self.review and self.review.case_sha256 != case_hash(self.case):
+            raise ValueError("Source review does not match this case")
         if self.output is not None:
             trace = self.output.trace
             if len(trace.retrieved_contexts) != len(trace.retrieved_chunk_ids) or len(
@@ -63,6 +65,7 @@ class CollectionRun(StrictModel):
     created_at: AwareDatetime = Field(default_factory=lambda: datetime.now(UTC))
     dataset_id: str
     dataset_version: str
+    dataset_size: int = Field(ge=1)
     dataset_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     git_commit: str
     source_scopes: dict[str, RetrievalScope]
@@ -75,7 +78,15 @@ class CollectionRun(StrictModel):
             raise ValueError(
                 "Duplicate sample/strategy results cannot be silently averaged"
             )
+        case_versions = {}
         for item in self.records:
+            digest = case_hash(item.case)
+            if (
+                item.case.sample_id in case_versions
+                and case_versions[item.case.sample_id] != digest
+            ):
+                raise ValueError("Paired strategies must use identical benchmark cases")
+            case_versions[item.case.sample_id] = digest
             if item.output is not None:
                 scope = self.source_scopes.get(item.case.document_key)
                 if (

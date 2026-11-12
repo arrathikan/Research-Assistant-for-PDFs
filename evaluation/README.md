@@ -54,3 +54,55 @@ use separate abstention/manual checks; reference-dependent metrics are skipped
 when references are absent, and empty-context/abstention cases are explicitly
 marked as inapplicable where necessary. Means must state their sample coverage.
 Ragas is optional and is not installed as a required serving dependency.
+
+
+## Run the workflow
+
+From the repository root, use the separate evaluation environment described above.
+The gateway/workers should first process the exact benchmark PDF. Create a local
+bindings JSON mapping `lost-in-middle-tacl-2024` to its actual document ID.
+Keep that file outside version control.
+
+```bash
+python -m evaluation.evaluate validate --pdf /absolute/path/to/2024.tacl-1.9.pdf
+python -m evaluation.evaluate collect --bindings /absolute/path/to/bindings.json --limit 20 --live
+python -m evaluation.evaluate score --collection evaluation/results/collection-RUN_ID.json --live
+```
+
+Or collect and score in one invocation:
+
+```bash
+python -m evaluation.evaluate run --bindings /absolute/path/to/bindings.json --limit 20 --live
+```
+
+Use `--sample-id lim_01` (repeatable), `--limit 2` for a small smoke run, or
+`--strategy hybrid` / `--strategy semantic` to select output variants. Unreviewed
+drafts require `--allow-unreviewed` and retain their missing review provenance.
+The configured `EVAL_MAX_SAMPLES` and evaluator request budgets bound work.
+Collections are saved before judging, so scoring can be retried without rerunning
+paid answer generation. Every scoring run gets a new evaluation ID.
+
+Generate a pending result-review template:
+
+```bash
+python -m evaluation.evaluate manual-template --collection evaluation/results/collection-RUN_ID.json --output /absolute/path/to/manual-review.json
+```
+
+Fill it only after actually reviewing the corresponding answers/evidence. Then
+pass `--manual /absolute/path/to/manual-review.json` to `score`. Editing a report
+or pairing a review with a changed result fails validation. To render an existing
+score artifact without paid calls:
+
+```bash
+python -m evaluation.report evaluation/results/evaluation-EVALUATION_ID.json --output /absolute/path/to/new-report.md
+```
+
+Run deterministic evaluation tests separately from paid runs:
+
+```bash
+RAGAS_DO_NOT_TRACK=true python -m pytest backend/tests/test_benchmark_dataset.py backend/tests/test_evaluation_collection.py backend/tests/test_evaluation_metrics.py backend/tests/test_evaluation_judge.py backend/tests/test_evaluation_report.py -q
+```
+
+The installed-Ragas adapter check uses local HTTP fixtures. All numeric fixture
+scores in unit tests are explicitly test data, never published benchmark results.
+See [the methodology](../docs/rag-evaluation.md) for interpreting real scores.

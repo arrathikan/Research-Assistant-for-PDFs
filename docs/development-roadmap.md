@@ -445,7 +445,7 @@ Prompt 13 offline Ragas/manual evaluation is next.
 - [x] 13.1: Versioned, evidence-grounded benchmark and explicit manual-review provenance.
 - [x] 13.2: Collect real pipeline traces and paired hybrid/semantic retrieval.
 - [x] 13.3: Five Ragas metrics with bounded evaluator calls and honest failure handling.
-- [ ] 13.4: JSON/Markdown reports, manual result checklist and reproducible CLI.
+- [x] 13.4: JSON/Markdown reports, manual result checklist and reproducible CLI.
 - [ ] 13.5: Real evaluation verification, regression checks and methodology docs.
 
 Increment 13.1: 20 source-grounded cases, PDF hash/page checks and review hashes
@@ -462,3 +462,8 @@ Increment 13.3: five Ragas 0.2.15 metrics, explicit OpenRouter/Voyage evaluator
 providers, request budgets and per-metric skip/error states implemented. **18
 evaluator tests passed** in the isolated evaluation environment. Mocked scores
 exist only in unit tests; no benchmark score is claimed from them.
+
+Increment 13.4: offline CLI, validated JSON/Markdown reports, exact-case paired
+comparisons, citation diagnostics and result-bound manual reviews implemented.
+**27 report/collection/metric tests passed**; PDF/source validation CLI and scoped
+Ruff passed. Real provider benchmarking follows after document readiness.

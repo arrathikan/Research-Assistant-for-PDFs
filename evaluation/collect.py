@@ -150,6 +150,7 @@ def collect(
     return CollectionRun(
         dataset_id=dataset.dataset_id,
         dataset_version=dataset.version,
+        dataset_size=len(dataset.cases),
         dataset_sha256=hashlib.sha256(canonical.encode()).hexdigest(),
         git_commit=git_commit,
         source_scopes=scopes,
