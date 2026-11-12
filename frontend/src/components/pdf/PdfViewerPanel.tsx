@@ -138,15 +138,16 @@ export function PdfViewerPanel({ document: paper, activeCitation, onClearCitatio
         <button type="button" aria-label="Reset Zoom" onClick={() => setZoom(100)}>Reset zoom</button>
         {valid && id && <a className="ml-auto underline" href={api.getPdfStreamUrl(id)} target="_blank" rel="noreferrer">Open original PDF</a>}
       </div>
-      {resolving && <p role="status" className="p-3 text-sm">Verifying source…</p>}
+      {resolving && <p role="status" className="p-3 text-sm">Opening citation…</p>}
       {sourceError && <p role="alert" className="p-3 text-sm text-red-700">{sourceError}</p>}
       {targetInvalid && <p role="alert" className="p-3 text-sm text-red-700">The citation page is outside this PDF. No highlight was applied.</p>}
       {anchor && !targetInvalid && (
-        <div className="border-b bg-blue-50 p-3 text-xs text-slate-800">
-          <p className="font-semibold">Source — Page {anchor.page_number}</p>
-          <blockquote className="mt-1">{anchor.quote_snippet}</blockquote>
-          <p role="status" className="mt-2">{page !== anchor.page_number ? `Source is on page ${anchor.page_number}.` : renderedKey !== renderKey ? 'Rendering the cited page…' : highlight.kind === 'text' ? 'Supporting text highlighted.' : highlight.kind === 'region' ? 'Source region shown; an exact text highlight is unavailable.' : 'Showing the cited page. An exact highlight is unavailable.'}</p>
-          {onClearCitation && <button type="button" className="mt-2 underline" onClick={onClearCitation}>Clear source</button>}
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-blue-100 bg-white px-3 py-2 text-xs text-slate-600">
+          <p className="font-medium">Source — Page {anchor.page_number}</p>
+          <div className="flex items-center gap-2">
+            {page !== anchor.page_number && <button type="button" onClick={() => setPage({ id, value: anchor.page_number })} className="rounded px-2 py-1 font-medium text-blue-700 hover:bg-blue-50">Return to source</button>}
+            {onClearCitation && <button type="button" className="rounded px-2 py-1 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600" onClick={onClearCitation}>Clear source</button>}
+          </div>
         </div>
       )}
       <div ref={viewport} className="min-h-0 flex-1 overflow-auto p-4">

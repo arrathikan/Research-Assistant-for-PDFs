@@ -436,3 +436,13 @@ Dashboard/Upload have one page scroll owner; Workspace keeps independent summary
 chat and PDF scrolling. Below the desktop breakpoint, the visible workspace pane
 uses the full column. Shared minimum-width/height rules and wrapping prevent
 page-level horizontal overflow. This refinement changes layout only.
+
+
+### Chat answer presentation
+
+Answers use safe Markdown headings, lists, emphasis, code and comparison tables.
+Verified inline citations open the existing PDF viewer. Supporting passages stay
+inside one collapsed Sources section per answer. The PDF viewer keeps exact text
+and verified-region highlighting, while page-only fallback is quiet and uses a
+compact source toolbar. No raw retrieved chunks or internal retrieval metadata
+are shown in normal chat.

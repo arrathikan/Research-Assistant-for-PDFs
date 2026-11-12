@@ -525,3 +525,15 @@ isolated proposed frontend passed **92 tests** and its production build. The
 local production build also passed. All 22 browser page/viewport checks passed,
 plus selection/status alignment checks at each target width. Existing PDF.js
 build warnings remain; no dependencies or backend APIs changed.
+
+
+### Research-assistant chatbot improvements
+
+- [x] RAG.1: Answer-first Markdown UI, optional Sources and compact PDF citation toolbar.
+- [ ] RAG.2: Intent-sensitive context, summary reuse and contextual follow-up retrieval.
+- [ ] RAG.3: Intent evaluation, live checks and final documentation.
+
+RAG.1 frontend verification: **99 tests passed** in the preserved local workspace.
+The backend baseline passed **410 tests, 4 optional checks skipped**. An initial
+JSX regression was corrected before proceeding. Source/cross-document validation
+and exact text/region overlays remain in place; only their presentation changed.

@@ -19,11 +19,12 @@ it('shows pending state then a sourced API answer', async () => {
   const post = vi.spyOn(api, 'sendChatQuery').mockImplementation(() => new Promise(resolve => { finish = resolve; }));
   const cite = vi.fn();
   render(<DocumentChatPanel documentId={ID} onCitationClick={cite} />); send();
-  expect(screen.getByText('Finding evidence and generating a response…')).toBeInTheDocument();
+  expect(screen.getByText('Preparing your answer…')).toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Send Message' })).toBeDisabled();
   await act(async () => { finish(RESULT); });
   expect(screen.getByText('Synthetic answer', { exact: false })).toHaveTextContent(RESULT.answer);
-  fireEvent.click(screen.getByText('Source: Page 1'));
+  expect(screen.getByText('Synthetic evidence.')).not.toBeVisible();
+  fireEvent.click(screen.getByText('Sources (1)'));
   fireEvent.click(screen.getByRole('button', { name: 'Page 1' }));
   expect(cite).toHaveBeenCalledWith(RESULT.citations[0]);
   expect(post).toHaveBeenCalledWith(ID, 'Synthetic question?', undefined);
@@ -72,11 +73,13 @@ it('displays insufficient-evidence answers without invented sources', async () =
   expect(screen.queryByText('Source: Page 1')).not.toBeInTheDocument();
 });
 
-it('opens inline citations and keeps page buttons visible when quotes are collapsed', async () => {
+it('opens inline citations while keeping supporting passages optional', async () => {
   vi.spyOn(api, 'sendChatQuery').mockResolvedValue({ ...RESULT, answer: 'Supported [1]. Unknown [9]. <img src=x>' });
   const cite = vi.fn();
   render(<DocumentChatPanel documentId={ID} onCitationClick={cite} />); send();
   fireEvent.click(await screen.findByRole('button', { name: 'Open citation 1, page 1' }));
+  expect(screen.getByText('Synthetic evidence.')).not.toBeVisible();
+  fireEvent.click(screen.getByText('Sources (1)'));
   fireEvent.click(screen.getByRole('button', { name: 'Page 1' }));
   expect(cite).toHaveBeenCalledTimes(2);
   expect(cite).toHaveBeenLastCalledWith(RESULT.citations[0]);
