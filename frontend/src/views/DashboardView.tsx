@@ -4,6 +4,7 @@ import { DocumentCard } from '../components/dashboard/DocumentCard';
 import { EmptyState } from '../components/common/EmptyState';
 import { BookOpen, Search, UploadCloud, Layers, Database } from 'lucide-react';
 
+import { PageContainer } from '../components/layout/PageContainer';
 interface DashboardViewProps {
   documents: DocumentMetadata[];
   onSelectDocument: (doc: DocumentMetadata) => void;
@@ -30,9 +31,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const readyCount = documents.filter((d) => d.status === 'READY').length;
 
   return (
-    <div className="flex-1 overflow-y-auto p-8 max-w-7xl mx-auto w-full">
+    <PageContainer>
       {/* Top Banner & Stats */}
-      <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Paper Library</h2>
           <p className="text-xs text-slate-500 mt-1">
@@ -50,7 +51,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       {/* Metrics Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div className="p-4 bg-white rounded-2xl border border-slate-200 flex items-center gap-3.5 shadow-2xs">
           <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
             <BookOpen className="w-5 h-5" />
@@ -84,7 +85,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
       {/* Search & Filter Bar */}
       {documents.length > 0 && (
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div className="relative w-full max-w-sm">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
@@ -95,7 +96,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 focus:outline-hidden focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
             />
           </div>
-          <span className="text-xs text-slate-400 font-medium ml-4">
+          <span className="shrink-0 text-xs text-slate-400 font-medium">
             Showing {filteredDocuments.length} of {documents.length}
           </span>
         </div>
@@ -126,7 +127,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           />
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid min-w-0 grid-cols-[repeat(auto-fit,minmax(min(100%,20rem),1fr))] gap-5">
           {filteredDocuments.map((doc) => (
             <DocumentCard
               key={doc.sha256}
@@ -138,6 +139,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           ))}
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 };

@@ -71,7 +71,7 @@ export function DocumentChatPanel({ documentId, onCitationClick }: Props) {
   }
 
   return (
-    <section className="space-y-4" aria-label="Document chatbot">
+    <section className="min-w-0 w-full space-y-4 [overflow-wrap:anywhere]" aria-label="Document chatbot">
       <div className="flex justify-between items-center">
         <h2 className="font-semibold text-slate-800">Document chatbot</h2>
         <button type="button" onClick={startNew} disabled={loading} className="text-sm underline disabled:opacity-50">New conversation</button>

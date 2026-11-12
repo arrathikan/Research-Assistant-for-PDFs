@@ -16,13 +16,13 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   activeDoc,
 }) => {
   return (
-    <div className="h-screen w-screen flex flex-col bg-slate-50 text-slate-900 overflow-hidden">
+    <div className="h-dvh w-full min-w-0 flex flex-col bg-slate-50 text-slate-900 overflow-hidden">
       <Navbar
         activeTab={activeTab}
         onSelectTab={onSelectTab}
         activeDoc={activeDoc}
       />
-      <main className="flex-1 flex flex-col overflow-hidden">
+      <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         {children}
       </main>
     </div>

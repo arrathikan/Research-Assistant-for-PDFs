@@ -421,3 +421,18 @@ paper clears the previous result and cancels its status updates. Drag-and-drop,
 PDF validation and duplicate handling remain supported. The card and navigation
 adapt to narrow screens, with keyboard controls, visible focus and live status
 announcements. No processing APIs or worker logic were changed.
+
+
+### Responsive page layout
+
+Dashboard, Upload and Workspace share a centered 1152px page container and
+matching navigation gutters. The upload heading, form and result cards share
+one readable column capped at 768px; competing 576px inner limits were removed.
+Dashboard uses an auto-fit document grid so two papers do not reserve a third
+empty desktop column.
+
+The app shell uses the available container width and dynamic viewport height.
+Dashboard/Upload have one page scroll owner; Workspace keeps independent summary/
+chat and PDF scrolling. Below the desktop breakpoint, the visible workspace pane
+uses the full column. Shared minimum-width/height rules and wrapping prevent
+page-level horizontal overflow. This refinement changes layout only.

@@ -69,7 +69,7 @@ export function DocumentSummaryPanel({ documentId, filename }: Props) {
   // Never show a previous document's result while a new request is in flight.
   const current = summary?.document_id === documentId?.toLowerCase() ? summary : null;
   return (
-    <div className="space-y-4 max-w-2xl mx-auto" aria-busy={loading}>
+    <div className="min-w-0 w-full space-y-4 [overflow-wrap:anywhere]" aria-busy={loading}>
       <header className="p-5 bg-white rounded-2xl border border-slate-200">
         <p className="text-xs font-semibold text-blue-700">Research summary</p>
         <h2 className="text-base font-bold text-slate-900 mt-2">{current?.title ?? filename}</h2>
