@@ -56,13 +56,14 @@ Measured current layout:
 | 1440px | 1200px | About 757px / 619px |
 | 1920px | 1200px | About 757px / 619px |
 
-At 1920px the outer page stays at 1440px; ordinary Dashboard/Upload pages retain
-their 1152px boundary. In all five measured sizes, navigation and page boundaries
+At 1920px the outer page stays at 1440px. Dashboard/Upload now share this outer
+boundary; see [application-wide layout verification](application-layout.md).
+In those five Workspace sizes, navigation and page boundaries
 matched, toolbar and summary edges matched, and there was no page-level horizontal
 overflow. Closed summary had one scroll owner. Intentional PDF zoom may scroll
 inside its own viewport.
 
-## Verification
+## Verification of the earlier Workspace refinement
 
 - Width-refinement baseline frontend: 110 passed.
 - Final preserved workspace: **112 passed**. Isolated proposed frontend:

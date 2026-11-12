@@ -51,7 +51,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       {/* Metrics Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <section aria-label="Library statistics" className="grid min-w-0 grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div className="p-4 bg-white rounded-2xl border border-slate-200 flex items-center gap-3.5 shadow-2xs">
           <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
             <BookOpen className="w-5 h-5" />
@@ -81,7 +81,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div className="text-xs text-slate-400 font-medium">Indexed PDF Storage</div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Search & Filter Bar */}
       {documents.length > 0 && (
@@ -90,6 +90,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
+              aria-label="Search papers"
               placeholder="Search papers by filename..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -127,7 +128,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           />
         </div>
       ) : (
-        <div className="grid min-w-0 grid-cols-[repeat(auto-fit,minmax(min(100%,20rem),1fr))] gap-5">
+        <section aria-label="Research papers" className="grid min-w-0 grid-cols-[repeat(auto-fit,minmax(min(100%,20rem),1fr))] gap-5">
           {filteredDocuments.map((doc) => (
             <DocumentCard
               key={doc.sha256}
@@ -137,7 +138,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               onOpenChat={onSelectDocument}
             />
           ))}
-        </div>
+        </section>
       )}
     </PageContainer>
   );

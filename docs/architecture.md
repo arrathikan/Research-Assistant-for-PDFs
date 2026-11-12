@@ -467,12 +467,14 @@ results.
 
 ### Shared responsive frontend layout
 
-PageContainer owns centered boundaries and shared responsive gutters: the default
-is 1152px for Dashboard/Upload, and the wide Workspace variant is capped at 1440px.
-Both existing navigation components select the matching boundary while their
-header backgrounds stay full-width. The upload's heading, selection card and status card use one nested
-max-w-3xl (768px) column. Document cards use auto-fit grid tracks so unused
-desktop columns collapse.
+PageContainer supplies one centered 1440px boundary for every active page, with
+16px mobile, 24px tablet and 32px desktop gutters. Both existing navigation
+components use the same boundary while header backgrounds stay full-width.
+Page-specific width selection has been removed. Upload headings, selection and
+status cards share one max-w-5xl (1024px) column. Summary/chat use a 1200px inner
+boundary when the PDF is closed. Existing dashboard statistics adapt from one
+to three columns; document cards use auto-fit tracks so unused columns collapse.
+No document counts, storage calculations, selection or filtering logic changed.
 
 Ordinary pages scroll in the page frame. Workspace sets scrollable=false and
 uses a one-column/two-column grid whose actual content panes handle scrolling.
@@ -577,8 +579,8 @@ or offline Ragas code changes are part of this refinement. See
 ### Balanced Workspace content width
 
 The former nested 1152px page / 768px content caps left summary cards much
-narrower than their toolbar. Workspace now requests PageContainer's wide mode
-(1440px maximum), keeping 16px mobile, 24px tablet and 32px desktop gutters.
+narrower than their toolbar. Workspace uses the shared 1440px PageContainer
+boundary, keeping 16px mobile, 24px tablet and 32px desktop gutters.
 The closed-PDF toolbar row and summary/chat wrapper share one 1200px maximum,
 so their edges remain aligned. All five summary cards fill that wrapper; their
 paragraphs keep a 100ch line limit and consistent 24px desktop card padding.

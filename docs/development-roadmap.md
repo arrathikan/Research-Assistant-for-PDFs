@@ -617,3 +617,23 @@ page-level horizontal overflow or nested summary scrolling. Real citation
 navigation reached page 4; reopen retained page 5 at 125% zoom and unchanged chat
 text. Dashboard/Upload retain their existing width. All pre-existing local edits
 were preserved. See [layout measurements](optional-pdf-workspace.md).
+
+
+### Shared layout across the application
+
+- [x] Inspect root/global styles, both headers, all active views and nested widths.
+- [x] Replace page-specific 1152px/1440px boundaries with one 1440px frame.
+- [x] Keep 16px/24px/32px gutters aligned across navigation and page content.
+- [x] Widen Upload selection/status to a focused 1024px column.
+- [x] Preserve responsive Dashboard statistics, auto-fit documents and real counts.
+- [x] Preserve the 1200px Summary/Chat column and optional PDF behavior.
+- [x] Verify all major views at 375, 768, 1024, 1280, 1440 and 1920px.
+
+Verification: **113 local / 109 isolated frontend tests passed**; both strict
+TypeScript and production builds passed. No standalone frontend lint script is
+configured; scoped whitespace checks passed. All six widths had matching shared
+header/page boundaries and no page-level horizontal overflow. Upload states,
+summary cards and chat input aligned. Real summary/chat citations opened pages
+5, 4 and 10; reopening retained page 6 at 125% zoom with unchanged summary/chat.
+Existing PDF.js build warnings remain. Backend processing and pre-existing local
+files were unchanged. See [application layout verification](application-layout.md).

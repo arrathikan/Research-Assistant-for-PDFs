@@ -54,7 +54,7 @@ export function UploadView({ onUploadSuccess }: UploadViewProps) {
 
   return (
     <PageContainer>
-      <div className="mx-auto min-w-0 w-full max-w-3xl">
+      <div className="mx-auto min-w-0 w-full max-w-5xl">
         <header className="mb-6 text-center">
           <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
             <Sparkles size={14} aria-hidden="true" />Your research, made clearer

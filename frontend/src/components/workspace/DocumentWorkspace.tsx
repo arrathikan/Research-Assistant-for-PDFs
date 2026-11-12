@@ -90,7 +90,7 @@ function WorkspaceSession({ document: paper, initialTab = 'summary' }: Props) {
 
   const contentWidth = pdfOpen ? '' : 'max-w-[1200px]';
   return (
-    <PageContainer scrollable={false} wide>
+    <PageContainer scrollable={false}>
       <div hidden={pdfOpen && mobile} className="shrink-0 border-b border-slate-200 bg-white py-3">
         <div className={'mx-auto flex w-full min-w-0 flex-wrap items-center justify-between gap-3 ' + contentWidth}>
           <nav aria-label="Workspace panels" className="flex flex-wrap gap-1 text-xs font-semibold">
