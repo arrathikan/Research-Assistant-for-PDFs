@@ -479,3 +479,21 @@ live checks skipped**; scoped Ruff lint/format passed. No human review or overal
 RAG accuracy is claimed. Prompt 13 implementation is complete; measured RAG
 quality and the benchmark document’s separate summary failure remain documented
 follow-up issues. Prompts 14–15 have not been implemented in this stage.
+
+
+### Upload interface refinement
+
+- [x] Replace repeated upload-result panels with one compact file/status card.
+- [x] Gate summary, PDF and chat actions using the data each action requires.
+- [x] Preserve PDF validation, supported retries and repeated-upload isolation.
+- [x] Add queued/processing/ready/failure/race-condition frontend coverage.
+- [x] Check responsive navigation and hide previous-paper status during uploads.
+
+This is a frontend refinement of the existing upload flow. Backend APIs, MongoDB,
+RabbitMQ, parsing, embedding and summary-generation behavior remain unchanged.
+
+Verification: **94 tests passed** in the preserved local workspace; the isolated
+proposed frontend passed **90 tests** and its production build. The local build
+also passed. Browser checks covered 320, 390, 768 and 1440 pixel widths, the real
+stored-PDF failure state, and direct navigation to chat. Existing PDF.js build
+warnings remain. No new dependencies were added.

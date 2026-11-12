@@ -55,3 +55,10 @@ it('clears source and conversation when a different document is selected', async
   expect(screen.queryByRole('button', { name: 'Open citation 1, page 2' })).not.toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Structured Summary' })).toHaveAttribute('aria-pressed', 'true');
 });
+
+it('opens the requested chat panel when launched from the upload card', async () => {
+  await act(async () => { render(<DocumentWorkspace document={PDF_DOCUMENT} initialTab="chat" />); });
+  expect(screen.getByRole('button', { name: 'AI Chatbot' })).toHaveAttribute('aria-pressed', 'true');
+  expect(screen.getByRole('button', { name: 'Structured Summary' })).toHaveAttribute('aria-pressed', 'false');
+  expect(screen.getByRole('textbox', { name: 'Question' })).toBeInTheDocument();
+});

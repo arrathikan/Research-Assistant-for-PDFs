@@ -1,117 +1,81 @@
-import React, { useCallback, useState } from 'react';
+import { useRef, useState } from 'react';
+import { ArrowLeft, Files, ShieldCheck, Sparkles } from 'lucide-react';
 import { ProcessingProgress } from '../components/upload/ProcessingProgress';
-import { DocumentSummaryPanel } from '../components/summary/DocumentSummaryPanel';
+import { UploadStatusCard } from '../components/upload/UploadStatusCard';
 import { UploadZone } from '../components/upload/UploadZone';
-import { ErrorMessage } from '../components/common/ErrorMessage';
-import { DocumentMetadata, UploadResponse } from '../types';
-import { api } from '../services/api';
-import { ShieldCheck, Zap, Sparkles } from 'lucide-react';
+import type { DocumentMetadata, UploadResponse, WorkspaceTab } from '../types';
+import { api, ApiError } from '../services/api';
 
 interface UploadViewProps {
-  onUploadSuccess: (doc: DocumentMetadata) => void;
+  onUploadSuccess: (doc: DocumentMetadata, tab?: WorkspaceTab) => void;
 }
 
-export const UploadView: React.FC<UploadViewProps> = ({ onUploadSuccess }) => {
+export function UploadView({ onUploadSuccess }: UploadViewProps) {
+  const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const [showSummary, setShowSummary] = useState(false);
+  const [failure, setFailure] = useState<{ message: string; retryable: boolean } | null>(null);
   const [result, setResult] = useState<UploadResponse | null>(null);
+  const inFlight = useRef(false);
 
-  const handleReady = useCallback((document: DocumentMetadata) => {
-    setResult(current => current && current.document.id === document.id ? { ...current, document } : current);
-  }, []);
-
-  const handleUpload = async (file: File) => {
+  async function upload(selected: File) {
+    if (inFlight.current) return;
+    inFlight.current = true;
+    setFile(selected);
     setIsUploading(true);
-    setError(null);
+    setFailure(null);
     setResult(null);
-    setShowSummary(false);
-
     try {
-      const response = await api.uploadDocument(file);
+      const response = await api.uploadDocument(selected);
+      if (!response.document.id || !/^[0-9a-f]{24}$/i.test(response.document.id)) throw new Error('Invalid document response');
       setResult(response);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Upload failed. Please try again.');
+    } catch (error: unknown) {
+      const invalid = error instanceof ApiError && [400, 413, 415, 422].includes(error.status);
+      setFailure({
+        message: error instanceof ApiError && error.status === 413
+          ? 'This PDF exceeds the 25 MB limit. Please choose a smaller file.'
+          : invalid
+            ? 'This PDF could not be accepted. Choose a valid PDF that is not password-protected.'
+            : 'We couldn’t upload your paper. Check your connection and try again.',
+        retryable: !invalid,
+      });
     } finally {
       setIsUploading(false);
+      inFlight.current = false;
     }
-  };
+  }
+
+  function startAnother() {
+    if (inFlight.current) return;
+    setResult(null);
+    setFile(null);
+    setFailure(null);
+  }
 
   return (
-    <div className="flex-1 overflow-y-auto p-8 max-w-4xl mx-auto flex flex-col justify-center">
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-semibold mb-3 border border-blue-200">
-          <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-          <span>Research Paper Upload</span>
+    <div className="mx-auto w-full max-w-3xl flex-1 overflow-y-auto px-4 py-8 sm:px-8 sm:py-12">
+      <header className="mx-auto mb-8 max-w-xl text-center">
+        <div className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+          <Sparkles size={14} aria-hidden="true" />Your research, made clearer
         </div>
-        <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Upload Research Paper</h2>
-        <p className="text-xs text-slate-500 mt-2 max-w-md mx-auto">
-          Upload one academic PDF. Your original file is saved and checked for exact duplicates. Summary and chat become available after processing.
-        </p>
-      </div>
-
-      {error && (
-        <div className="mb-6 max-w-xl mx-auto">
-          <ErrorMessage
-            title="Upload Failed"
-            message={error}
-            onRetry={() => setError(null)}
-          />
-        </div>
-      )}
-
-      {result && (
-        <div role="status" className="mb-6 p-4 max-w-xl w-full mx-auto bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-900">
-          <h3 className="font-semibold">{result.is_duplicate ? 'Duplicate detected' : 'Upload successful'}</h3>
-          <p className="mt-1">{result.message}</p>
-          <p className="mt-1">{result.document.filename} · Status: {result.document.status}</p>
-          <p className="text-xs mt-1">Document ID: {result.document.id}</p>
-          {result.document.status === 'PENDING' && (
-            <p className="mt-2 text-xs">Your PDF is saved. Summary and chat will be available after processing.</p>
-          )}
-          {result.document.status === 'FAILED' && (
-            <p className="mt-2 text-xs">This file is already stored, but its processing failed.</p>
-          )}
-          {result.document.id && (
-            <a href={api.getPdfStreamUrl(result.document.id)} target="_blank" rel="noopener noreferrer" className="inline-block mt-3 underline">Open original PDF</a>
-          )}
-          {result.document.id && result.document.status !== 'READY' && (
-            <button type="button" className="block mt-3 underline" onClick={() => setShowSummary(value => !value)}>
-              {showSummary ? 'Hide summary' : 'View summary'}
-            </button>
-          )}
-          {result.document.id && result.document.status !== 'READY' && <ProcessingProgress key={result.document.id} documentId={result.document.id} onReady={handleReady} />}
-          {result.document.status === 'READY' && (
-            <button className="block mt-3 underline" onClick={() => onUploadSuccess(result.document)}>Open workspace</button>
-          )}
-        </div>
-      )}
-
-      {showSummary && result?.document.id && (
-        <DocumentSummaryPanel documentId={result.document.id} filename={result.document.filename} />
-      )}
-
-      <UploadZone onUpload={handleUpload} isUploading={isUploading} />
-
-      {/* Feature highlights */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl mx-auto mt-10 text-xs text-slate-600">
-        <div className="p-3.5 bg-white rounded-xl border border-slate-200 flex items-start gap-3">
-          <ShieldCheck className="w-5 h-5 text-emerald-600 flex-shrink-0" />
-          <div>
-            <span className="font-semibold text-slate-800">SHA-256 Deduplication</span>
-            <p className="text-[11px] text-slate-500 mt-0.5">Identical papers are detected instantly to prevent redundant parsing and re-embedding.</p>
-          </div>
-        </div>
-
-        <div className="p-3.5 bg-white rounded-xl border border-slate-200 flex items-start gap-3">
-          <Zap className="w-5 h-5 text-amber-500 flex-shrink-0" />
-          <div>
-            <span className="font-semibold text-slate-800">Original PDF preserved</span>
-            <p className="text-[11px] text-slate-500 mt-0.5">Open the original file after uploading. Its page count and processing status are stored with the document.</p>
-          </div>
+        <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Upload a research paper</h2>
+        <p className="mt-3 text-sm leading-6 text-slate-600">Turn your PDF into a structured summary and a conversation grounded in your sources.</p>
+      </header>
+      <div className="mx-auto w-full max-w-xl">
+        {result ? <ProcessingProgress document={result.document} onOpen={onUploadSuccess} />
+          : file ? <UploadStatusCard filename={file.name} fileSize={file.size}
+              stage={isUploading ? 'uploading' : 'failed'} busy={isUploading}
+              description={isUploading ? 'Uploading your PDF. This may take a moment.' : failure?.message || 'The upload could not be completed.'}
+              onRetry={failure?.retryable ? () => void upload(file) : undefined} retryLabel="Retry upload" />
+          : <UploadZone onUpload={upload} />}
+        {(result || failure) && <button type="button" onClick={startAnother}
+          className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2">
+          <ArrowLeft size={15} aria-hidden="true" />{result ? 'Upload another paper' : 'Choose a different PDF'}
+        </button>}
+        <div className="mt-8 grid grid-cols-1 gap-4 border-t border-slate-200 pt-6 text-xs leading-5 text-slate-500 sm:grid-cols-2">
+          <p className="flex items-start gap-2"><ShieldCheck size={17} aria-hidden="true" className="mt-0.5 shrink-0 text-blue-600" /><span><strong className="font-medium text-slate-700">Your original stays intact.</strong><br />Open the stored PDF at any time.</span></p>
+          <p className="flex items-start gap-2"><Files size={17} aria-hidden="true" className="mt-0.5 shrink-0 text-blue-600" /><span><strong className="font-medium text-slate-700">Already uploaded? We’ll reuse it.</strong><br />Identical papers are recognized automatically.</span></p>
         </div>
       </div>
     </div>
   );
-};
+}

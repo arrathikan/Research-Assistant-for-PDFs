@@ -6,10 +6,10 @@ import { DocumentSummaryPanel } from '../summary/DocumentSummaryPanel';
 import { DocumentChatPanel } from '../chat/DocumentChatPanel';
 import { PdfViewerPanel } from '../pdf/PdfViewerPanel';
 
-export function DocumentWorkspace({ document }: { document: DocumentMetadata }) {
-  const [tab, setTab] = useState<WorkspaceTab>('summary');
+export function DocumentWorkspace({ document, initialTab = 'summary' }: { document: DocumentMetadata; initialTab?: WorkspaceTab }) {
+  const [tab, setTab] = useState<WorkspaceTab>(initialTab);
   const [citation, setCitation] = useState<ChatCitation | null>(null);
-  useEffect(() => { setCitation(null); setTab('summary'); }, [document.id]);
+  useEffect(() => { setCitation(null); setTab(initialTab); }, [document.id, initialTab]);
   function openSource(source: ChatCitation) {
     // A fresh selection lets the same source reopen after manual page navigation.
     setCitation({ ...source });
