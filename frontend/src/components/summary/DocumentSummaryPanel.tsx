@@ -1,10 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api, ApiError } from '../../services/api';
-import type { SummaryField, SummaryResponse } from '../../types/summary';
+import { summaryCitation } from '../../services/citations';
+import type { ChatCitation } from '../../types/chat';
+import type { SummaryField, SummaryResponse, SummarySource } from '../../types/summary';
 
 interface Props {
   documentId?: string;
   filename: string;
+  onCitationClick?: (citation: ChatCitation) => void;
 }
 
 const SECTIONS: { title: string; fields: SummaryField[] }[] = [
@@ -15,17 +18,21 @@ const SECTIONS: { title: string; fields: SummaryField[] }[] = [
   { title: 'Conclusion', fields: ['conclusion'] },
 ];
 
-export function DocumentSummaryPanel({ documentId, filename }: Props) {
+export function DocumentSummaryPanel({ documentId, filename, onCitationClick }: Props) {
   const [summary, setSummary] = useState<SummaryResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [waiting, setWaiting] = useState(false);
   const [error, setError] = useState('');
   const [check, setCheck] = useState(0);
+  const [sourceError, setSourceError] = useState('');
+  const selection = useRef(0);
   const validId = !!documentId && /^[0-9a-f]{24}$/i.test(documentId);
 
   useEffect(() => {
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
+    selection.current++;
+    setSourceError('');
     setSummary(null);
     setError('');
     setWaiting(false);
@@ -62,12 +69,24 @@ export function DocumentSummaryPanel({ documentId, filename }: Props) {
     void load();
     return () => {
       cancelled = true;
+      selection.current++;
       if (timer) clearTimeout(timer);
     };
   }, [documentId, validId, check]);
 
   // Never show a previous document's result while a new request is in flight.
   const current = summary?.document_id === documentId?.toLowerCase() ? summary : null;
+  async function openSource(source: SummarySource) {
+    if (!current || !onCitationClick) return;
+    const request = ++selection.current;
+    setSourceError('');
+    try {
+      const citation = await summaryCitation(current, source);
+      if (request === selection.current) onCitationClick(citation);
+    } catch {
+      if (request === selection.current) setSourceError('We couldn’t open this source. You can still view the original PDF.');
+    }
+  }
   return (
     <div className="min-w-0 w-full space-y-4 [overflow-wrap:anywhere]" aria-busy={loading}>
       <header className="p-5 bg-white rounded-2xl border border-slate-200">
@@ -83,6 +102,7 @@ export function DocumentSummaryPanel({ documentId, filename }: Props) {
           <button type="button" onClick={() => setCheck(value => value + 1)} className="mt-2 font-semibold underline">Check again</button>
         </div>
       )}
+      {sourceError && <p role="alert" className="text-sm text-red-700">{sourceError}</p>}
       {SECTIONS.map((section, index) => {
         const references = current?.sources.filter(source => section.fields.includes(source.field)) ?? [];
         const sources = references.filter((source, position) => references.findIndex(other =>
@@ -97,16 +117,23 @@ export function DocumentSummaryPanel({ documentId, filename }: Props) {
                   : current[field]}</p>
               )) : <p>Waiting for a generated summary.</p>}
             </div>
-            {sources.length > 0 && (
-              <ul aria-label={`Sources for ${section.title}`} className="mt-3 space-y-2 text-xs text-slate-500">
-                {sources.map((source, sourceIndex) => (
-                  <li key={`${source.chunk_id}-${source.page_number}-${sourceIndex}`}>
-                    <span className="font-semibold">Page {source.page_number}</span>
-                    <blockquote className="mt-1 border-l-2 border-slate-200 pl-2">{source.quote}</blockquote>
-                  </li>
-                ))}
-              </ul>
-            )}
+            {sources.length > 0 && <div className="mt-3">
+              <div aria-label={'Sources for ' + section.title} className="flex flex-wrap gap-2 text-xs">
+                {sources.map((source, sourceIndex) => onCitationClick
+                  ? <button key={sourceIndex} type="button" onClick={event => { event.currentTarget.focus(); void openSource(source); }}
+                    aria-label={'Open source for ' + section.title + ', page ' + source.page_number}
+                    className="rounded-md bg-blue-50 px-2 py-1 font-medium text-blue-700 hover:bg-blue-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600">Page {source.page_number}</button>
+                  : <span key={sourceIndex} className="font-medium text-slate-500">Page {source.page_number}</span>)}
+              </div>
+              <details className="mt-3 text-xs text-slate-500">
+                <summary className="w-fit cursor-pointer rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600">Supporting passages</summary>
+                <ul className="mt-2 space-y-2">
+                  {sources.map((source, sourceIndex) => <li key={sourceIndex}>
+                    <blockquote className="border-l-2 border-slate-200 pl-2 leading-6">{source.quote}</blockquote>
+                  </li>)}
+                </ul>
+              </details>
+            </div>}
           </section>
         );
       })}

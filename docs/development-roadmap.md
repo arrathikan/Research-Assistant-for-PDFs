@@ -578,3 +578,23 @@ Implementation and verification are complete; no overall accuracy or hybrid
 superiority is claimed, and human review is not fabricated. The live saved-summary
 failure predates this refinement; cache reuse is covered by deterministic/storage
 tests and live overviews used section fallback.
+
+
+### Optional PDF workspace and shared source navigation
+
+- [x] Inspect the always-mounted viewer, fixed desktop columns and tab coupling.
+- [x] Default to centered summary/chat, with explicit View Original PDF / Close PDF.
+- [x] Reuse one retained viewer and preserve PDF page/zoom, chat/draft and summary.
+- [x] Open document-scoped chat and summary sources through canonical resolution.
+- [x] Add mobile full-screen access, focus containment/return and Escape.
+- [x] Cover invalid/stale sources, repeated jumps, state isolation and highlights.
+- [x] Run tests/builds and verify real chat/summary navigation and responsive widths.
+
+Verification: **110 local / 106 isolated frontend tests passed**, both production/
+TypeScript builds passed, and **463 backend tests passed, 4 optional checks
+skipped**. Browser checks covered approximately 375, 768, 1280 and 1440px; real
+chat citations opened pages 3/8, a summary source opened page 5, and manual reopen
+retained page/zoom. Initial scope/typing and mobile-focus issues found during
+verification were corrected before completion. Four pre-existing backend Ruff
+import-order findings remain outside this frontend change. See
+[behavior and verification](optional-pdf-workspace.md) for detail and limits.

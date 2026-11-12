@@ -61,7 +61,7 @@ ResearchAI is a modular, production-grade academic research paper assistant desi
 │   ├── src/
 │   │   ├── components/                     # Navbar, SplitView, UI components
 │   │   ├── types/                          # TypeScript contracts mirroring backend
-│   │   ├── App.tsx                         # Main split-screen application layout
+│   │   ├── App.tsx                         # Main application layout
 │   │   └── main.tsx                        # Application mount
 │   ├── package.json                        # Frontend dependency definitions
 │   └── vite.config.ts                      # Vite build configuration
@@ -460,3 +460,17 @@ The measured nine-question research-assistant check is available in
 The final run generated all 18 paired responses and all 60 applicable Ragas
 values; assistant review still found five answers with incomplete citation
 support. These results do not establish overall scientific-answer accuracy.
+
+
+### Optional PDF workspace
+
+The PDF is closed by default. Read the five-part summary or chat in a centered
+column, then choose **View Original PDF** or click a source to open the existing
+viewer. **Close PDF** restores the full-width workspace. Desktop/tablet use a
+55/45 split; mobile opens a full-screen PDF with focus handling and Escape to
+close. Page and zoom survive closing/reopening within the current document
+session. Chat messages, drafts and summary content stay mounted.
+
+Summary source buttons now use the same canonical citation resolver as chat.
+Supporting passages are optional; missing exact highlights fall back quietly to
+the cited page. See [workspace behavior and verification](docs/optional-pdf-workspace.md).

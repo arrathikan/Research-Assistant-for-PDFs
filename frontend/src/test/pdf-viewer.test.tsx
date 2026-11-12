@@ -77,11 +77,12 @@ it('ignores late source resolution after switching documents', async () => {
 it('rejects mismatched canonical answers and out-of-range pages', async () => {
   vi.mocked(api.resolveCitation).mockResolvedValue({ ...PDF_CITATION, quote_snippet: 'Wrong quote' });
   const view = render(<PdfViewerPanel document={PDF_DOCUMENT} activeCitation={PDF_CITATION} />);
-  expect(await screen.findByRole('alert')).toHaveTextContent('could not be verified');
+  expect(await screen.findByRole('alert')).toHaveTextContent('We couldn’t open this source');
   vi.mocked(api.resolveCitation).mockResolvedValue({ ...PDF_CITATION, page_number: 9 });
   view.rerender(<PdfViewerPanel document={PDF_DOCUMENT} activeCitation={{ ...PDF_CITATION, page_number: 9 }} />);
-  expect(await screen.findByRole('alert')).toHaveTextContent('outside this PDF');
+  expect(await screen.findByRole('alert')).toHaveTextContent('not available in this PDF');
   expect(screen.queryByTestId('pdf-source-highlight')).not.toBeInTheDocument();
+  expect(screen.getByRole('spinbutton', { name: 'PDF page number' })).toHaveValue(1);
 });
 it('offers retry for a failed PDF and shows no invented pages for demo identifiers', async () => {
   pdfMock.fail = true;

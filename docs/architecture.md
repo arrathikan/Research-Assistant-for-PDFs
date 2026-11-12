@@ -43,7 +43,7 @@ graph TD
 - **Stack:** React 18+, TypeScript, Vite, Tailwind CSS.
 - **Responsibilities:**
   - Single-document upload interface with drag-and-drop and progress tracking.
-  - Split-screen workspace: Left panel for Document Summary & Interactive Chatbot; Right panel for the interactive PDF Viewer.
+  - Workspace with an optional PDF preview: summary/chat use a centered column by default; opening a source or the PDF button enables a 55/45 split (full-screen PDF on mobile).
   - Interactive PDF viewing via `react-pdf` / `pdf.js`, supporting page navigation, zooming, text selection, and programmatically jumping to and highlighting citations.
   - Markdown rendering for structured summaries and chat messages with clickable citation badges (e.g., `[Page 3, Section 2.1]`).
 
@@ -543,3 +543,32 @@ being displaced by less relevant sections. Factual retrieval keeps its original
 limit and order. Live Atlas checks confirmed the previously missed near-perfect
 key-value result is now included in both comparison contexts; this establishes
 context inclusion, not answer correctness or a hybrid-search advantage.
+
+
+### Optional PDF workspace and shared sources
+
+DocumentWorkspace owns the active summary/chat tab, PDF visibility, lazy first
+mount, selected citation and mobile focus handling. A session keyed by selected
+document ID resets document-specific state synchronously. Toggling visibility
+does not replace that session: summary/chat remain mounted, and the existing
+PdfViewerPanel stays mounted but hidden after first use. Its page, zoom, loaded
+PDF and canonical anchor are retained. Desktop/tablet switch between one grid
+column and 11fr/9fr; mobile uses a modal PDF panel with a close control, focus
+containment, return focus and Escape.
+
+Chat citations and saved-summary sources enter the same Workspace callback.
+It checks selected document identity and page bounds before opening the panel.
+The existing server resolver remains authoritative for canonical source,
+generation and quote validation. The viewer waits for the PDF's actual page count
+before applying a verified jump; invalid destinations leave its last valid page.
+
+Summary sources already carry document/chunk-set scope, source chunks, page and
+quotes. A small Web Crypto helper computes the existing SHA-256 citation identity
+without adding an endpoint or library. Asynchronous summary selections are
+cancelled on document changes and superseded selections. Supporting summary
+passages are collapsed by default. Secure hashing is available on localhost/
+HTTPS; a friendly source error handles environments without it.
+
+No retrieval, parsing, stored chunking, embedding, summary generation, RabbitMQ
+or offline Ragas code changes are part of this refinement. See
+[verification](optional-pdf-workspace.md).
