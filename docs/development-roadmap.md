@@ -438,3 +438,44 @@ background supervisor are running; ingestion/summary each have one consumer.
 Gateway processing routes, Atlas connectivity and an existing-document HTTP read
 were verified. Legacy uploads were left unscheduled. Prompt 12 is complete;
 Prompt 13 offline Ragas/manual evaluation is next.
+
+
+### Prompt 13: Offline Ragas evaluation
+
+- [x] 13.1: Versioned, evidence-grounded benchmark and explicit manual-review provenance.
+- [x] 13.2: Collect real pipeline traces and paired hybrid/semantic retrieval.
+- [x] 13.3: Five Ragas metrics with bounded evaluator calls and honest failure handling.
+- [x] 13.4: JSON/Markdown reports, manual result checklist and reproducible CLI.
+- [x] 13.5: Real evaluation verification, regression checks and methodology docs.
+
+Increment 13.1: 20 source-grounded cases, PDF hash/page checks and review hashes
+implemented. All case anchors matched the downloaded CC-BY 4.0 source. **16
+dataset/schema tests passed**; scoped Ruff passed. Reviews are assistant source
+cross-checks requested by the user, not claimed human approvals.
+
+Increment 13.2: collector uses the real source-validated answer chain, while a
+paired retrieval helper shares one query vector and the same document generation
+for semantic/hybrid outputs. **32 retrieval/collection/dataset tests passed**;
+scoped Ruff passed. No chat turns are persisted by benchmark collection.
+
+Increment 13.3: five Ragas 0.2.15 metrics, explicit OpenRouter/Voyage evaluator
+providers, request budgets and per-metric skip/error states implemented. **18
+evaluator tests passed** in the isolated evaluation environment. Mocked scores
+exist only in unit tests; no benchmark score is claimed from them.
+
+Increment 13.4: offline CLI, validated JSON/Markdown reports, exact-case paired
+comparisons, citation diagnostics and result-bound manual reviews implemented.
+**27 report/collection/metric tests passed**; PDF/source validation CLI and scoped
+Ruff passed. Real provider benchmarking follows after document readiness.
+
+
+Increment 13.5: real 20-question paired collection/scoring and 40 assistant result
+reviews are versioned in [the measured baseline](../evaluation/reports/2026-11-12/README.md).
+The run is partial because it includes actual generation failures; those states
+are retained. A separate one-question live smoke run produced all five metrics
+for both strategies. The offline `review` command adds result-bound checks
+without new provider calls. Final backend regression: **410 passed, 4 optional
+live checks skipped**; scoped Ruff lint/format passed. No human review or overall
+RAG accuracy is claimed. Prompt 13 implementation is complete; measured RAG
+quality and the benchmark document’s separate summary failure remain documented
+follow-up issues. Prompts 14–15 have not been implemented in this stage.

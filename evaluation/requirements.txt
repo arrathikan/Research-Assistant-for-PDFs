@@ -1,0 +1,6 @@
+# Optional evaluation stack; install separately from the serving environment.
+ragas==0.2.15
+langchain-openai==0.2.14
+langchain-community>=0.3.0,<0.4.0
+datasets>=3.0.0,<4.0.0
+pandas>=2.2.0,<3.0.0

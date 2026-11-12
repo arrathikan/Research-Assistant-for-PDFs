@@ -1,0 +1,578 @@
+{
+  "schema_version": 1,
+  "dataset_id": "lost-in-middle-20",
+  "version": "1.0.0",
+  "sources": {
+    "lost-in-middle-tacl-2024": {
+      "title": "Lost in the Middle: How Language Models Use Long Contexts",
+      "authors": [
+        "Nelson F. Liu",
+        "Kevin Lin",
+        "John Hewitt",
+        "Ashwin Paranjape",
+        "Michele Bevilacqua",
+        "Fabio Petroni",
+        "Percy Liang"
+      ],
+      "source_url": "https://aclanthology.org/2024.tacl-1.9/",
+      "pdf_url": "https://aclanthology.org/2024.tacl-1.9.pdf",
+      "pdf_sha256": "f37f6fabe0fe0d8c73b67579cd115dbf14e282cfb7b7af655ae8109638402c9b",
+      "page_count": 17,
+      "license": "CC-BY-4.0"
+    }
+  },
+  "cases": [
+    {
+      "sample_id": "lim_01",
+      "document_key": "lost-in-middle-tacl-2024",
+      "category": "title",
+      "user_question": "What is the title of the paper?",
+      "reference_answer": "Lost in the Middle: How Language Models Use Long Contexts.",
+      "is_answerable": true,
+      "expected_page_numbers": [
+        1
+      ],
+      "source_evidence": [
+        {
+          "page_number": 1,
+          "section": "Title",
+          "quote": "Lost in the Middle: How Language Models Use Long Contexts"
+        }
+      ],
+      "review_note": "Check the complete referenced passage, including qualifiers; short anchors locate evidence and are not a full support proof."
+    },
+    {
+      "sample_id": "lim_02",
+      "document_key": "lost-in-middle-tacl-2024",
+      "category": "authors",
+      "user_question": "Who are the authors of the paper?",
+      "reference_answer": "Nelson F. Liu, Kevin Lin, John Hewitt, Ashwin Paranjape, Michele Bevilacqua, Fabio Petroni, and Percy Liang.",
+      "is_answerable": true,
+      "expected_page_numbers": [
+        1
+      ],
+      "source_evidence": [
+        {
+          "page_number": 1,
+          "section": "Author block",
+          "quote": "Nelson F. Liu"
+        }
+      ],
+      "review_note": "Check the complete referenced passage, including qualifiers; short anchors locate evidence and are not a full support proof."
+    },
+    {
+      "sample_id": "lim_03",
+      "document_key": "lost-in-middle-tacl-2024",
+      "category": "problem",
+      "user_question": "What uncertainty about long-context language models does the paper investigate?",
+      "reference_answer": "Whether language models can reliably find and use relevant information throughout a long input context.",
+      "is_answerable": true,
+      "expected_page_numbers": [
+        1
+      ],
+      "source_evidence": [
+        {
+          "page_number": 1,
+          "section": "Introduction",
+          "quote": "make use of their input contexts"
+        }
+      ],
+      "review_note": "Check the complete referenced passage, including qualifiers; short anchors locate evidence and are not a full support proof."
+    },
+    {
+      "sample_id": "lim_04",
+      "document_key": "lost-in-middle-tacl-2024",
+      "category": "tasks",
+      "user_question": "Which two tasks are used to study long-context information use?",
+      "reference_answer": "Multi-document question answering and synthetic key-value retrieval.",
+      "is_answerable": true,
+      "expected_page_numbers": [
+        1
+      ],
+      "source_evidence": [
+        {
+          "page_number": 1,
+          "section": "Abstract",
+          "quote": "key-value retrieval"
+        }
+      ],
+      "review_note": "Check the complete referenced passage, including qualifiers; short anchors locate evidence and are not a full support proof."
+    },
+    {
+      "sample_id": "lim_05",
+      "document_key": "lost-in-middle-tacl-2024",
+      "category": "results",
+      "user_question": "Where in a long context is relevant information generally used best and worst?",
+      "reference_answer": "Performance is generally best near the beginning or end and worse in the middle.",
+      "is_answerable": true,
+      "expected_page_numbers": [
+        2
+      ],
+      "source_evidence": [
+        {
+          "page_number": 2,
+          "section": "Figure 1",
+          "quote": "U-shaped performance curve"
+        }
+      ],
+      "review_note": "Check the complete referenced passage, including qualifiers; short anchors locate evidence and are not a full support proof."
+    },
+    {
+      "sample_id": "lim_06",
+      "document_key": "lost-in-middle-tacl-2024",
+      "category": "dataset",
+      "user_question": "Which question-answering dataset is used for the controlled multi-document QA task?",
+      "reference_answer": "NaturalQuestions-Open, using questions with paragraph long answers.",
+      "is_answerable": true,
+      "expected_page_numbers": [
+        3
+      ],
+      "source_evidence": [
+        {
+          "page_number": 3,
+          "section": "Section 2.1",
+          "quote": "NaturalQuestions-Open"
+        }
+      ],
+      "review_note": "Check the complete referenced passage, including qualifiers; short anchors locate evidence and are not a full support proof."
+    },
+    {
+      "sample_id": "lim_07",
+      "document_key": "lost-in-middle-tacl-2024",
+      "category": "dataset_size",
+      "user_question": "How many queries are selected for the controlled multi-document QA experiments?",
+      "reference_answer": "2,655 queries whose annotated long answer is a paragraph.",
+      "is_answerable": true,
+      "expected_page_numbers": [
+        3
+      ],
+      "source_evidence": [
+        {
+          "page_number": 3,
+          "section": "Section 2.1",
+          "quote": "2655 queries"
+        }
+      ],
+      "review_note": "Check the complete referenced passage, including qualifiers; short anchors locate evidence and are not a full support proof."
+    },
+    {
+      "sample_id": "lim_08",
+      "document_key": "lost-in-middle-tacl-2024",
+      "category": "retrieval",
+      "user_question": "How are distractor documents retrieved in the controlled QA experiments?",
+      "reference_answer": "Contriever fine-tuned on MS-MARCO retrieves relevant Wikipedia chunks that exclude annotated answers.",
+      "is_answerable": true,
+      "expected_page_numbers": [
+        3
+      ],
+      "source_evidence": [
+        {
+          "page_number": 3,
+          "section": "Section 2.1",
+          "quote": "Contriever, fine-tuned on MS-MARCO"
+        }
+      ],
+      "review_note": "Check the complete referenced passage, including qualifiers; short anchors locate evidence and are not a full support proof."
+    },
+    {
+      "sample_id": "lim_09",
+      "document_key": "lost-in-middle-tacl-2024",
+      "category": "methodology",
+      "user_question": "How do the QA experiments vary relevant-information position and input context length?",
+      "reference_answer": "They reorder documents to move the answer-bearing document and change the number of distractor documents.",
+      "is_answerable": true,
+      "expected_page_numbers": [
+        4
+      ],
+      "source_evidence": [
+        {
+          "page_number": 4,
+          "section": "Section 2.1",
+          "quote": "change the position"
+        }
+      ],
+      "review_note": "Check the complete referenced passage, including qualifiers; short anchors locate evidence and are not a full support proof."
+    },
+    {
+      "sample_id": "lim_10",
+      "document_key": "lost-in-middle-tacl-2024",
+      "category": "evaluation",
+      "user_question": "How is QA accuracy judged?",
+      "reference_answer": "A prediction is counted as correct when it contains any annotated correct answer.",
+      "is_answerable": true,
+      "expected_page_numbers": [
+        4
+      ],
+      "source_evidence": [
+        {
+          "page_number": 4,
+          "section": "Section 2.1",
+          "quote": "appear in the predicted output"
+        }
+      ],
+      "review_note": "Check the complete referenced passage, including qualifiers; short anchors locate evidence and are not a full support proof."
+    },
+    {
+      "sample_id": "lim_11",
+      "document_key": "lost-in-middle-tacl-2024",
+      "category": "experiments",
+      "user_question": "How many documents are used in the controlled multi-document QA settings?",
+      "reference_answer": "10, 20, and 30 total documents.",
+      "is_answerable": true,
+      "expected_page_numbers": [
+        5
+      ],
+      "source_evidence": [
+        {
+          "page_number": 5,
+          "section": "Section 2.3",
+          "quote": "20, and 30 total documents"
+        }
+      ],
+      "review_note": "Check the complete referenced passage, including qualifiers; short anchors locate evidence and are not a full support proof."
+    },
+    {
+      "sample_id": "lim_12",
+      "document_key": "lost-in-middle-tacl-2024",
+      "category": "numeric_results",
+      "user_question": "What are the closed-book and oracle accuracies for GPT-3.5-Turbo in Table 1?",
+      "reference_answer": "56.1% closed-book accuracy and 88.3% oracle accuracy.",
+      "is_answerable": true,
+      "expected_page_numbers": [
+        5
+      ],
+      "source_evidence": [
+        {
+          "page_number": 5,
+          "section": "Table 1",
+          "quote": "GPT-3.5-Turbo"
+        }
+      ],
+      "review_note": "Check the complete referenced passage, including qualifiers; short anchors locate evidence and are not a full support proof."
+    },
+    {
+      "sample_id": "lim_13",
+      "document_key": "lost-in-middle-tacl-2024",
+      "category": "synthetic_task",
+      "user_question": "What do the keys and values represent in the synthetic retrieval task?",
+      "reference_answer": "Unique randomly generated 128-bit UUIDs; the model returns the value for a specified key.",
+      "is_answerable": true,
+      "expected_page_numbers": [
+        6
+      ],
+      "source_evidence": [
+        {
+          "page_number": 6,
+          "section": "Figure 6 and Section 3.1",
+          "quote": "128-bit UUIDs"
+        }
+      ],
+      "review_note": "Check the complete referenced passage, including qualifiers; short anchors locate evidence and are not a full support proof."
+    },
+    {
+      "sample_id": "lim_14",
+      "document_key": "lost-in-middle-tacl-2024",
+      "category": "experiments",
+      "user_question": "What key-value pair counts and sample sizes are used in Section 3.2?",
+      "reference_answer": "75, 140, and 300 pairs, with 500 examples for each setting.",
+      "is_answerable": true,
+      "expected_page_numbers": [
+        7
+      ],
+      "source_evidence": [
+        {
+          "page_number": 7,
+          "section": "Section 3.2",
+          "quote": "500 examples"
+        }
+      ],
+      "review_note": "Check the complete referenced passage, including qualifiers; short anchors locate evidence and are not a full support proof."
+    },
+    {
+      "sample_id": "lim_15",
+      "document_key": "lost-in-middle-tacl-2024",
+      "category": "methodology",
+      "user_question": "How does query-aware contextualization affect key-value retrieval versus multi-document QA?",
+      "reference_answer": "It enables near-perfect key-value retrieval but minimally changes QA performance trends.",
+      "is_answerable": true,
+      "expected_page_numbers": [
+        8
+      ],
+      "source_evidence": [
+        {
+          "page_number": 8,
+          "section": "Section 4.2",
+          "quote": "near-perfect performance"
+        }
+      ],
+      "review_note": "Check the complete referenced passage, including qualifiers; short anchors locate evidence and are not a full support proof."
+    },
+    {
+      "sample_id": "lim_16",
+      "document_key": "lost-in-middle-tacl-2024",
+      "category": "conclusion",
+      "user_question": "What does the conclusion say about reader performance compared with retriever recall?",
+      "reference_answer": "Reader performance saturates substantially before retriever recall.",
+      "is_answerable": true,
+      "expected_page_numbers": [
+        11
+      ],
+      "source_evidence": [
+        {
+          "page_number": 11,
+          "section": "Section 7",
+          "quote": "saturates far before retriever recall"
+        }
+      ],
+      "review_note": "Check the complete referenced passage, including qualifiers; short anchors locate evidence and are not a full support proof."
+    },
+    {
+      "sample_id": "lim_17",
+      "document_key": "lost-in-middle-tacl-2024",
+      "category": "limitations",
+      "user_question": "Which decoding strategy is used, and what decoding work is left for the future?",
+      "reference_answer": "Greedy decoding is used; other decoding methods are left for future work.",
+      "is_answerable": true,
+      "expected_page_numbers": [
+        4,
+        5
+      ],
+      "source_evidence": [
+        {
+          "page_number": 4,
+          "section": "Section 2.2",
+          "quote": "greedy decoding"
+        },
+        {
+          "page_number": 5,
+          "section": "Section 2.2 continuation",
+          "quote": "other decoding methods to future work"
+        }
+      ],
+      "review_note": "Check the complete referenced passage, including qualifiers; short anchors locate evidence and are not a full support proof."
+    },
+    {
+      "sample_id": "lim_18",
+      "document_key": "lost-in-middle-tacl-2024",
+      "category": "architecture",
+      "user_question": "When are encoder-decoder models relatively robust to relevant-information position?",
+      "reference_answer": "Within their training-time context length; longer evaluation sequences exhibit positional degradation.",
+      "is_answerable": true,
+      "expected_page_numbers": [
+        8
+      ],
+      "source_evidence": [
+        {
+          "page_number": 8,
+          "section": "Figure 8 and Section 4.1",
+          "quote": "training-time maximum sequence length"
+        }
+      ],
+      "review_note": "Check the complete referenced passage, including qualifiers; short anchors locate evidence and are not a full support proof."
+    },
+    {
+      "sample_id": "lim_19",
+      "document_key": "lost-in-middle-tacl-2024",
+      "category": "unanswerable",
+      "user_question": "What vision-backbone training schedule does this paper prescribe?",
+      "reference_answer": null,
+      "is_answerable": false,
+      "expected_page_numbers": [],
+      "source_evidence": [],
+      "review_note": "Check the full paper scope; no such experimental specification or measurement is established."
+    },
+    {
+      "sample_id": "lim_20",
+      "document_key": "lost-in-middle-tacl-2024",
+      "category": "unanswerable",
+      "user_question": "What GPU operating temperature was measured during the experiments?",
+      "reference_answer": null,
+      "is_answerable": false,
+      "expected_page_numbers": [],
+      "source_evidence": [],
+      "review_note": "Check the full paper scope; no such experimental specification or measurement is established."
+    }
+  ],
+  "reviews": [
+    {
+      "sample_id": "lim_01",
+      "case_sha256": "1a882d23877e25c9e06eb9f1a876ec7cfebc8baf57cf383aecdfc64a33e02308",
+      "review_kind": "assistant",
+      "reviewer": "Codex",
+      "reviewed_at": "2026-11-12T06:23:32.134463+00:00",
+      "decision": "approved",
+      "notes": "Title checked against the first-page heading."
+    },
+    {
+      "sample_id": "lim_02",
+      "case_sha256": "4dbb052d158c10f80f3b4adef0766b83c39b03b0bb8bcaaf11aa6a78a48bb403",
+      "review_kind": "assistant",
+      "reviewer": "Codex",
+      "reviewed_at": "2026-11-12T06:23:32.134696+00:00",
+      "decision": "approved",
+      "notes": "All seven authors checked against the title-page author block; affiliations excluded."
+    },
+    {
+      "sample_id": "lim_03",
+      "case_sha256": "83b69ae21f959a36e4e57dbc494494ebe09a8a681b01dd97c8aa60f3f69f45c8",
+      "review_kind": "assistant",
+      "reviewer": "Codex",
+      "reviewed_at": "2026-11-12T06:23:32.134709+00:00",
+      "decision": "approved",
+      "notes": "Introduction uncertainty about using extended contexts checked; no claim of universal model failure added."
+    },
+    {
+      "sample_id": "lim_04",
+      "case_sha256": "9a36fc2dea4acef2abb1af9075776417767308de02850a8fbb40a3fef91d9036",
+      "review_kind": "assistant",
+      "reviewer": "Codex",
+      "reviewed_at": "2026-11-12T06:23:32.134717+00:00",
+      "decision": "approved",
+      "notes": "Both named tasks checked against the abstract."
+    },
+    {
+      "sample_id": "lim_05",
+      "case_sha256": "6fd966d12c445440548cf7fbf5319f65250a3356f93296ec0548601b294f27f6",
+      "review_kind": "assistant",
+      "reviewer": "Codex",
+      "reviewed_at": "2026-11-12T06:23:32.134725+00:00",
+      "decision": "approved",
+      "notes": "Figure 1 caption checked for primacy/recency and middle degradation; reference keeps the generally/often qualifier."
+    },
+    {
+      "sample_id": "lim_06",
+      "case_sha256": "24529d95cf19059f5d9023ae94658e1c9c45ca5eaf1f08a54f63edc41adafc04",
+      "review_kind": "assistant",
+      "reviewer": "Codex",
+      "reviewed_at": "2026-11-12T06:23:32.134732+00:00",
+      "decision": "approved",
+      "notes": "Section 2.1 checked for NaturalQuestions-Open and paragraph-long-answer subset."
+    },
+    {
+      "sample_id": "lim_07",
+      "case_sha256": "709cd996013e0fa92f36fde8c301ce860df063e8baa8b1601994893577f27410",
+      "review_kind": "assistant",
+      "reviewer": "Codex",
+      "reviewed_at": "2026-11-12T06:23:32.134738+00:00",
+      "decision": "approved",
+      "notes": "Section 2.1 explicitly selects 2655 queries; reference uses the same count."
+    },
+    {
+      "sample_id": "lim_08",
+      "case_sha256": "b9eafd8a1cad6c299b8777844457be7685278693a5f3a5fba6a4fa3f2d4fc7e6",
+      "review_kind": "assistant",
+      "reviewer": "Codex",
+      "reviewed_at": "2026-11-12T06:23:32.134744+00:00",
+      "decision": "approved",
+      "notes": "Contriever/MS-MARCO and exclusion of annotated answers checked in Section 2.1; plausible-answer ambiguity remains a paper caveat."
+    },
+    {
+      "sample_id": "lim_09",
+      "case_sha256": "4bd65f6426e4739c698b2f32ef15364e6d723b6e249f84aef42a106f04b99ee3",
+      "review_kind": "assistant",
+      "reviewer": "Codex",
+      "reviewed_at": "2026-11-12T06:23:32.134751+00:00",
+      "decision": "approved",
+      "notes": "Figures 3 and 4 plus Section 2.1 checked: reorder answer document and vary distractor count."
+    },
+    {
+      "sample_id": "lim_10",
+      "case_sha256": "cb9582034bba85d06ebac3e93f4fa8cdeb57f5b8f74708fb3a6e6c682ab45fe3",
+      "review_kind": "assistant",
+      "reviewer": "Codex",
+      "reviewed_at": "2026-11-12T06:23:32.134757+00:00",
+      "decision": "approved",
+      "notes": "Accuracy criterion checked as containment of any annotated correct answer, not full-string exact match."
+    },
+    {
+      "sample_id": "lim_11",
+      "case_sha256": "23e48ee02fd0bd2add031842c066e6df7b72f1948bbbfb442f1eddce1296ed70",
+      "review_kind": "assistant",
+      "reviewer": "Codex",
+      "reviewed_at": "2026-11-12T06:23:32.134763+00:00",
+      "decision": "approved",
+      "notes": "Section 2.3 checked for 10, 20, and 30 total documents."
+    },
+    {
+      "sample_id": "lim_12",
+      "case_sha256": "b43984c147ba9c0b198971276110b22afb9aead0754a147a8678401c9532c4d1",
+      "review_kind": "assistant",
+      "reviewer": "Codex",
+      "reviewed_at": "2026-11-12T06:23:32.134770+00:00",
+      "decision": "approved",
+      "notes": "Table 1 visually inspected: GPT-3.5-Turbo row is 56.1% closed-book / 88.3% oracle; distinct from 16K row."
+    },
+    {
+      "sample_id": "lim_13",
+      "case_sha256": "50be84b72937847f3fbc511505ca1615334b0ede147c9d441206d68b554e6de5",
+      "review_kind": "assistant",
+      "reviewer": "Codex",
+      "reviewed_at": "2026-11-12T06:23:32.134776+00:00",
+      "decision": "approved",
+      "notes": "Figure 6 and Section 3.1 checked for 128-bit unique random UUIDs and key-to-value retrieval."
+    },
+    {
+      "sample_id": "lim_14",
+      "case_sha256": "fc414f55684532696014eaddc75c45aa002b2ba539a9f8bc3b435b943c60532d",
+      "review_kind": "assistant",
+      "reviewer": "Codex",
+      "reviewed_at": "2026-11-12T06:23:32.134782+00:00",
+      "decision": "approved",
+      "notes": "Section 3.2 checked for 75/140/300 pairs and 500 examples each."
+    },
+    {
+      "sample_id": "lim_15",
+      "case_sha256": "9407924c0317e298040c4ccf83b9246ebf7bbce92f6f28cf6a8b0a400f33e41c",
+      "review_kind": "assistant",
+      "reviewer": "Codex",
+      "reviewed_at": "2026-11-12T06:23:32.134788+00:00",
+      "decision": "approved",
+      "notes": "Section 4.2 checked: near-perfect key-value results and minimal changes in QA trends; does not imply QA robustness solved."
+    },
+    {
+      "sample_id": "lim_16",
+      "case_sha256": "e4aec5b042faa7a802bfb65ae67a5e88b06a359d1735887e5236784b4d3a13ac",
+      "review_kind": "assistant",
+      "reviewer": "Codex",
+      "reviewed_at": "2026-11-12T06:23:32.134794+00:00",
+      "decision": "approved",
+      "notes": "Section 7 conclusion checked: reader saturation precedes retriever recall saturation."
+    },
+    {
+      "sample_id": "lim_17",
+      "case_sha256": "0233d3f5eb40e0404ebc9610e951b46489cfc95200bd01a301598a5d92c3557d",
+      "review_kind": "assistant",
+      "reviewer": "Codex",
+      "reviewed_at": "2026-11-12T06:23:32.134801+00:00",
+      "decision": "approved",
+      "notes": "Page reference corrected during review: greedy decoding is on PDF page 4 and future-work continuation is on page 5."
+    },
+    {
+      "sample_id": "lim_18",
+      "case_sha256": "553b2ff984b5e8a345647e38a7f957e39a6fe141e2874c738c364a7c57945d52",
+      "review_kind": "assistant",
+      "reviewer": "Codex",
+      "reviewed_at": "2026-11-12T06:23:32.134807+00:00",
+      "decision": "approved",
+      "notes": "Figure 8 and Section 4.1 checked; robustness is qualified by training-time context length."
+    },
+    {
+      "sample_id": "lim_19",
+      "case_sha256": "ab1371b71d8840fe0fa0c06b48600acb3d2cc6c3db86232e806df9c74314074c",
+      "review_kind": "assistant",
+      "reviewer": "Codex",
+      "reviewed_at": "2026-11-12T06:23:32.134813+00:00",
+      "decision": "approved",
+      "notes": "Full-paper topic/scope checked: no vision-backbone training schedule is prescribed; expected behavior is abstention."
+    },
+    {
+      "sample_id": "lim_20",
+      "case_sha256": "db290cef4319af950fecbacf6f927817f2378755f2a363de0d39c64231c99620",
+      "review_kind": "assistant",
+      "reviewer": "Codex",
+      "reviewed_at": "2026-11-12T06:23:32.134818+00:00",
+      "decision": "approved",
+      "notes": "Full-paper topic/scope checked: no measured GPU operating temperature is supplied; expected behavior is abstention."
+    }
+  ]
+}

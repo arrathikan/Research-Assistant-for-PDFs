@@ -75,3 +75,8 @@ Thumbs.db
 
 # Generated assets from the installed PDF.js dependency
 frontend/public/pdfjs/
+
+# Local evaluation environments and potentially private run artifacts
+.venv-evaluation/
+evaluation/results/*
+!evaluation/results/README.md

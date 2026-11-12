@@ -95,9 +95,9 @@ def _results(
     return result
 
 
-def retrieve(
+def _candidates(
     database: Database, document_id: str, question: str, settings: Settings
-) -> tuple[RetrievalScope, list[RetrievalHit]]:
+) -> tuple[RetrievalScope, list[DocumentChunk], list[DocumentChunk]]:
     scope, chunks = current_scope(database, document_id, settings)
     check_indexes(database, settings)  # Check readiness before a paid query embedding.
     try:
@@ -143,6 +143,30 @@ def retrieve(
     after, _ = current_scope(database, document_id, settings)
     if after != scope:
         raise RagNotReady("Document generation changed during retrieval")
-    return scope, rrf(
-        parallel["dense"], parallel["keyword"], settings.rag_context_k, settings.rag_rrf_constant
-    )
+    return scope, parallel["dense"], parallel["keyword"]
+
+
+def retrieve(
+    database: Database, document_id: str, question: str, settings: Settings
+) -> tuple[RetrievalScope, list[RetrievalHit]]:
+    scope, dense, keyword = _candidates(database, document_id, question, settings)
+    return scope, rrf(dense, keyword, settings.rag_context_k, settings.rag_rrf_constant)
+
+
+def retrieve_variants(
+    database: Database, document_id: str, question: str, settings: Settings
+) -> tuple[RetrievalScope, dict[str, list[RetrievalHit]]]:
+    """Paired offline comparison from one query vector and identical source candidates.
+
+    Semantic results preserve vector ranking; keyword results affect only hybrid.
+    Retrieval time is shared and must not be reported as per-strategy latency.
+    """
+    scope, dense, keyword = _candidates(database, document_id, question, settings)
+    unique_dense = {chunk.id: chunk for chunk in dense}
+    semantic = [
+        RetrievalHit(chunk=chunk) for chunk in list(unique_dense.values())[: settings.rag_context_k]
+    ]
+    return scope, {
+        "hybrid": rrf(dense, keyword, settings.rag_context_k, settings.rag_rrf_constant),
+        "semantic": semantic,
+    }

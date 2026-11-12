@@ -1,5 +1,5 @@
 """Evaluation subsystem for ResearchAI using Ragas and manual benchmarks."""
 
-from evaluation.schemas import EvaluationSample, EvaluationReportSummary
+from evaluation.schemas import EvaluationReportSummary, EvaluationSample
 
-__all__ = ["EvaluationSample", "EvaluationReportSummary"]
+__all__ = ["EvaluationReportSummary", "EvaluationSample"]
