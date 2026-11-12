@@ -39,28 +39,39 @@ its scroll area; the PDF controls remain outside its scrolling canvas. Below
 focus stays inside, Escape closes it, and focus returns to the opening source or
 button. Hidden content has no visible PDF toolbar or placeholder.
 
-Measured closed-content widths and open layouts:
+The Workspace and navigation share a 1440px outer limit and 32px desktop gutters.
+The closed-PDF toolbar and content now share a 1200px limit, replacing the
+previous 768px content cap. Heading/title and all five summary cards have matching
+edges. Paragraphs retain a 100ch limit; chat answers are limited to 90ch and
+questions fit their text with an 85%/70ch limit, while conversation and input align
+with the wider content area.
+
+Measured current layout:
 
 | Actual viewport | Closed content | Open layout |
 |---|---:|---|
-| 375px | 343px | Full-screen PDF, about 375px wide |
-| 769px (tablet target ~768) | 721px | About 397px / 325px |
-| 1280px | 768px | About 598px / 490px |
-| 1440px | 768px | About 598px / 490px |
+| 375px | 343px | Full-screen PDF, 375px wide |
+| 768px | 720px | 396px / 324px |
+| 1280px | 1200px | About 669px / 547px |
+| 1440px | 1200px | About 757px / 619px |
+| 1920px | 1200px | About 757px / 619px |
 
-The outer readable page boundary stays at 1152px. No page-level horizontal
-overflow was observed. Intentional zoom can scroll within the PDF viewport.
+At 1920px the outer page stays at 1440px; ordinary Dashboard/Upload pages retain
+their 1152px boundary. In all five measured sizes, navigation and page boundaries
+matched, toolbar and summary edges matched, and there was no page-level horizontal
+overflow. Closed summary had one scroll owner. Intentional PDF zoom may scroll
+inside its own viewport.
 
 ## Verification
 
-- Baseline frontend: 99 passed.
-- Final preserved workspace: **110 passed**. Isolated proposed frontend:
-  **106 passed**, excluding four existing untracked wrapper tests.
+- Width-refinement baseline frontend: 110 passed.
+- Final preserved workspace: **112 passed**. Isolated proposed frontend:
+  **108 passed**, excluding four existing untracked wrapper tests.
 - Both production builds and strict TypeScript checks passed.
-- Backend regression: **463 passed, 4 optional live tests skipped**, using a
-  disposable database and isolated broker queues with simulated provider calls.
+- The earlier optional-viewer increment passed **463 backend tests, 4 optional
+  live checks skipped**. This width refinement changes no backend files.
 - Scoped whitespace checks passed. No separate frontend lint script is configured.
-- Full Python Ruff check reports four existing I001 import-order errors in
+- Earlier full Python Ruff checking recorded four existing I001 import-order errors in
   backend/shared/__init__.py, backend/tests/test_evaluation_schemas.py,
   backend/tests/test_gateway_health.py and backend/tests/test_shared_models.py.
   Those files are byte-identical to origin/main and were not changed.
@@ -89,3 +100,18 @@ does not establish semantic correctness of every generated claim; the existing
 Ragas/manual evaluation limitations still apply. This UI refinement makes no new
 answer-accuracy claim. PDF navigation is retained for the current selected-document
 Workspace session; it is reset on document changes or full page reload.
+
+
+### Width-refinement live checks
+
+The real summary header and five cards measured 1200px at 1280, 1440 and 1920px.
+The same closed toolbar measured 1200px at those widths. Summary paragraph width
+was about 882px, so expanding the card did not create a full-screen text line.
+The chat conversation and input measured 1200px; an actual answer bubble measured
+about 794px and its question about 406px.
+
+A live chat citation opened the correct page 4 of the selected 11-page PDF using
+one viewer. Closing/reopening retained page 5 and 125% zoom, with identical chat
+text. Returning to summary restored its 1200px layout and all five headings.
+The PDF stayed unmounted until requested. No parsing, embedding, retrieval,
+summary-generation or API logic changed, and no new dependencies were added.

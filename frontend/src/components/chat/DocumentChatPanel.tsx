@@ -82,8 +82,8 @@ export function DocumentChatPanel({ documentId, onCitationClick }: Props) {
       <div className="space-y-4" aria-label="Chat messages">
         {turns.map(turn => (
           <article key={turn.response.turn_id} className="space-y-4">
-            <p className="ml-auto max-w-[90%] rounded-2xl rounded-tr-sm bg-blue-50 px-4 py-3 text-sm leading-6 text-slate-800 whitespace-pre-wrap">{turn.question}</p>
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+            <p className="ml-auto w-fit max-w-[85%] sm:max-w-[70ch] rounded-2xl rounded-tr-sm bg-blue-50 px-4 py-3 text-sm leading-6 text-slate-800 whitespace-pre-wrap">{turn.question}</p>
+            <div className="w-full max-w-[90ch] rounded-2xl border border-slate-200 bg-white p-4 text-sm sm:p-5">
               <p className="mb-3 text-xs font-semibold text-blue-700">ResearchAI</p>
               <CitedAnswer answer={turn.response.answer} citations={turn.response.citations} onCitationClick={onCitationClick} />
               {turn.response.citations.length > 0 && <details className="mt-4 border-t border-slate-100 pt-3">
@@ -99,7 +99,7 @@ export function DocumentChatPanel({ documentId, onCitationClick }: Props) {
             </div>
           </article>
         ))}
-        {pending && <p className="ml-auto max-w-[90%] rounded-2xl bg-blue-50 p-3 text-sm">{pending}</p>}
+        {pending && <p className="ml-auto w-fit max-w-[85%] sm:max-w-[70ch] rounded-2xl bg-blue-50 p-3 text-sm">{pending}</p>}
       </div>
       {loading && <p role="status" className="flex items-center gap-2 text-xs text-slate-500"><Loader2 size={14} aria-hidden="true" className="motion-safe:animate-spin" />{pending ? 'Preparing your answer…' : 'Loading conversation…'}</p>}
       {error && <p role="alert" className="text-sm text-red-700">{error}</p>}

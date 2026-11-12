@@ -598,3 +598,22 @@ retained page/zoom. Initial scope/typing and mobile-focus issues found during
 verification were corrected before completion. Four pre-existing backend Ruff
 import-order findings remain outside this frontend change. See
 [behavior and verification](optional-pdf-workspace.md) for detail and limits.
+
+
+### Balanced Workspace width refinement
+
+- [x] Trace both the 1152px page limit and nested 768px summary/chat limit.
+- [x] Add a 1440px Workspace boundary with matching navigation gutters.
+- [x] Align the closed-PDF toolbar and content within a 1200px column.
+- [x] Widen all summary cards while retaining readable paragraph lengths.
+- [x] Limit individual chat bubbles while aligning conversation and input.
+- [x] Preserve PDF visibility, 55/45 split, citations, zoom and session state.
+- [x] Check 375, 768, 1280, 1440 and 1920px layouts with actual document content.
+
+Verification: **112 local / 108 isolated frontend tests passed**, both strict
+TypeScript/production builds passed, and scoped whitespace checks passed. Navigation/
+page and toolbar/content alignment passed at every requested viewport, with no
+page-level horizontal overflow or nested summary scrolling. Real citation
+navigation reached page 4; reopen retained page 5 at 125% zoom and unchanged chat
+text. Dashboard/Upload retain their existing width. All pre-existing local edits
+were preserved. See [layout measurements](optional-pdf-workspace.md).
