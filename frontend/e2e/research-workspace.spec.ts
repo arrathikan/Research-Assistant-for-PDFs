@@ -140,7 +140,8 @@ for (const width of [375, 768, 1024, 1280, 1440, 1920]) {
     if (width >= 1280) {
       const card = page.locator('header').filter({ has: page.getByRole('heading', { name: 'Synthetic research paper' }) });
       const bounds = await card.boundingBox();
-      expect(bounds?.width).toBeGreaterThanOrEqual(1100);
+      const available = await page.getByTestId('page-container').boundingBox();
+      expect(bounds?.width).toBeGreaterThanOrEqual(Math.min(1100, available!.width - 66));
       expect(bounds?.width).toBeLessThanOrEqual(1200);
     }
     await expectNoOverflow(page);

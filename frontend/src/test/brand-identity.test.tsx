@@ -5,13 +5,13 @@ import { Navbar as UploadNavbar } from '../components/Navbar';
 
 it('shares the supplied logo between both existing navigation shells', () => {
   const view = render(<AppLayout activeTab="dashboard" activeDoc={null} onSelectTab={vi.fn()}>Library</AppLayout>);
-  const source = screen.getByTestId('brand-logo').getAttribute('src');
+  const source = screen.getByTestId('brand-logo').querySelector('image')?.getAttribute('href');
   expect(source).toContain('researchai-logo.png');
-  expect(screen.getByText('ResearchAI')).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'ResearchAI home' })).toBeInTheDocument();
   expect(screen.getByText('Academic Paper Assistant')).toBeInTheDocument();
-  expect(screen.getByTestId('brand-logo')).toHaveAttribute('alt', '');
+  expect(screen.getByTestId('brand-logo')).toHaveAttribute('aria-hidden', 'true');
   view.rerender(<UploadNavbar />);
-  expect(screen.getByTestId('brand-logo')).toHaveAttribute('src', source);
+  expect(screen.getByTestId('brand-logo').querySelector('image')).toHaveAttribute('href', source);
 });
 
 it('updates the browser page title as the existing navigation changes', () => {

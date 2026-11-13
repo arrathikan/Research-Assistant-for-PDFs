@@ -556,3 +556,13 @@ compact paper-library rows and a continuous five-section reading layout. Upload,
 chat and the optional PDF viewer keep their existing integration and state.
 See [design changes and verification](docs/frontend-brand-redesign.md) for page
 updates, logo provenance, responsive behavior and test scope.
+
+### Reference dashboard and complete interaction theme
+
+The Paper Library now has responsive sidebar navigation, four real metadata
+statistics, filename search, status filtering and date/name sorting. The paper,
+processing and ready illustrations come from the user's references; the selected
+book-logo PNG is retained. Shared orange tokens cover primary/pressed buttons,
+active tabs, citations and input focus while cards and secondary controls stay
+neutral. Summary/Chat shortcuts respect data readiness. See the
+[dashboard implementation and browser audit](docs/dashboard-reference-theme.md).

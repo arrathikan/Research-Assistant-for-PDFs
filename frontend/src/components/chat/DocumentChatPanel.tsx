@@ -99,7 +99,7 @@ export function DocumentChatPanel({ documentId, onCitationClick }: Props) {
           {suggestions.slice(0, 2).map(suggestionButton)}
         </div>
         <details className="mt-3">
-          <summary className="min-h-8 w-fit cursor-pointer rounded py-1 text-xs font-semibold text-stone-600 hover:text-brand-700">More question ideas</summary>
+          <summary className="min-h-8 w-fit ui-link cursor-pointer rounded py-1 text-xs font-semibold">More question ideas</summary>
           <div className="mt-2 grid gap-2 sm:grid-cols-2">{suggestions.slice(2).map(suggestionButton)}</div>
         </details>
       </div>}
@@ -111,10 +111,10 @@ export function DocumentChatPanel({ documentId, onCitationClick }: Props) {
               <p className="mb-4 flex items-center gap-2 text-xs font-semibold text-brand-700"><BookOpen size={16} aria-hidden="true" />ResearchAI</p>
               <CitedAnswer answer={turn.response.answer} citations={turn.response.citations} onCitationClick={onCitationClick} />
               {turn.response.citations.length > 0 && <details className="mt-5 border-t border-stone-100 pt-3">
-                <summary className="min-h-8 w-fit cursor-pointer rounded py-1 text-xs font-semibold text-stone-600 hover:text-brand-700">Sources ({turn.response.citations.length})</summary>
+                <summary className="min-h-8 w-fit ui-link cursor-pointer rounded py-1 text-xs font-semibold">Sources ({turn.response.citations.length})</summary>
                 <ol aria-label="Supporting sources" className="mt-3 space-y-3 text-sm text-stone-600">
                   {turn.response.citations.map(source => <li key={source.citation_id} className="border-l-2 border-stone-200 pl-3">
-                    {onCitationClick ? <button type="button" className="min-h-8 rounded-lg px-2 py-1 text-xs font-semibold text-brand-700 hover:bg-brand-100" onClick={() => onCitationClick(source)}>Page {source.page_number}</button>
+                    {onCitationClick ? <button type="button" className="min-h-8 rounded-lg px-2 py-1 ui-citation text-xs font-semibold" onClick={() => onCitationClick(source)}>Page {source.page_number}</button>
                       : <span className="font-semibold">Page {source.page_number}</span>}
                     <blockquote className="mt-1 leading-7">{source.quote_snippet}</blockquote>
                   </li>)}

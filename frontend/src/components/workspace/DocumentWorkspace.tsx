@@ -103,10 +103,10 @@ function WorkspaceSession({ document: paper, initialTab = 'summary' }: Props) {
 
   useEffect(() => {
     if (!pdfOpen || !mobile) return;
-    const header = window.document.querySelector('[data-app-header]');
-    const alreadyInert = header?.hasAttribute('inert');
-    header?.setAttribute('inert', '');
-    return () => { if (!alreadyInert) header?.removeAttribute('inert'); };
+    const navigation = Array.from(window.document.querySelectorAll('[data-app-header], [data-app-navigation]'));
+    const previous = navigation.map(element => element.hasAttribute('inert'));
+    navigation.forEach(element => element.setAttribute('inert', ''));
+    return () => { navigation.forEach((element, index) => { if (!previous[index]) element.removeAttribute('inert'); }); };
   }, [pdfOpen, mobile]);
 
   const contentWidth = pdfOpen ? '' : 'max-w-[1200px]';
@@ -131,7 +131,7 @@ function WorkspaceSession({ document: paper, initialTab = 'summary' }: Props) {
           </nav>
           <button type="button" disabled={!validDocument} aria-expanded={pdfOpen} aria-controls="workspace-original-pdf"
             onClick={event => { event.currentTarget.focus(); if (pdfOpen) setPdfOpen(false); else showPdf(); }}
-            className="ui-button ui-button-secondary text-xs text-brand-700">
+            className="ui-button ui-button-secondary ui-link text-xs">
             <FileText size={15} aria-hidden="true" />{pdfOpen ? 'Close PDF' : 'View Original PDF'}
           </button>
           </div>

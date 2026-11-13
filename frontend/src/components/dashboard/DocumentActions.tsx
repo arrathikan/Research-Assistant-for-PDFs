@@ -62,8 +62,8 @@ export function DocumentActions({ document: paper, onOpen, onDelete }: Props) {
   const itemProps = { 'data-paper-action': '', role: nativeFocus ? undefined : 'menuitem', tabIndex: 0 };
   const menu = <div ref={popup} id={id} {...(nativePopover ? { popover: 'auto' } : { hidden: !open })} className="paper-actions-popup">
     <div {...{ focusgroup: 'menu nomemory' }} role={nativeFocus ? undefined : 'menu'} aria-label={'Actions for ' + paper.filename} onKeyDown={keyboard}>
-      <button {...itemProps} type="button" className="ui-button ui-button-ghost w-full justify-start" onClick={() => { close(); onOpen(); }}><FileText size={16} aria-hidden="true" />Open Workspace</button>
-      {validId && <a {...itemProps} className="ui-button ui-button-ghost w-full justify-start" href={api.getPdfStreamUrl(paper.id!)} target="_blank" rel="noreferrer" onClick={() => close()}><ArrowUpRight size={16} aria-hidden="true" />View Original PDF<span className="sr-only"> (opens in a new tab)</span></a>}
+      <button {...itemProps} type="button" className="ui-button ui-button-ghost ui-link w-full justify-start" onClick={() => { close(); onOpen(); }}><FileText size={16} aria-hidden="true" />Open Workspace</button>
+      {validId && <a {...itemProps} className="ui-button ui-button-ghost ui-link w-full justify-start" href={api.getPdfStreamUrl(paper.id!)} target="_blank" rel="noreferrer" onClick={() => close()}><ArrowUpRight size={16} aria-hidden="true" />View Original PDF<span className="sr-only"> (opens in a new tab)</span></a>}
       {onDelete && <button {...itemProps} type="button" className="ui-button w-full justify-start text-red-700 hover:bg-red-50" onClick={() => { close(); onDelete(); }}><Trash2 size={16} aria-hidden="true" />Delete Paper</button>}
     </div>
   </div>;

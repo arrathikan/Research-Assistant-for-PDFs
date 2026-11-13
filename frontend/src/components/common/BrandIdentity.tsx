@@ -1,13 +1,14 @@
 import researchaiLogo from '../../assets/researchai-logo.png';
 
-/** The supplied logo is used unchanged; text keeps the brand readable at small sizes. */
+/** Keep the supplied book artwork, with one legible wordmark at compact header sizes. */
 export function BrandIdentity() {
-  return <span className="flex min-w-0 items-center gap-3">
-    <img data-testid="brand-logo" src={researchaiLogo}
-      alt="" width={1254} height={1254} className="h-12 w-14 shrink-0 object-contain" />
+  return <span className="flex min-w-0 items-center gap-2.5">
+    <svg data-testid="brand-logo" aria-hidden="true" focusable="false" viewBox="250 170 750 750" className="h-11 w-11 shrink-0">
+      <image href={researchaiLogo} width={1254} height={1254} />
+    </svg>
     <span className="min-w-0 text-left">
-      <span className="block text-lg font-semibold tracking-tight text-stone-900">ResearchAI</span>
-      <span className="block text-xs text-stone-600">Academic Paper Assistant</span>
+      <span className="block text-xl font-semibold tracking-tight text-stone-900">Research<span className="text-brand-600">AI</span></span>
+      <span className="block text-[11px] text-stone-600">Academic Paper Assistant</span>
     </span>
   </span>;
 }

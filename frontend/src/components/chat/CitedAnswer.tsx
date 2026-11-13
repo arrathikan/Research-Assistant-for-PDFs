@@ -11,7 +11,7 @@ export function CitedAnswer({ answer, citations, onCitationClick }: Props) {
       const match = /^\[(\d+)\]$/.exec(part);
       const source = match ? citations[Number(match[1]) - 1] : undefined;
       if (source && onCitationClick) return <button key={key} type="button"
-        className="mx-0.5 inline-flex min-h-6 min-w-6 items-center justify-center rounded-md bg-brand-50 px-1.5 font-medium text-brand-700 hover:bg-brand-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
+        className="mx-0.5 inline-flex min-h-6 min-w-6 items-center justify-center rounded-md ui-citation px-1.5 font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
         aria-label={'Open citation ' + match![1] + ', page ' + source.page_number}
         onClick={event => { event.currentTarget.focus(); onCitationClick(source); }}>[Page {source.page_number}]</button>;
       if (source) return <span key={key} className="font-medium text-brand-700">[Page {source.page_number}]</span>;

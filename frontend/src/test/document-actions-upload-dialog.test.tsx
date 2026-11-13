@@ -171,9 +171,9 @@ it('confirms deletion once, waits for success, then updates filtered cards, coun
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   expect(screen.queryByTestId('document-card')).not.toBeInTheDocument();
   const stats = within(screen.getByRole('region', { name: 'Library statistics' }));
-  expect(stats.getByText('Total Research Papers').parentElement?.firstElementChild).toHaveTextContent('0');
-  expect(stats.getByText('PDF Storage').parentElement?.firstElementChild).toHaveTextContent('0.0 KB');
-  expect(within(screen.getByRole('navigation')).queryByRole('button', { name: 'Workspace' })).not.toBeInTheDocument();
+  expect(stats.getByText('Total Papers').parentElement?.firstElementChild).toHaveTextContent('0');
+  expect(stats.getByText('Storage Used').parentElement?.firstElementChild).toHaveTextContent('0 bytes');
+  expect(within(screen.getByRole('navigation')).getByRole('button', { name: 'Workspace' })).toBeDisabled();
   expect(sessionStorage.getItem('researchai.chat.' + ID)).toBeNull();
 });
 

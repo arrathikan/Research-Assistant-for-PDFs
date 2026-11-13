@@ -23,11 +23,11 @@ describe('Navbar Component', () => {
       />
     );
 
-    expect(screen.getByText('ResearchAI')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'ResearchAI home' })).toBeInTheDocument();
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
     expect(screen.getByText('Upload Paper')).toBeInTheDocument();
-    // Workspace button is hidden when no document is active
-    expect(screen.queryByText('Workspace')).not.toBeInTheDocument();
+    // Keep navigation discoverable without opening an empty workspace.
+    expect(screen.getByRole('button', { name: 'Workspace' })).toBeDisabled();
   });
 
   it('indicates the active workspace when a document is selected', () => {

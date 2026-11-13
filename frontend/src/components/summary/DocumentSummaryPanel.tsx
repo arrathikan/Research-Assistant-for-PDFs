@@ -130,7 +130,7 @@ export function DocumentSummaryPanel({ documentId, filename, documentStatus, onC
                   {sources.map((source, sourceIndex) => onCitationClick
                     ? <button key={sourceIndex} type="button" onClick={event => { event.currentTarget.focus(); void openSource(source); }}
                       aria-label={'Open source for ' + section.title + ', page ' + source.page_number}
-                      className="inline-flex min-h-8 items-center rounded-lg bg-brand-50 px-2.5 py-1 font-medium text-brand-700 hover:bg-brand-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600">Page {source.page_number}</button>
+                      className="inline-flex min-h-8 items-center rounded-lg ui-citation px-2.5 py-1 font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600">Page {source.page_number}</button>
                     : <span key={sourceIndex} className="font-medium text-stone-500">Page {source.page_number}</span>)}
                 </div>
                 <details className="mt-3 text-xs text-stone-500">

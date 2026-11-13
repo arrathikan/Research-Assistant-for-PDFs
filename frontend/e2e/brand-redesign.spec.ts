@@ -22,9 +22,9 @@ async function screenshot(page: Page, name: string) {
 test('exact transparent logo, favicon and requested brand colors load in the browser', async ({ page }) => {
   await mockPaperApi(page);
   await expect(page).toHaveTitle('Paper Library | ResearchAI');
-  const logo = page.getByTestId('brand-logo');
-  await expect.poll(() => logo.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBe(1254);
-  const source = await logo.getAttribute('src');
+  const logo = page.getByTestId('brand-logo').locator('image');
+  await expect(logo).toHaveAttribute('width', '1254');
+  const source = await logo.getAttribute('href');
   expect(source).toBeTruthy();
   const response = await page.request.get(source!);
   expect(createHash('sha256').update(await response.body()).digest('hex')).toBe('4e419b0878e838ff7b3bc3cda453de62bbfb873979c970682aca202f1384a7da');

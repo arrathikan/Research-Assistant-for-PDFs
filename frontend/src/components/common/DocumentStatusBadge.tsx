@@ -1,4 +1,4 @@
-import { CheckCircle2, Circle, CircleAlert, Clock3 } from 'lucide-react';
+import { CheckCircle2, RefreshCw, CircleAlert, Clock3 } from 'lucide-react';
 import type { DocumentStatus } from '../../types';
 
 const STATES = {
@@ -9,7 +9,7 @@ const STATES = {
 
 export function DocumentStatusBadge({ status, testId }: { status: DocumentStatus; testId?: string }) {
   const state = status in STATES ? STATES[status as keyof typeof STATES]
-    : { label: 'Processing', icon: Circle, style: 'border-brand-200 bg-brand-50 text-brand-700' };
+    : { label: 'Processing', icon: RefreshCw, style: 'border-amber-200 bg-amber-50 text-amber-800' };
   const Icon = state.icon;
   return <span data-testid={testId} data-status={status} className={'ui-badge whitespace-nowrap ' + state.style}>
     <Icon size={13} aria-hidden="true" />{state.label}
