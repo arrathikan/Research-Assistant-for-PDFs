@@ -16,6 +16,7 @@ from backend.services.document_processor.parsed_models import (
 from backend.services.document_processor.upload import validate_pdf
 from backend.shared.config import Settings
 from backend.shared.database import StorageUnavailable
+from backend.shared.document_lifecycle import document_write
 from backend.shared.models import DocumentStatus, ParsingStatus
 from backend.shared.storage import DocumentNotFound, get_document, read_pdf
 from bson import ObjectId
@@ -84,35 +85,37 @@ def save_parsed_document(
                 }
             )
     try:
-        database.parsed_pages.insert_many(pages, ordered=True)
-        if sources:
-            database.source_elements.insert_many(sources, ordered=True)
-        completed = database.documents.update_one(
-            {
-                "_id": identifier,
-                "parsing_run_id": run_id,
-                "parsing_status": ParsingStatus.RUNNING,
-                "status": DocumentStatus.PARSING,
-            },
-            {
-                "$set": {
-                    "active_parse_run_id": run_id,
-                    "parsing_status": ParsingStatus.COMPLETED,
-                    "status": DocumentStatus.PENDING,
-                    "parsed_at": _now(),
-                    "updated_at": _now(),
-                    "page_count": len(parsed.pages),
-                    "parsing_job_id": parsed.provider_job_id,
-                    "parsing_sdk_version": version("llama-cloud"),
-                    "parsing_provider_version": settings.llama_parse_version,
-                    "parsing_tier": settings.llama_parse_tier,
-                    "error_message": None,
+        with document_write(database, parsed.document_id):
+            database.parsed_pages.insert_many(pages, ordered=True)
+            if sources:
+                database.source_elements.insert_many(sources, ordered=True)
+            completed = database.documents.update_one(
+                {
+                    "_id": identifier,
+                    "deletion_state": {"$exists": False},
+                    "parsing_run_id": run_id,
+                    "parsing_status": ParsingStatus.RUNNING,
+                    "status": DocumentStatus.PARSING,
                 },
-                "$unset": {"parsing_run_id": ""},
-            },
-        )
-        if completed.matched_count != 1:
-            raise ParsingConflict("Parsing ownership changed before publication")
+                {
+                    "$set": {
+                        "active_parse_run_id": run_id,
+                        "parsing_status": ParsingStatus.COMPLETED,
+                        "status": DocumentStatus.PENDING,
+                        "parsed_at": _now(),
+                        "updated_at": _now(),
+                        "page_count": len(parsed.pages),
+                        "parsing_job_id": parsed.provider_job_id,
+                        "parsing_sdk_version": version("llama-cloud"),
+                        "parsing_provider_version": settings.llama_parse_version,
+                        "parsing_tier": settings.llama_parse_tier,
+                        "error_message": None,
+                    },
+                    "$unset": {"parsing_run_id": ""},
+                },
+            )
+            if completed.matched_count != 1:
+                raise ParsingConflict("Parsing ownership changed before publication")
     except PyMongoError:
         raise StorageUnavailable("Parsed content persistence failed") from None
 
@@ -122,7 +125,7 @@ def read_parsed_document(database: Database[dict[str, Any]], document_id: str) -
         raise ValueError("Invalid document identifier")
     try:
         document = database.documents.find_one({"_id": ObjectId(document_id)})
-        if document is None:
+        if document is None or document.get("deletion_state") == "DELETING":
             raise DocumentNotFound("Document not found")
         run_id = document.get("active_parse_run_id")
         if not run_id:
@@ -174,6 +177,7 @@ def parse_pdf(
         claim = database.documents.find_one_and_update(
             {
                 "_id": identifier,
+                "deletion_state": {"$exists": False},
                 "status": {"$in": [DocumentStatus.PENDING, DocumentStatus.FAILED]},
                 "parsing_status": {"$nin": [ParsingStatus.RUNNING, ParsingStatus.COMPLETED]},
             },

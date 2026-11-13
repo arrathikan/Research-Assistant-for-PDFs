@@ -53,7 +53,7 @@ def _sources(database: Database, message: JobMessage, settings: Settings) -> dic
         raise StageFailure("SOURCE_CHANGED", retryable=False) from None
     with storage_operation():
         document = database.documents.find_one({"_id": ObjectId(message.document_id)})
-        if document is None:
+        if document is None or document.get("deletion_state") == "DELETING":
             raise DocumentNotFound("Document not found")
         return {
             "source_parse_run_id": document["active_parse_run_id"],
@@ -68,7 +68,7 @@ def _run(
     token = record["claim_token"]
     with storage_operation():
         document = database.documents.find_one({"_id": ObjectId(message.document_id)})
-        if document is None:
+        if document is None or document.get("deletion_state") == "DELETING":
             raise DocumentNotFound("Document not found")
         if any(
             document.get(f"{stage}_status") == "RUNNING"

@@ -62,7 +62,11 @@ def get_document(database: Database[dict[str, Any]], document_id: str) -> Stored
     identifier = _object_id(document_id)
     try:
         record = database.documents.find_one({"_id": identifier})
-        return _document(record) if record is not None else None
+        return (
+            _document(record)
+            if record is not None and record.get("deletion_state") != "DELETING"
+            else None
+        )
     except PyMongoError:
         raise StorageUnavailable("Document lookup unavailable") from None
 
@@ -72,6 +76,8 @@ def find_document_by_hash(database: Database[dict[str, Any]], digest: str) -> St
         raise ValueError("Invalid SHA-256 digest")
     try:
         record = database.documents.find_one({"sha256": digest})
+        if record is not None and record.get("deletion_state") == "DELETING":
+            raise StorageUnavailable("Identical paper deletion is incomplete; retry deletion first")
         return _document(record) if record is not None else None
     except PyMongoError:
         raise StorageUnavailable("Document lookup unavailable") from None

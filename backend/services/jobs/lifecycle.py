@@ -6,7 +6,7 @@ from uuid import uuid4
 from backend.services.jobs.store import JobConflict, envelope, now, retry_job, storage_operation
 from backend.shared.config import Settings
 from backend.shared.job_models import FailureCode, JobMessage
-from backend.shared.storage import DocumentNotFound
+from backend.shared.storage import DocumentNotFound, get_document
 from bson import ObjectId
 from pymongo import ReturnDocument
 from pymongo.database import Database
@@ -27,6 +27,8 @@ def owned(message: JobMessage, token: str) -> dict:
 
 
 def claim_job(database: Database, message: JobMessage, settings: Settings) -> dict | None:
+    if get_document(database, message.document_id) is None:
+        return None
     with storage_operation():
         return database.processing_jobs.find_one_and_update(
             {

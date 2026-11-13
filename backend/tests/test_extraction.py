@@ -96,7 +96,11 @@ def test_parse_loads_original_and_publishes_complete_output(pdf):
     provider.assert_called_once_with(DOCUMENT_ID, pdf, 1, SETTINGS)
     database.parsed_pages.insert_many.assert_called_once()
     database.source_elements.insert_many.assert_called_once()
-    committed = database.documents.update_one.call_args.args[1]["$set"]
+    committed = next(
+        call.args[1]["$set"]
+        for call in database.documents.update_one.call_args_list
+        if "active_parse_run_id" in call.args[1].get("$set", {})
+    )
     assert committed["parsing_status"] == "COMPLETED"
     assert committed["status"] == "PENDING"
     assert committed["active_parse_run_id"]
@@ -197,15 +201,23 @@ def test_unknown_document_does_not_call_provider():
 
 def test_partial_storage_failure_never_publishes_pointer():
     database = MagicMock()
+    database.documents.update_one.return_value.matched_count = 1
     database.source_elements.insert_many.side_effect = OperationFailure("private")
     with pytest.raises(StorageUnavailable):
         save_parsed_document(database, parsed(), "run-test", SETTINGS)
-    database.documents.update_one.assert_not_called()
+    assert not any(
+        "active_parse_run_id" in call.args[1].get("$set", {})
+        for call in database.documents.update_one.call_args_list
+    )
 
 
 def test_lost_ownership_does_not_publish_success():
     database = MagicMock()
-    database.documents.update_one.return_value.matched_count = 0
+    database.documents.update_one.side_effect = [
+        MagicMock(matched_count=1),
+        MagicMock(matched_count=0),
+        MagicMock(matched_count=1),
+    ]
     with pytest.raises(ParsingConflict):
         save_parsed_document(database, parsed(), "run-test", SETTINGS)
 

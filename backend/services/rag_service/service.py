@@ -18,6 +18,7 @@ from backend.services.rag_service.retrieval import current_scope, retrieve
 from backend.services.summary_service.workflow import Completion
 from backend.shared.config import Settings
 from backend.shared.database import StorageUnavailable
+from backend.shared.document_lifecycle import document_write
 from backend.shared.storage import DocumentNotFound
 from pydantic import BaseModel
 from pymongo import ReturnDocument
@@ -112,14 +113,15 @@ def chat_with_trace(
         if request.conversation_id:
             _conversation(database, scope, conversation_id)
         else:
-            database.chat_conversations.insert_one(
-                {
-                    "_id": conversation_id,
-                    "document_id": scope.document_id,
-                    "scope": scope.model_dump(),
-                    "created_at": _now(),
-                }
-            )
+            with document_write(database, document_id):
+                database.chat_conversations.insert_one(
+                    {
+                        "_id": conversation_id,
+                        "document_id": scope.document_id,
+                        "scope": scope.model_dump(),
+                        "created_at": _now(),
+                    }
+                )
         claim = database.chat_conversations.find_one_and_update(
             {
                 "_id": conversation_id,
@@ -176,18 +178,19 @@ def chat_with_trace(
             if after != scope:
                 raise RagConflict("Document changed during answer generation")
             output.trace.latency_ms = (perf_counter() - started) * 1000
-            database.chat_turns.insert_one(
-                {
-                    "_id": turn_id,
-                    **scope.model_dump(),
-                    "conversation_id": conversation_id,
-                    "sequence": claim["sequence"],
-                    "question": request.message,
-                    "response": output.response.model_dump(),
-                    "trace": output.trace.model_dump(),
-                    "created_at": _now(),
-                }
-            )
+            with document_write(database, document_id):
+                database.chat_turns.insert_one(
+                    {
+                        "_id": turn_id,
+                        **scope.model_dump(),
+                        "conversation_id": conversation_id,
+                        "sequence": claim["sequence"],
+                        "question": request.message,
+                        "response": output.response.model_dump(),
+                        "trace": output.trace.model_dump(),
+                        "created_at": _now(),
+                    }
+                )
             after, _ = current_scope(database, document_id, settings)
             if after != scope:
                 raise RagConflict("Document changed before returning the answer")

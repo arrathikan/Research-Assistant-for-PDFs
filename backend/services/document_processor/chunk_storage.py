@@ -13,6 +13,7 @@ from backend.services.document_processor.chunking import chunk_document, chunk_s
 from backend.services.document_processor.extraction import read_parsed_document
 from backend.shared.config import Settings
 from backend.shared.database import StorageUnavailable, ensure_chunk_indexes
+from backend.shared.document_lifecycle import document_write
 from backend.shared.models import ChunkingStatus, DocumentStatus, ParsingStatus
 from backend.shared.storage import DocumentNotFound
 from bson import ObjectId
@@ -41,7 +42,7 @@ def read_document_chunks(
         raise ValueError("Invalid document identifier")
     try:
         document = database.documents.find_one({"_id": ObjectId(document_id)})
-        if document is None:
+        if document is None or document.get("deletion_state") == "DELETING":
             raise DocumentNotFound("Document not found")
         identifier = document.get("active_chunk_set_id")
         if not identifier or document.get("chunked_parse_run_id") != document.get(
@@ -79,7 +80,7 @@ def chunk_stored_document(
     identifier = ObjectId(document_id)
     try:
         document = database.documents.find_one({"_id": identifier})
-        if document is None:
+        if document is None or document.get("deletion_state") == "DELETING":
             raise DocumentNotFound("Document not found")
         parse_id = document.get("active_parse_run_id")
         if not parse_id or document.get("parsing_status") != ParsingStatus.COMPLETED:
@@ -99,6 +100,7 @@ def chunk_stored_document(
         claim = database.documents.find_one_and_update(
             {
                 "_id": identifier,
+                "deletion_state": {"$exists": False},
                 "active_parse_run_id": parse_id,
                 "parsing_status": ParsingStatus.COMPLETED,
                 "status": {"$in": [DocumentStatus.PENDING, DocumentStatus.FAILED]},
@@ -126,33 +128,35 @@ def chunk_stored_document(
             )
             for chunk in chunks
         ]
-        database.chunks.bulk_write(operations, ordered=True)
-        completed = database.documents.update_one(
-            {
-                "_id": identifier,
-                "active_parse_run_id": parse_id,
-                "parsing_status": ParsingStatus.COMPLETED,
-                "chunking_run_id": attempt,
-                "status": {"$in": [DocumentStatus.PENDING, DocumentStatus.FAILED]},
-            },
-            {
-                "$set": {
-                    "active_chunk_set_id": target,
-                    "chunked_parse_run_id": parse_id,
-                    "chunking_status": ChunkingStatus.COMPLETED,
-                    "chunked_at": _now(),
-                    "chunk_count": len(chunks),
-                    "status": DocumentStatus.PENDING,
-                    "updated_at": _now(),
-                    "error_message": None,
+        with document_write(database, document_id):
+            database.chunks.bulk_write(operations, ordered=True)
+            completed = database.documents.update_one(
+                {
+                    "_id": identifier,
+                    "deletion_state": {"$exists": False},
+                    "active_parse_run_id": parse_id,
+                    "parsing_status": ParsingStatus.COMPLETED,
+                    "chunking_run_id": attempt,
+                    "status": {"$in": [DocumentStatus.PENDING, DocumentStatus.FAILED]},
                 },
-                "$unset": {"chunking_run_id": ""},
-            },
-        )
-        if completed.matched_count != 1:
-            raise ChunkingConflict(
-                "Chunking ownership or parsed version changed before publication"
+                {
+                    "$set": {
+                        "active_chunk_set_id": target,
+                        "chunked_parse_run_id": parse_id,
+                        "chunking_status": ChunkingStatus.COMPLETED,
+                        "chunked_at": _now(),
+                        "chunk_count": len(chunks),
+                        "status": DocumentStatus.PENDING,
+                        "updated_at": _now(),
+                        "error_message": None,
+                    },
+                    "$unset": {"chunking_run_id": ""},
+                },
             )
+            if completed.matched_count != 1:
+                raise ChunkingConflict(
+                    "Chunking ownership or parsed version changed before publication"
+                )
         return read_document_chunks(database, document_id)
     except Exception:
         try:

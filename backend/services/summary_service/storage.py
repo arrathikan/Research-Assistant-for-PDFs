@@ -20,6 +20,7 @@ from backend.services.summary_service.models import (
 from backend.services.summary_service.workflow import Completion, generate_summary
 from backend.shared.config import Settings
 from backend.shared.database import StorageUnavailable
+from backend.shared.document_lifecycle import document_write
 from backend.shared.storage import DocumentNotFound
 from bson import ObjectId
 from pydantic import ValidationError
@@ -91,7 +92,7 @@ def read_summary(
     profile = summary_profile_id(settings)
     try:
         document = database.documents.find_one({"_id": identifier})
-        if document is None:
+        if document is None or document.get("deletion_state") == "DELETING":
             raise DocumentNotFound("Document not found")
         if document.get("summary_status") == "FAILED":
             raise SummaryError("Summary generation failed; retry the summary job")
@@ -122,6 +123,7 @@ def read_summary(
         if not database.documents.find_one(
             {
                 "_id": identifier,
+                "deletion_state": {"$exists": False},
                 "active_summary_id": record["_id"],
                 "summary_status": "COMPLETED",
                 "active_chunk_set_id": chunks[0].chunk_set_id,
@@ -145,7 +147,7 @@ def summarize_stored_document(
     profile = summary_profile_id(settings)
     try:
         document = database.documents.find_one({"_id": identifier})
-        if document is None:
+        if document is None or document.get("deletion_state") == "DELETING":
             raise DocumentNotFound("Document not found")
         if document.get("chunking_status") != "COMPLETED":
             raise SummaryNotReady("Complete parsing and chunking before generating a summary")
@@ -185,6 +187,7 @@ def summarize_stored_document(
         claim = database.documents.find_one_and_update(
             {
                 "_id": identifier,
+                "deletion_state": {"$exists": False},
                 "active_chunk_set_id": chunk_set,
                 "active_parse_run_id": parse_run,
                 "chunking_status": "COMPLETED",
@@ -209,56 +212,58 @@ def summarize_stored_document(
 
     def publish(result: SummaryResult) -> None:
         _validated_result(result.model_dump(), chunks, settings)
-        database.summary_runs.update_one(
-            {"_id": summary_id},
-            {
-                "$setOnInsert": {
-                    "document_id": document_id,
-                    "chunk_set_id": chunk_set,
-                    "parse_run_id": parse_run,
-                    "summary_profile_id": profile,
-                    "result": result.model_dump(),
-                    "created_at": _now(),
-                }
-            },
-            upsert=True,
-        )
-        # A summary can be produced without Atlas. Whole-document READY also needs
-        # completed embeddings for these chunks and the configured embedding model.
-        embedding = claim.get("embedding_profile") or {}
-        ready = (
-            claim.get("embedding_status") == "COMPLETED"
-            and claim.get("embedded_chunk_set_id") == chunk_set
-            and embedding.get("model") == settings.voyage_model
-            and embedding.get("dimensions") == settings.voyage_dimensions
-        )
-        result_update = database.documents.update_one(
-            {
-                "_id": identifier,
-                "active_chunk_set_id": chunk_set,
-                "active_parse_run_id": parse_run,
-                "summary_run_id": attempt,
-                "status": "SUMMARIZING",
-            },
-            {
-                "$set": {
-                    "active_summary_id": summary_id,
-                    "summary_profile_id": profile,
-                    "summary_chunk_set_id": chunk_set,
-                    "summary_parse_run_id": parse_run,
-                    "summary_status": "COMPLETED",
-                    "summarized_at": _now(),
-                    "updated_at": _now(),
-                    "status": "READY" if ready else "PENDING",
-                    "error_message": None,
+        with document_write(database, document_id):
+            database.summary_runs.update_one(
+                {"_id": summary_id},
+                {
+                    "$setOnInsert": {
+                        "document_id": document_id,
+                        "chunk_set_id": chunk_set,
+                        "parse_run_id": parse_run,
+                        "summary_profile_id": profile,
+                        "result": result.model_dump(),
+                        "created_at": _now(),
+                    }
                 },
-                "$unset": {"summary_run_id": ""},
-            },
-        )
-        if result_update.matched_count != 1:
-            raise SummaryConflict(
-                "Summary source generation or ownership changed before publication"
+                upsert=True,
             )
+            # A summary can be produced without Atlas. Whole-document READY also needs
+            # completed embeddings for these chunks and the configured embedding model.
+            embedding = claim.get("embedding_profile") or {}
+            ready = (
+                claim.get("embedding_status") == "COMPLETED"
+                and claim.get("embedded_chunk_set_id") == chunk_set
+                and embedding.get("model") == settings.voyage_model
+                and embedding.get("dimensions") == settings.voyage_dimensions
+            )
+            result_update = database.documents.update_one(
+                {
+                    "_id": identifier,
+                    "deletion_state": {"$exists": False},
+                    "active_chunk_set_id": chunk_set,
+                    "active_parse_run_id": parse_run,
+                    "summary_run_id": attempt,
+                    "status": "SUMMARIZING",
+                },
+                {
+                    "$set": {
+                        "active_summary_id": summary_id,
+                        "summary_profile_id": profile,
+                        "summary_chunk_set_id": chunk_set,
+                        "summary_parse_run_id": parse_run,
+                        "summary_status": "COMPLETED",
+                        "summarized_at": _now(),
+                        "updated_at": _now(),
+                        "status": "READY" if ready else "PENDING",
+                        "error_message": None,
+                    },
+                    "$unset": {"summary_run_id": ""},
+                },
+            )
+            if result_update.matched_count != 1:
+                raise SummaryConflict(
+                    "Summary source generation or ownership changed before publication"
+                )
 
     try:
         if cached_result is not None:
@@ -271,6 +276,7 @@ def summarize_stored_document(
             database.documents.update_one(
                 {
                     "_id": identifier,
+                    "deletion_state": {"$exists": False},
                     "active_chunk_set_id": chunk_set,
                     "active_parse_run_id": parse_run,
                     "summary_run_id": attempt,
