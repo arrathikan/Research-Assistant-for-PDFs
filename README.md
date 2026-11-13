@@ -522,3 +522,29 @@ only when requested and retains its viewer state while hidden.
 The library currently lasts for the App session; this frontend refinement adds no
 listing API or cross-reload persistence. See [frontend guidance, changed files,
 verification and limits](docs/frontend-experience.md).
+
+### Final QA: summary recovery
+
+The versioned summary workflow now requests short contiguous source quotes and
+preserves strict quote validation. A live failed summary recovered through the
+supported job retry without reparsing or re-embedding the paper. See the
+[verified correction](docs/structured-summary.md#final-qa-quote-correction-2026-11-13).
+
+### Browser verification
+
+The approved Playwright development suite now checks real browser interactions,
+PDF rendering and six responsive widths without paid API calls. Run
+`npm run test:e2e` and `npm run typecheck` in `frontend`; see
+[browser QA](docs/browser-qa.md) for installation, private screenshots and the
+separate opt-in real-provider check.
+
+### Final QA and interview demo (Prompt 15)
+
+Use the [demo guide](docs/demo-guide.md) for setup, a six-minute walkthrough,
+source questions and recovery. The [final QA report](docs/final-qa.md) records
+474 backend tests, 140 proposed-frontend tests, 14 deterministic browser checks,
+one live browser check and Docker smoke verification. The
+[latest Ragas follow-up](evaluation/reports/2026-11-13-final-qa/README.md) contains
+18 real responses and assistant source reviews, with 58 measured values and two
+explicit metric errors. Citation quality, dependency advisories and public
+production requirements remain documented follow-ups.

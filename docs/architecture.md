@@ -661,3 +661,29 @@ lifecycle in its own containers. Offline Ragas schema/metric/report tests are al
 but live judge calls, accuracy benchmarks, image publication and deployment are not
 part of automatic CI. Official setup actions are SHA-pinned with read-only repository
 permissions. See [CI configuration and limits](ci.md).
+
+### Summary quote discipline (final QA)
+
+`grounded-summary-v2` asks for short, contiguous, verbatim page quotes rather than
+elided passages. Strict chunk/page/quote validation and bounded repairs remain
+unchanged. The workflow version changes the summary profile hash. Final live QA
+recovered a terminal failed summary using cached ingestion outputs; details are in
+[structured summaries](structured-summary.md#final-qa-quote-correction-2026-11-13).
+
+### Browser QA boundary
+
+Playwright lives in development tooling. Default browser tests intercept API
+responses and render an in-memory synthetic PDF using the existing viewer; CI
+runs these without provider credentials. A separately selected live check calls
+the actual gateway from the normal localhost development origin and verifies a
+hash-bound public source. Both use isolated browser contexts and private ignored
+artifacts. Vitest and browser test discovery are separated. See [browser QA](browser-qa.md).
+
+### Final verification and evaluation artifacts
+
+The live public benchmark now has a completed, revalidated v2 saved summary; both
+overview traces exercise summary reuse. Offline Ragas artifacts retain measured
+values, failures and result-bound assistant reviews, separately from application
+chat. The latest run has two metric errors and remaining claim-to-citation defects.
+See [final QA](final-qa.md), [evaluation](../evaluation/reports/2026-11-13-final-qa/README.md)
+and [demo guide](demo-guide.md) for exact scope and release limitations.

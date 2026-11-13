@@ -62,8 +62,9 @@ curl http://localhost:8000/api/v1/documents/DOCUMENT_ID/summary
 
 The parsing and summary commands can consume credits. Repeating an unchanged
 completed summary reuses the stored result. A missing model key does not prevent
-reading/reusing an existing valid summary. Generation is explicit until RabbitMQ
-orchestration is implemented; the GET endpoint never starts processing.
+reading/reusing an existing valid summary. The RabbitMQ summary worker runs generation after ingestion; the GET endpoint
+never starts processing. Failed terminal jobs can use the supported processing
+retry endpoint; unchanged parsed chunks and embeddings are reused.
 
 `summary_runs` holds immutable results keyed by document, active chunk set and
 summary profile (model, schema, workflow and relevant limits). The document stores
@@ -138,3 +139,19 @@ Independent PR verification used a credential-free export of the staged files:
 passed**. The smaller counts exclude the preserved, uncommitted Prompt 8 storage
 and workspace tests. The local working copy passed 264 backend tests and 30
 frontend tests. No scientific accuracy claim is inferred from these test counts.
+
+## Final QA quote correction (2026-11-13)
+
+A real public benchmark reached summary generation but repeatedly failed exact
+quote validation: the model inserted ellipses into a source quote. Workflow
+`grounded-summary-v2` explicitly requests short contiguous quotes, preserves
+Markdown and gives actionable bounded repair feedback. Validation remains strict;
+no fabricated or abbreviated quote is accepted. The workflow version participates
+in the profile hash so older prompts cannot silently reuse a matching summary.
+
+After this correction, the existing public paper's supported retry completed on
+its first job attempt. `read_summary` revalidated the saved result against the
+current source generation. This verifies publication, not scientific correctness
+of every summary claim. The focused models/workflow suite passed 21 tests; the
+complete backend suite passed 474 tests with four paid checks deselected. Existing
+parsed pages and embeddings were reused; a new paid parse was not required.

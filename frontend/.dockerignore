@@ -6,3 +6,7 @@ dist
 *.log
 .DS_Store
 src/test
+
+# Private browser QA artifacts
+test-results/
+playwright-report/

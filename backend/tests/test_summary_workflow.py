@@ -132,3 +132,19 @@ def test_oversized_source_is_rejected_without_silent_truncation():
             chunks, SETTINGS.model_copy(update={"summary_context_bytes": 8000}), complete
         )
     complete.assert_not_called()
+
+
+def test_elided_source_quote_is_repaired_without_weakening_exact_match():
+    wrong = summary_draft()
+    wrong["methodology"]["sources"][0]["quote"] = (
+        "The study measures ... The method compares counts."
+    )
+    complete = Mock(side_effect=[json.dumps(wrong), json.dumps(summary_draft())])
+    save = Mock()
+    result = generate_summary(summary_chunks(), SETTINGS, complete, save)
+    assert complete.call_count == 2
+    assert "do not insert ellipses" in complete.call_args_list[1].args[1]
+    assert "Never add ellipses" in complete.call_args_list[0].args[0]
+    assert result.workflow_version == "grounded-summary-v2"
+    assert all("..." not in source.quote for source in result.sources)
+    save.assert_called_once_with(result)

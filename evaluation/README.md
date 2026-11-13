@@ -144,3 +144,12 @@ response. Ragas receives the literal current question for follow-ups; its
 single-turn relevance metric may underrate context-dependent wording. Review
 follow-ups with their recorded seed history and reference. Results do not
 establish general accuracy, and no human review is implied by assistant checks.
+
+## Final QA follow-up (2026-11-13)
+
+The [latest nine-case paired run](reports/2026-11-13-final-qa/README.md) uses the
+completed v2 saved summary. All 18 responses generated; Ragas recorded 58 real
+metric values, 30 appropriate skips and two overview context-recall errors.
+All outputs have assistant source reviews, including remaining citation and
+attribution failures. This partial run is retained without substituting missing
+values or claiming independent human approval or general hybrid superiority.
