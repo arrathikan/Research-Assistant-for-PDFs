@@ -16,12 +16,13 @@ afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); });
 const navigate = (name: string) => fireEvent.click(within(screen.getByRole('navigation', { name: 'Main Navigation' })).getByRole('button', { name }));
 async function upload() {
   navigate('Upload Paper');
+  fireEvent.click(screen.getByTestId('main-upload-trigger'));
   await act(async () => {
     fireEvent.change(screen.getByTestId('file-input'), { target: { files: [new File(['%PDF-1.7'], 'paper.pdf', { type: 'application/pdf' })] } });
     fireEvent.click(screen.getByRole('button', { name: 'Upload paper' }));
   });
   await act(async () => { await vi.advanceTimersByTimeAsync(2000); });
-  await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'View Summary' })); });
+  await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Open Workspace' })); });
 }
 
 it('starts with an honest empty library and an actionable first-upload state', () => {

@@ -19,7 +19,9 @@ describe('ResearchAI controls', () => {
     const title = screen.getByRole('button', { name: PDF_DOCUMENT.filename });
     title.focus(); await userEvent.keyboard('{Enter}');
     expect(select).toHaveBeenCalledWith(PDF_DOCUMENT);
-    fireEvent.click(screen.getByRole('button', { name: 'Workspace' }));
+    fireEvent.click(screen.getByRole('button', { name: /Paper actions/ }));
+    await screen.findByRole('menuitem', { name: 'Open Workspace' });
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Open Workspace' }));
     expect(select).toHaveBeenCalledTimes(2);
   });
 });

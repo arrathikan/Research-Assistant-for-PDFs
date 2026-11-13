@@ -51,6 +51,7 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
       throw new ApiError(res.status, errorMsg);
     }
 
+    if (res.status === 204) return undefined as T;
     return (await res.json()) as T;
   } catch (err: unknown) {
     if (err instanceof ApiError) {
@@ -62,6 +63,10 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  async deleteDocument(documentId: string): Promise<void> {
+    if (!/^[0-9a-f]{24}$/i.test(documentId)) throw new ApiError(422, 'Invalid document identifier');
+    return request<void>('/documents/' + documentId, { method: 'DELETE' });
+  },
   /**
    * Check gateway service health.
    */

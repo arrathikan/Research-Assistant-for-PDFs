@@ -623,3 +623,13 @@ The existing application has no authentication or per-user ownership layer.
 Real MongoDB/GridFS cleanup and worker-race tests pass within the **471 passed,
 6 optional checks skipped** backend suite; all changed Python lint/format checks pass.
 No existing user paper was deleted during verification.
+
+
+### Upload dialog and paper actions
+
+App retains the upload controller across navigation; its native dialog hosts the
+existing picker, request and processing UI. Storage immediately upserts the session
+library. Closed-dialog polling updates real metadata without cancelling queued
+work. Dashboard menus confirm deletion, wait for its response, update library
+statistics and clear selected document state. Deleted IDs reject stale responses.
+See [cleanup contract, authorization boundary, guidance and verification](document-actions-upload-dialog.md).

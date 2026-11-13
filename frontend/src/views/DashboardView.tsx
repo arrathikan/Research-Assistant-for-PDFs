@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { DocumentMetadata, WorkspaceTab } from '../types';
+import { DeleteDocumentDialog } from '../components/dashboard/DeleteDocumentDialog';
 import { DocumentCard } from '../components/dashboard/DocumentCard';
 import { EmptyState } from '../components/common/EmptyState';
 import { BookOpen, Search, UploadCloud, Layers, Database } from 'lucide-react';
@@ -9,13 +10,18 @@ interface DashboardViewProps {
   documents: DocumentMetadata[];
   onSelectDocument: (doc: DocumentMetadata, tab?: WorkspaceTab) => void;
   onNavigateUpload: () => void;
+  onDeleteDocument?: (doc: DocumentMetadata) => Promise<void>;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
   documents,
   onSelectDocument,
   onNavigateUpload,
+  onDeleteDocument,
 }) => {
+  const [deleting, setDeleting] = useState<DocumentMetadata | null>(null);
+  const [notice, setNotice] = useState('');
+  const heading = useRef<HTMLHeadingElement>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredDocuments = documents.filter((doc) =>
@@ -36,7 +42,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <p className="ui-eyebrow mb-2">Your research</p>
-          <h1 className="ui-page-title">Paper Library</h1>
+          <h1 ref={heading} tabIndex={-1} className="ui-page-title">Paper Library</h1>
           <p className="mt-2 text-sm leading-6 text-slate-600">
             A home for your papers, their key ideas and your next question.
           </p>
@@ -51,6 +57,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </button>
       </div>
 
+      {notice && <p role="status" className="mb-4 text-sm text-slate-600">{notice}</p>}
       {/* Metrics Bar */}
       <section aria-label="Library statistics" className="grid min-w-0 grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div className="ui-card flex items-center gap-4 p-5">
@@ -137,12 +144,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               key={doc.sha256}
               document={doc}
               onOpen={onSelectDocument}
+              onDelete={onDeleteDocument ? document => { setNotice(''); setDeleting(document); } : undefined}
               onViewSummary={doc => onSelectDocument(doc, 'summary')}
               onOpenChat={doc => onSelectDocument(doc, 'chat')}
             />
           ))}
         </section>
       )}
+      {deleting && onDeleteDocument && <DeleteDocumentDialog key={deleting.id} document={deleting} onDelete={onDeleteDocument} onCancel={() => setDeleting(null)}
+        onDeleted={() => { setDeleting(null); setNotice('Paper deleted. Your library is up to date.'); requestAnimationFrame(() => heading.current?.focus()); }} />}
     </PageContainer>
   );
 };

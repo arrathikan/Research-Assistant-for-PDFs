@@ -1,6 +1,7 @@
 import { useId } from 'react';
-import { FileText, ArrowRight, MessageSquare, BookOpen, Clock } from 'lucide-react';
+import { FileText, MessageSquare, BookOpen, Clock } from 'lucide-react';
 import type { DocumentMetadata } from '../../types';
+import { DocumentActions } from './DocumentActions';
 import { DocumentStatusBadge } from '../common/DocumentStatusBadge';
 import { formatFileSize } from '../upload/formatFileSize';
 
@@ -9,9 +10,10 @@ interface DocumentCardProps {
   onOpen: (doc: DocumentMetadata) => void;
   onViewSummary?: (doc: DocumentMetadata) => void;
   onOpenChat?: (doc: DocumentMetadata) => void;
+  onDelete?: (doc: DocumentMetadata) => void;
 }
 
-export function DocumentCard({ document, onOpen, onViewSummary, onOpenChat }: DocumentCardProps) {
+export function DocumentCard({ document, onOpen, onViewSummary, onOpenChat, onDelete }: DocumentCardProps) {
   const titleId = useId();
   const date = new Date(document.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
   return <article data-testid="document-card" className="ui-card research-paper-card p-5 sm:p-6">
@@ -21,6 +23,7 @@ export function DocumentCard({ document, onOpen, onViewSummary, onOpenChat }: Do
         <button type="button" onClick={() => onOpen(document)} className="rounded text-left hover:text-blue-700">{document.filename}</button>
       </h3>
       <DocumentStatusBadge status={document.status} />
+      <DocumentActions document={document} onOpen={() => onOpen(document)} onDelete={onDelete ? () => onDelete(document) : undefined} />
     </header>
     <p className="paper-card-meta flex flex-wrap items-center gap-x-3 gap-y-1 text-xs leading-5 text-slate-500">
       <span>{formatFileSize(document.file_size_bytes)}</span>
@@ -31,7 +34,7 @@ export function DocumentCard({ document, onOpen, onViewSummary, onOpenChat }: Do
         {onViewSummary && <button type="button" aria-describedby={titleId} onClick={() => onViewSummary(document)} className="ui-button ui-button-ghost px-2 text-xs"><BookOpen size={15} aria-hidden="true" />Summary</button>}
         {onOpenChat && <button type="button" aria-describedby={titleId} onClick={() => onOpenChat(document)} className="ui-button ui-button-ghost px-2 text-xs"><MessageSquare size={15} aria-hidden="true" />Chat</button>}
       </div>
-      <button type="button" aria-describedby={titleId} onClick={() => onOpen(document)} className="ui-button px-2 text-xs text-blue-700 hover:bg-blue-50">Workspace<ArrowRight size={15} aria-hidden="true" /></button>
+
     </footer>
   </article>;
 }
