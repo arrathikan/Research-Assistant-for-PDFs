@@ -649,3 +649,15 @@ storage-only profile and does not replace Atlas search. No credentials or privat
 PDFs enter build contexts. Existing persistent resource names are retained.
 A disposable smoke project uses its own names, volumes, ports and empty provider
 keys. See [deployment and limitations](deployment.md).
+
+
+### CI boundary (Prompt 14.2)
+
+GitHub Actions checks Python 3.12 and Node 22 on Linux. Backend fixtures use real
+MongoDB/RabbitMQ service containers and simulate paid boundaries; provider/Atlas
+credentials are absent. Strict frontend compilation, Vitest and production builds
+precede a disposable Docker smoke. The smoke exercises the real proxy and storage
+lifecycle in its own containers. Offline Ragas schema/metric/report tests are allowed,
+but live judge calls, accuracy benchmarks, image publication and deployment are not
+part of automatic CI. Official setup actions are SHA-pinned with read-only repository
+permissions. See [CI configuration and limits](ci.md).

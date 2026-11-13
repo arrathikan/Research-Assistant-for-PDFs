@@ -1,0 +1,101 @@
+name: ResearchAI CI
+
+on:
+  push:
+    branches: [main, 'codex/**']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend tests and lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      mongodb:
+        image: mongo:7.0
+        ports: ['127.0.0.1:27017:27017']
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand({ping:1})'"
+          --health-interval 10s --health-timeout 5s --health-retries 10
+      rabbitmq:
+        image: rabbitmq:3.13-management
+        ports: ['127.0.0.1:5672:5672']
+        options: >-
+          --health-cmd "rabbitmq-diagnostics -q ping"
+          --health-interval 10s --health-timeout 5s --health-retries 10
+    env:
+      APP_ENV: test
+      MONGODB_URI: mongodb://127.0.0.1:27017
+      RABBITMQ_URL: amqp://guest:guest@127.0.0.1:5672/
+      RESEARCHAI_TEST_MONGODB_URI: mongodb://127.0.0.1:27017
+      RESEARCHAI_TEST_RABBITMQ_URL: amqp://guest:guest@127.0.0.1:5672/
+      LLAMA_CLOUD_API_KEY: ''
+      VOYAGE_API_KEY: ''
+      OPENROUTER_API_KEY: ''
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-runtime.txt
+            evaluation/requirements.txt
+      - name: Install test dependencies
+        run: python -m pip install -r backend/requirements.txt -r evaluation/requirements.txt
+      - name: Lint Python
+        run: |
+          ruff check backend
+          ruff check --config backend/pyproject.toml scripts/compose_smoke.py
+          ruff format --check --config backend/pyproject.toml scripts/compose_smoke.py
+      - name: Unit and real MongoDB/RabbitMQ integration tests
+        run: python -m pytest backend/tests -m 'not live_parser and not live_rag and not live_summary' -q
+
+  frontend:
+    name: Frontend tests and build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - name: Vitest
+        run: npm test
+      - name: TypeScript and production build
+        run: npm run build
+
+  containers:
+    name: Docker build and full-stack smoke
+    needs: [backend, frontend]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+      - name: Build and smoke-test isolated containers
+        run: python scripts/compose_smoke.py

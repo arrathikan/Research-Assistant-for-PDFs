@@ -136,6 +136,14 @@ MONGODB_URI=mongodb://mongodb:27017 docker compose --profile local up -d --build
 Local MongoDB does not provide Atlas vector/BM25 search. See [Docker setup,
 configuration, safe smoke checks and operations](docs/deployment.md).
 
+### Continuous integration
+
+[GitHub Actions](https://github.com/arrathikan/Research-Assistant-for-PDFs/actions/workflows/ci.yml)
+checks backend tests/lint with disposable MongoDB and RabbitMQ, frontend tests and
+TypeScript/build, then a complete Docker smoke check. Normal CI has no provider
+secrets and never runs a paid Ragas evaluation. See [CI checks, local reproduction
+and limitations](docs/ci.md).
+
 ### Native development alternative
 
 Use Python 3.11+ and Node.js 22. Keep the ignored `.env` configured for Atlas.

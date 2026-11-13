@@ -50,7 +50,8 @@ command above or an explicitly reachable host database address.
 ## Configuration and data
 
 Backend containers read `.env` at runtime only. `RESEARCHAI_ENV_FILE` can select a
-different runtime file. Compose uses `rabbitmq` as the internal broker hostname;
+different runtime file. `RESEARCHAI_IMAGE_TAG` labels locally built images (default
+`local`); it does not publish them. Compose uses `rabbitmq` as the internal broker hostname;
 `DOCKER_RABBITMQ_URL` overrides it for an external broker or URL-encoded credentials.
 Changing credentials on an existing RabbitMQ volume does not recreate its users.
 
@@ -112,6 +113,9 @@ image publication or merge is part of Prompt 14.
 python scripts/compose_smoke.py
 ```
 
+The Docker CLI must be on PATH. An optional shell prefix such as
+`DOCKER_BIN=/usr/local/bin/docker python scripts/compose_smoke.py` selects its executable.
+
 This builds and starts uniquely named containers, network and volumes with random
 loopback ports, a synthetic local database and **empty provider keys**. It checks
 health, non-root users, built assets/PDF fonts, the API proxy, multipart upload,
@@ -119,6 +123,7 @@ SHA-256 deduplication, original PDF bytes, job status and deletion. It always te
 down only its own resources. Existing application containers, queues, Atlas data,
 PDFs and volumes are not selected. The smoke check does not claim live parsing or
 RAG quality; existing integration tests simulate paid boundaries separately.
+[GitHub CI](ci.md) runs this same check after the unit/integration suites.
 
 ## References
 
