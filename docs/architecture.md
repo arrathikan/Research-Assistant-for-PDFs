@@ -678,3 +678,12 @@ runs these without provider credentials. A separately selected live check calls
 the actual gateway from the normal localhost development origin and verifies a
 hash-bound public source. Both use isolated browser contexts and private ignored
 artifacts. Vitest and browser test discovery are separated. See [browser QA](browser-qa.md).
+
+### Final verification and evaluation artifacts
+
+The live public benchmark now has a completed, revalidated v2 saved summary; both
+overview traces exercise summary reuse. Offline Ragas artifacts retain measured
+values, failures and result-bound assistant reviews, separately from application
+chat. The latest run has two metric errors and remaining claim-to-citation defects.
+See [final QA](final-qa.md), [evaluation](../evaluation/reports/2026-11-13-final-qa/README.md)
+and [demo guide](demo-guide.md) for exact scope and release limitations.

@@ -128,3 +128,13 @@ is covered by deterministic and database integration tests, without claiming a
 successful live saved-summary run. General background is unverified model
 knowledge. These one-paper measurements do not establish broad accuracy or a
 statistically reliable hybrid-search advantage.
+
+## Prompt 15 measured follow-up
+
+See [the 2026-11-13 report](../evaluation/reports/2026-11-13-final-qa/README.md).
+Saved-summary reuse is now verified live. The same nine paired intent cases
+produced 18 responses; scoring retained 58 values, 30 skips and two errors with
+null values. Eighteen result-bound assistant reviews document incomplete inline
+support and attribution failures. A passing source identity/quote check does not
+prove every attached claim; no universal accuracy or general hybrid advantage
+is inferred from these measurements.

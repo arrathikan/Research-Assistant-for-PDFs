@@ -537,3 +537,14 @@ PDF rendering and six responsive widths without paid API calls. Run
 `npm run test:e2e` and `npm run typecheck` in `frontend`; see
 [browser QA](docs/browser-qa.md) for installation, private screenshots and the
 separate opt-in real-provider check.
+
+### Final QA and interview demo (Prompt 15)
+
+Use the [demo guide](docs/demo-guide.md) for setup, a six-minute walkthrough,
+source questions and recovery. The [final QA report](docs/final-qa.md) records
+474 backend tests, 140 proposed-frontend tests, 14 deterministic browser checks,
+one live browser check and Docker smoke verification. The
+[latest Ragas follow-up](evaluation/reports/2026-11-13-final-qa/README.md) contains
+18 real responses and assistant source reviews, with 58 measured values and two
+explicit metric errors. Citation quality, dependency advisories and public
+production requirements remain documented follow-ups.
