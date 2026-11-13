@@ -1,10 +1,82 @@
+x-backend: &backend
+  image: researchai-backend:${RESEARCHAI_IMAGE_TAG:-local}
+  init: true
+  restart: unless-stopped
+  env_file:
+    - path: ${RESEARCHAI_ENV_FILE:-.env}
+      required: false
+  environment:
+    MONGODB_URI: ${MONGODB_URI:-mongodb://mongodb:27017}
+    # Host-native URLs use localhost; containers use the broker's service name.
+    RABBITMQ_URL: ${DOCKER_RABBITMQ_URL:-amqp://${RABBITMQ_DEFAULT_USER:-guest}:${RABBITMQ_DEFAULT_PASS:-guest}@rabbitmq:5672/}
+  networks:
+    - researchai-network
+
 services:
+  gateway:
+    <<: *backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: researchai-gateway
+    ports:
+      - "127.0.0.1:${APP_PORT:-8000}:8000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+        required: false
+
+  workers:
+    <<: *backend
+    pull_policy: never
+    container_name: researchai-workers
+    command: ["python", "-m", "backend.services.jobs.main", "run"]
+    stop_grace_period: 10m
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+        required: false
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - |
+          from backend.shared.config import get_settings
+          from backend.shared.broker import connect_broker
+          settings = get_settings()
+          with connect_broker(settings) as (_, channel):
+              for name in (settings.ingestion_queue, settings.summary_queue):
+                  assert channel.queue_declare(queue=name, passive=True).method.consumer_count > 0
+      interval: 30s
+      timeout: 20s
+      start_period: 60s
+      retries: 3
+
+  frontend:
+    image: researchai-frontend:${RESEARCHAI_IMAGE_TAG:-local}
+    build:
+      context: ./frontend
+    container_name: researchai-frontend
+    init: true
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT:-3000}:8080"
+    depends_on:
+      gateway:
+        condition: service_healthy
+    networks:
+      - researchai-network
+
   mongodb:
     image: mongo:7.0
     container_name: researchai-mongodb
+    profiles: ["local"]
     restart: unless-stopped
     ports:
-      - "27017:27017"
+      - "127.0.0.1:${MONGODB_PORT:-27017}:27017"
     environment:
       MONGO_INITDB_DATABASE: ${MONGODB_DB_NAME:-research_assistant}
     volumes:
@@ -12,7 +84,7 @@ services:
     networks:
       - researchai-network
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -23,8 +95,8 @@ services:
     container_name: researchai-rabbitmq
     restart: unless-stopped
     ports:
-      - "127.0.0.1:5672:5672"
-      - "127.0.0.1:15672:15672"
+      - "127.0.0.1:${AMQP_PORT:-5672}:5672"
+      - "127.0.0.1:${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-guest}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-guest}
@@ -49,4 +121,3 @@ networks:
   researchai-network:
     name: researchai_network
     driver: bridge
-

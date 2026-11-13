@@ -681,3 +681,20 @@ optional live/broker checks skipped**. No frontend lint command is configured.
 No existing user paper was deleted. A local synthetic upload confirmed durable
 queueing, safe modal closure and duplicate handling. Paid AI completion was not
 repeated. See [implementation and limits](document-actions-upload-dialog.md).
+
+
+### Prompt 14: Docker, CI and documentation
+
+- [x] 14.1: Non-root gateway/worker image, built frontend/Nginx image, full Compose
+  startup, health dependencies, safe contexts and disposable proxy/storage smoke.
+- [ ] 14.2: GitHub Actions frontend/backend checks and full-stack smoke, with no
+  provider secrets or paid evaluations in normal CI.
+- [ ] 14.3: Setup, operations, environment/architecture documentation and verified
+  GitHub results. Prompt 15 final live QA remains separate.
+
+Prompt 14.1 verification: clean-copy frontend **140 passed**; backend with disposable
+MongoDB/RabbitMQ **473 passed, 4 paid-provider checks deselected**. Both images built;
+Dockerfile checks had no warnings. The isolated cold-tag full-stack smoke passed
+health, non-root user, assets/fonts, proxy upload, deduplication, GridFS bytes,
+processing status and deletion, then removed only its temporary resources.
+No provider keys were supplied to that smoke test. CI setup follows in 14.2.
