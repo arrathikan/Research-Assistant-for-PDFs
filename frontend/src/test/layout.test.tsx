@@ -99,12 +99,12 @@ it('preserves real document counts, filtering and selection in the responsive li
   expect(within(stats).getByText('Total Research Papers').parentElement?.firstElementChild).toHaveTextContent('2');
   expect(within(stats).getByText('Ready to explore').parentElement?.firstElementChild).toHaveTextContent('1');
   expect(within(screen.getByRole('region', { name: 'Research papers' })).getAllByTestId('document-card')).toHaveLength(2);
-  fireEvent.change(screen.getByRole('textbox', { name: 'Search papers' }), { target: { value: 'synthetic' } });
+  fireEvent.change(screen.getByRole('searchbox', { name: 'Search papers' }), { target: { value: 'synthetic' } });
   const cards = screen.getByRole('region', { name: 'Research papers' });
   expect(within(cards).getAllByTestId('document-card')).toHaveLength(1);
   fireEvent.click(within(cards).getByRole('button', { name: PDF_DOCUMENT.filename }));
   expect(select).toHaveBeenCalledWith(PDF_DOCUMENT);
-  fireEvent.change(screen.getByRole('textbox', { name: 'Search papers' }), { target: { value: 'missing-paper' } });
+  fireEvent.change(screen.getByRole('searchbox', { name: 'Search papers' }), { target: { value: 'missing-paper' } });
   expect(screen.getByRole('heading', { name: 'No matching papers found' })).toBeInTheDocument();
   expect(screen.queryByTestId('document-card')).not.toBeInTheDocument();
 });

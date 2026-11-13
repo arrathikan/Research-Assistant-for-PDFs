@@ -22,16 +22,16 @@ interface Props {
 }
 
 const BADGES: Record<UploadStage, { label: string; style: string }> = {
-  uploading: { label: 'Uploading', style: 'bg-blue-50 text-blue-700 ring-blue-200' },
-  uploaded: { label: 'Uploaded', style: 'bg-slate-100 text-slate-700 ring-slate-200' },
-  queued: { label: 'Queued', style: 'bg-slate-100 text-slate-700 ring-slate-200' },
-  processing: { label: 'Processing', style: 'bg-blue-50 text-blue-700 ring-blue-200' },
+  uploading: { label: 'Uploading', style: 'bg-brand-50 text-brand-700 ring-brand-200' },
+  uploaded: { label: 'Uploaded', style: 'bg-stone-100 text-stone-700 ring-stone-200' },
+  queued: { label: 'Queued', style: 'bg-stone-100 text-stone-700 ring-stone-200' },
+  processing: { label: 'Processing', style: 'bg-brand-50 text-brand-700 ring-brand-200' },
   ready: { label: 'Ready', style: 'bg-emerald-50 text-emerald-800 ring-emerald-200' },
   failed: { label: 'Failed', style: 'bg-rose-50 text-rose-800 ring-rose-200' },
 };
 
 const ACTION = 'ui-button ui-button-secondary';
-const TEXT_ACTION = 'ui-button ui-button-ghost text-blue-700';
+const TEXT_ACTION = 'ui-button ui-button-ghost text-brand-700';
 
 export function UploadStatusCard({
   filename, fileSize, stage, description, busy = false, notice, pdfUrl,
@@ -42,12 +42,12 @@ export function UploadStatusCard({
   return (
     <section aria-labelledby={headingId} className="ui-card w-full p-5 sm:p-6">
       <div className="flex items-start gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
           <FileText size={22} aria-hidden="true" />
         </div>
         <div className="min-w-0 flex-1">
-          <h3 id={headingId} className="break-words text-sm font-semibold leading-6 text-slate-900 [overflow-wrap:anywhere]">{filename}</h3>
-          <p className="mt-0.5 text-xs text-slate-500">PDF{fileSize !== undefined ? ' · ' + formatFileSize(fileSize) : ''}</p>
+          <h3 id={headingId} className="break-words text-sm font-semibold leading-6 text-stone-900 [overflow-wrap:anywhere]">{filename}</h3>
+          <p className="mt-0.5 text-xs text-stone-500">PDF{fileSize !== undefined ? ' · ' + formatFileSize(fileSize) : ''}</p>
         </div>
       </div>
       <div role="status" aria-live="polite" aria-atomic="true" className="mt-4">
@@ -55,10 +55,10 @@ export function UploadStatusCard({
           {busy && <Loader2 size={13} aria-hidden="true" className="motion-safe:animate-spin" />}
           {badge.label}
         </span>
-        <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
+        <p className="mt-2 text-sm leading-6 text-stone-600">{description}</p>
       </div>
       {notice && <p role="alert" className="mt-3 text-sm leading-6 text-rose-700">{notice}</p>}
-      {showDocumentActions && <div className="mt-5 grid grid-cols-1 gap-2 border-t border-slate-100 pt-4 sm:grid-cols-3">
+      {showDocumentActions && <div className="mt-5 grid grid-cols-1 gap-2 border-t border-stone-100 pt-4 sm:grid-cols-3">
         <button type="button" disabled={!onSummary} onClick={onSummary} className={ACTION}><BookOpen size={16} aria-hidden="true" />View Summary</button>
         {pdfUrl
           ? <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className={ACTION}><ArrowUpRight size={16} aria-hidden="true" />Open PDF<span className="sr-only"> (opens in a new tab)</span></a>

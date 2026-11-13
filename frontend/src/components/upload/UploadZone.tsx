@@ -55,29 +55,29 @@ export function UploadZone({ onUpload, isUploading = false, initialFiles = [], o
         aria-label={pickerLabel} aria-describedby={validationError ? validationId : undefined} aria-invalid={!!validationError}
         onDragOver={event => { event.preventDefault(); if (!isUploading) setIsDragOver(true); }}
         onDragLeave={() => setIsDragOver(false)} onDrop={drop} onClick={() => fileInputRef.current?.click()}
-        className={'flex min-h-56 w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-4 disabled:cursor-wait sm:p-10 '
-          + (isDragOver ? 'border-blue-500 bg-blue-50' : 'border-slate-300 bg-white hover:border-blue-400 hover:bg-blue-50/40')}>
+        className={'flex min-h-44 w-full flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-4 disabled:cursor-wait sm:p-7 '
+          + (isDragOver ? 'border-brand-500 bg-brand-50' : 'border-stone-400 bg-white hover:border-brand-400 hover:bg-brand-50/40')}>
         {isUploading ? <>
-          <Loader2 size={24} aria-hidden="true" className="text-blue-600 motion-safe:animate-spin" />
-          <span role="status" className="mt-3 text-sm font-medium text-slate-700">Uploading your paper…</span>
+          <Loader2 size={24} aria-hidden="true" className="text-brand-600 motion-safe:animate-spin" />
+          <span role="status" className="mt-3 text-sm font-medium text-stone-700">Uploading your paper…</span>
         </> : <>
-          <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600"><UploadCloud size={26} aria-hidden="true" /></span>
-          <span className="text-base font-semibold text-slate-900">Drag & Drop your research paper here</span>
-          <span className="mt-1 text-sm text-slate-500"><span className="ui-button ui-button-primary mt-2">{pickerLabel}</span></span>
-          <span className="mt-5 text-xs leading-6 text-slate-500">PDF format only · Max 25 MB · One paper at a time</span>
+          <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-brand-50 text-brand-600"><UploadCloud size={26} aria-hidden="true" /></span>
+          <span className="text-base font-semibold text-stone-900">Drag & Drop your research paper here</span>
+          <span className="mt-1 text-sm text-stone-500"><span className="ui-button ui-button-primary mt-2">{pickerLabel}</span></span>
+          <span className="mt-5 text-xs leading-6 text-stone-500">PDF format only · Max 25 MB · One paper at a time</span>
         </>}
       </button>
       {selectedFile && !isUploading && <div className="ui-card flex flex-wrap items-center gap-3 p-4">
-        <FileText size={22} aria-hidden="true" className="shrink-0 text-blue-700" />
+        <FileText size={22} aria-hidden="true" className="shrink-0 text-brand-700" />
         <div className="min-w-0 flex-1">
-          <p className="break-words text-sm font-medium text-slate-900 [overflow-wrap:anywhere]">{selectedFile.name}</p>
-          <p className="mt-0.5 text-xs text-slate-500">{formatFileSize(selectedFile.size)}</p>
+          <p className="break-words text-sm font-medium text-stone-900 [overflow-wrap:anywhere]">{selectedFile.name}</p>
+          <p className="mt-0.5 text-xs text-stone-500">{formatFileSize(selectedFile.size)}</p>
         </div>
         <button type="button" aria-label="Remove selected PDF" onClick={() => setSelectedFile(null)}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"><X size={18} aria-hidden="true" /></button>
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-stone-500 hover:bg-stone-100 hover:text-stone-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"><X size={18} aria-hidden="true" /></button>
 
       </div>}
-      <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200 pt-4">
+      <div className="flex flex-wrap justify-end gap-2 border-t border-stone-200 pt-4">
         {onCancel && <button type="button" onClick={onCancel} className="ui-button ui-button-secondary">Cancel</button>}
         <button type="button" disabled={!selectedFile || isUploading} onClick={() => void submit()} className="ui-button ui-button-primary"><UploadCloud size={16} aria-hidden="true" />Upload paper</button>
       </div>

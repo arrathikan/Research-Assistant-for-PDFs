@@ -25,8 +25,8 @@ export function Modal({ open, title, description, children, onClose, busy = fals
       if (dialog.current?.open) return; // Ignore a queued close event after reopening.
       if (busy) dialog.current?.showModal(); else onClose();
     }}>
-    <header className="flex items-start justify-between gap-4 border-b border-slate-200 p-5 sm:p-6">
-      <div><h2 id={titleId} className="text-lg font-semibold text-slate-900">{title}</h2><p id={descriptionId} className="mt-1 text-sm leading-6 text-slate-600">{description}</p></div>
+    <header className="flex items-start justify-between gap-4 border-b border-stone-200 p-5 sm:p-6">
+      <div><h2 id={titleId} className="text-lg font-semibold text-stone-900">{title}</h2><p id={descriptionId} className="mt-1 text-sm leading-6 text-stone-600">{description}</p></div>
       <button type="button" onClick={onClose} disabled={busy} aria-label={closeLabel} className="ui-icon-button ui-button-ghost"><X size={19} aria-hidden="true" /></button>
     </header>
     <div className="p-5 sm:p-6">{children}</div>

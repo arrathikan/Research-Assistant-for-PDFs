@@ -8,7 +8,7 @@ export class PdfViewerBoundary extends Component<{ children: ReactNode; document
   render() {
     if (!this.state.failed) return this.props.children;
     return <div className="p-6">
-      <p role="alert" className="text-sm leading-6 text-slate-700">The PDF viewer couldn’t open. You can still read the original in a new tab.</p>
+      <p role="alert" className="text-sm leading-6 text-stone-700">The PDF viewer couldn’t open. You can still read the original in a new tab.</p>
       {this.props.documentId && <a className="ui-button ui-button-secondary mt-4" href={api.getPdfStreamUrl(this.props.documentId)} target="_blank" rel="noreferrer">Open original PDF<span className="sr-only"> (opens in a new tab)</span></a>}
     </div>;
   }

@@ -112,10 +112,10 @@ function WorkspaceSession({ document: paper, initialTab = 'summary' }: Props) {
   const contentWidth = pdfOpen ? '' : 'max-w-[1200px]';
   return (
     <PageContainer scrollable={false}>
-      <div hidden={pdfOpen && mobile} className="shrink-0 border-b border-slate-200 bg-white py-3">
+      <div hidden={pdfOpen && mobile} className="shrink-0 border-b border-stone-200 bg-white py-3">
         <div className={'mx-auto w-full min-w-0 ' + contentWidth}>
           <div className="mb-4 flex min-w-0 flex-wrap items-center gap-3">
-            <div className="min-w-0 flex-1"><p className="ui-eyebrow mb-1">Research workspace</p><h1 className="break-words text-base font-semibold text-slate-900 [overflow-wrap:anywhere] sm:text-lg">{paper.filename}</h1></div>
+            <div className="min-w-0 flex-1"><p className="ui-eyebrow mb-1">Research workspace</p><h1 className="break-words text-base font-semibold text-stone-900 [overflow-wrap:anywhere] sm:text-lg">{paper.filename}</h1></div>
             <DocumentStatusBadge status={paper.status} />
           </div>
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -131,7 +131,7 @@ function WorkspaceSession({ document: paper, initialTab = 'summary' }: Props) {
           </nav>
           <button type="button" disabled={!validDocument} aria-expanded={pdfOpen} aria-controls="workspace-original-pdf"
             onClick={event => { event.currentTarget.focus(); if (pdfOpen) setPdfOpen(false); else showPdf(); }}
-            className="ui-button ui-button-secondary text-xs text-blue-700">
+            className="ui-button ui-button-secondary text-xs text-brand-700">
             <FileText size={15} aria-hidden="true" />{pdfOpen ? 'Close PDF' : 'View Original PDF'}
           </button>
           </div>
@@ -140,8 +140,8 @@ function WorkspaceSession({ document: paper, initialTab = 'summary' }: Props) {
       <div data-testid="workspace-grid" className={'grid min-h-0 min-w-0 flex-1 overflow-hidden '
         + (pdfOpen ? 'grid-cols-1 md:grid-cols-[minmax(0,11fr)_minmax(0,9fr)]' : 'grid-cols-1')}>
         <section aria-label="Summary and chat" hidden={pdfOpen && mobile}
-          className={'min-h-0 min-w-0 overflow-y-auto bg-slate-50 py-5 '
-            + (pdfOpen ? 'md:border-r md:border-slate-200 md:pr-5' : '')}>
+          className={'min-h-0 min-w-0 overflow-y-auto bg-stone-50 py-5 '
+            + (pdfOpen ? 'md:border-r md:border-stone-200 md:pr-5' : '')}>
           <div className={'mx-auto w-full min-w-0 ' + contentWidth}>
             {sourceError && <p role="alert" className="mb-4 rounded-lg border border-red-200 bg-white p-3 text-sm text-red-700">{sourceError}</p>}
             <div role="tabpanel" aria-labelledby={panelId + '-summary'} hidden={tab !== 'summary'}>
@@ -158,8 +158,8 @@ function WorkspaceSession({ document: paper, initialTab = 'summary' }: Props) {
           className={pdfOpen
             ? 'fixed inset-0 z-50 flex min-h-0 min-w-0 flex-col bg-white md:static md:z-auto'
             : 'hidden'}>
-          {mobile && <div className="flex shrink-0 items-center justify-between gap-2 border-b border-slate-200 bg-white px-3 py-2">
-            <p className="min-w-0 truncate text-xs font-semibold text-slate-700">Original PDF</p>
+          {mobile && <div className="flex shrink-0 items-center justify-between gap-2 border-b border-stone-200 bg-white px-3 py-2">
+            <p className="min-w-0 truncate text-xs font-semibold text-stone-700">Original PDF</p>
             <button ref={closeButton} type="button" onClick={() => setPdfOpen(false)}
               className="ui-button ui-button-ghost">
               <X size={15} aria-hidden="true" />Close PDF

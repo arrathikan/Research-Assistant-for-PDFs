@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useEffect } from 'react';
 import { Navbar } from './Navbar';
 import { NavigationTab, DocumentMetadata } from '../../types';
 
@@ -15,8 +15,12 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   onSelectTab,
   activeDoc,
 }) => {
+  useEffect(() => {
+    const page = activeTab === 'dashboard' ? 'Paper Library' : activeTab === 'upload' ? 'Upload Paper' : 'Workspace';
+    document.title = `${page} | ResearchAI`;
+  }, [activeTab]);
   return (
-    <div className="h-dvh w-full min-w-0 flex flex-col bg-slate-50 text-slate-900 overflow-hidden">
+    <div className="h-dvh w-full min-w-0 flex flex-col bg-stone-50 text-stone-900 overflow-hidden">
       <Navbar
         activeTab={activeTab}
         onSelectTab={onSelectTab}

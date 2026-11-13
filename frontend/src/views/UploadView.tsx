@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Files, ShieldCheck, Sparkles, UploadCloud } from 'lucide-react';
+import { Files, UploadCloud } from 'lucide-react';
 import { Modal } from '../components/common/Modal';
 import { ProcessingProgress } from '../components/upload/ProcessingProgress';
 import { UploadStatusCard } from '../components/upload/UploadStatusCard';
@@ -59,24 +59,24 @@ export function UploadView({ active = true, onUploadSuccess, onStored, onGoToDas
   return <>
     {active && <PageContainer>
       <div className="mx-auto min-w-0 w-full max-w-5xl">
-        <header className="mb-7 text-center">
-          <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700"><Sparkles size={14} aria-hidden="true" />Your research, made clearer</div>
+        <header className="mb-6">
+          <p className="ui-eyebrow mb-2">Add to your library</p>
           <h1 className="ui-page-title">Upload a research paper</h1>
-          <p className="mt-2 text-sm leading-6 text-slate-600">Turn your PDF into a structured summary and a conversation grounded in your sources.</p>
+          <p className="mt-2 text-sm leading-6 text-stone-600">Turn your PDF into a structured summary and a conversation grounded in your sources.</p>
         </header>
         <button type="button" data-testid="main-upload-trigger" aria-haspopup="dialog" onClick={() => begin()}
           onDragOver={event => event.preventDefault()} onDrop={event => { event.preventDefault(); begin(Array.from(event.dataTransfer.files)); }}
-          className="flex min-h-56 w-full flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-slate-300 bg-white p-6 text-center hover:border-blue-400 hover:bg-blue-50/40 sm:p-10">
-          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-700"><UploadCloud size={26} aria-hidden="true" /></span>
-          <span className="text-base font-semibold text-slate-900">Drag &amp; Drop your research paper here</span>
+          className="flex min-h-56 w-full flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed border-stone-400 bg-white p-6 text-center hover:border-brand-400 hover:bg-brand-50/40 sm:p-10">
+          <span className="flex h-14 w-14 items-center justify-center rounded-xl bg-brand-50 text-brand-700"><UploadCloud size={26} aria-hidden="true" /></span>
+          <span className="text-base font-semibold text-stone-900">Drag &amp; Drop your research paper here</span>
           <span className="ui-button ui-button-primary">{isUploading ? 'View upload progress' : 'Choose PDF'}</span>
-          <span className="text-xs text-slate-500">PDF format only · Max 25 MB · One paper at a time</span>
+          <span className="text-xs text-stone-500">PDF format only · Max 25 MB · One paper at a time</span>
         </button>
-        {isUploading && !open && <p role="status" className="mt-3 text-sm text-slate-600">Your upload is continuing in the background.</p>}
-        <div className="mt-6 grid gap-4 border-t border-slate-200 pt-5 text-xs leading-5 text-slate-500 sm:grid-cols-2">
-          <p className="flex gap-2"><ShieldCheck size={17} aria-hidden="true" className="shrink-0 text-blue-600" /><span><strong className="font-medium text-slate-700">Your original stays intact.</strong><br />Open the stored PDF at any time.</span></p>
-          <p className="flex gap-2"><Files size={17} aria-hidden="true" className="shrink-0 text-blue-600" /><span><strong className="font-medium text-slate-700">Already uploaded? We’ll reuse it.</strong><br />Identical papers are recognized automatically.</span></p>
-        </div>
+        {isUploading && !open && <p role="status" className="mt-3 text-sm text-stone-600">Your upload is continuing in the background.</p>}
+        <p className="mt-5 flex items-start gap-2 text-xs leading-6 text-stone-600">
+          <Files size={16} aria-hidden="true" className="mt-1 shrink-0" />
+          We keep your original PDF and reuse identical papers already in your library.
+        </p>
       </div>
     </PageContainer>}
     <Modal open={open} onClose={() => setOpen(false)} closeLabel="Close upload"

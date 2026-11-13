@@ -687,3 +687,13 @@ values, failures and result-bound assistant reviews, separately from application
 chat. The latest run has two metric errors and remaining claim-to-citation defects.
 See [final QA](final-qa.md), [evaluation](../evaluation/reports/2026-11-13-final-qa/README.md)
 and [demo guide](demo-guide.md) for exact scope and release limitations.
+
+### Current frontend brand and reading layout
+
+The warm #C6360A identity supersedes earlier blue visual descriptions. Shared
+Tailwind/CSS tokens style the active frontend; a shared identity component imports
+the user's unchanged transparent PNG for both headers and favicon. The library
+uses responsive rows and compact real metrics, while the summary uses one divided
+reading sheet with named size-container rules. Citation prose displays actual page
+labels from existing metadata. Processing, retrieval and source verification
+contracts remain unchanged. See [frontend redesign](frontend-brand-redesign.md).
