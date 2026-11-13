@@ -113,27 +113,53 @@ ResearchAI is a modular, production-grade academic research paper assistant desi
 
 ## 🚀 Getting Started
 
-### 1. Prerequisites
-- Docker & Docker Compose
-- Python 3.11+
-- Node.js 18+ & npm
+### Docker application (Prompt 14)
 
-### 2. Environment Configuration
-Copy `.env.example` to `.env` and configure your API keys:
+Install Docker Desktop/Compose 2.24+, copy `.env.example` to `.env`, and configure
+your existing Atlas URI and provider keys. From the project root:
+
 ```bash
-cp .env.example .env
+docker compose up -d --build --wait
 ```
 
-### 3. Start Infrastructure Services
-Launch MongoDB and RabbitMQ using Docker Compose:
+Open **http://localhost:3000**. Compose starts the built frontend, gateway,
+RabbitMQ and processing workers together. This prevents a running UI from being
+left without its API or workers. The local MongoDB service is optional; Atlas
+remains the configured storage/search service.
+
+For local storage-only testing:
+
 ```bash
-docker compose up -d
+MONGODB_URI=mongodb://mongodb:27017 docker compose --profile local up -d --build --wait
+```
+
+Local MongoDB does not provide Atlas vector/BM25 search. See [Docker setup,
+configuration, safe smoke checks and operations](docs/deployment.md).
+
+### Continuous integration
+
+[GitHub Actions](https://github.com/arrathikan/Research-Assistant-for-PDFs/actions/workflows/ci.yml)
+checks backend tests/lint with disposable MongoDB and RabbitMQ, frontend tests and
+TypeScript/build, then a complete Docker smoke check. Normal CI has no provider
+secrets and never runs a paid Ragas evaluation. See [CI checks, local reproduction
+and limitations](docs/ci.md).
+
+### Native development alternative
+
+Use Python 3.11+ and Node.js 22. Keep the ignored `.env` configured for Atlas.
+Start only the broker before launching the gateway, workers and Vite in separate
+terminals:
+
+```bash
+docker compose up -d rabbitmq
 ```
 
 ### 4. Run Backend Gateway
 ```bash
 pip install -r backend/requirements.txt
-uvicorn backend.gateway.main:app --host 0.0.0.0 --port 8000 --reload
+python -m uvicorn backend.gateway.main:app --host 127.0.0.1 --port 8000 --reload
+# Separate terminal, same backend environment:
+python -m backend.services.jobs.main run
 ```
 
 ### 5. Run Frontend Development Server

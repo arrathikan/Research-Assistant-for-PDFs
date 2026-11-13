@@ -633,3 +633,31 @@ library. Closed-dialog polling updates real metadata without cancelling queued
 work. Dashboard menus confirm deletion, wait for its response, update library
 statistics and clear selected document state. Deleted IDs reject stale responses.
 See [cleanup contract, authorization boundary, guidance and verification](document-actions-upload-dialog.md).
+
+
+### Container boundaries (Prompt 14.1)
+
+Compose starts the built Nginx frontend, FastAPI gateway, background supervisor and
+RabbitMQ. The same non-root Python runtime image serves the gateway and workers;
+Node is confined to the frontend build stage. Runtime requirements exclude test,
+lint and evaluation packages. Nginx proxies the unchanged `/api/v1` contracts and
+serves local PDF.js assets. Health dependencies prevent the frontend from starting
+before gateway liveness. Worker probes check broker consumers without paid calls.
+
+Atlas configuration is passed through at runtime. Local MongoDB is an explicit
+storage-only profile and does not replace Atlas search. No credentials or private
+PDFs enter build contexts. Existing persistent resource names are retained.
+A disposable smoke project uses its own names, volumes, ports and empty provider
+keys. See [deployment and limitations](deployment.md).
+
+
+### CI boundary (Prompt 14.2)
+
+GitHub Actions checks Python 3.12 and Node 22 on Linux. Backend fixtures use real
+MongoDB/RabbitMQ service containers and simulate paid boundaries; provider/Atlas
+credentials are absent. Strict frontend compilation, Vitest and production builds
+precede a disposable Docker smoke. The smoke exercises the real proxy and storage
+lifecycle in its own containers. Offline Ragas schema/metric/report tests are allowed,
+but live judge calls, accuracy benchmarks, image publication and deployment are not
+part of automatic CI. Official setup actions are SHA-pinned with read-only repository
+permissions. See [CI configuration and limits](ci.md).
