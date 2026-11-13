@@ -596,3 +596,16 @@ Remaining release work: resolve metric errors and claim-to-citation quality,
 independent human review/broader sources, dependency security upgrades and
 production authentication/authorization/TLS. Optional visible health connection
 indicator (Prompt 3.2) remains deferred. See [final QA](final-qa.md).
+
+### Frontend warm-brand redesign
+
+- [x] Use the user's updated transparent PNG unchanged in both headers and favicon.
+- [x] Centralize #C6360A branding and warm neutral surfaces across active controls.
+- [x] Refine paper-library rows/search, compact upload modal, continuous summary
+  reading, focused chat and verified page-label citations.
+- [x] Preserve optional PDF sessions, source navigation, real status and API logic.
+- [x] Verify 142 proposed-source unit tests, strict types/build and 18 browser tests
+  across six widths; inspect responsive screenshots.
+
+See [implementation and scoped checks](frontend-brand-redesign.md). Backend/RAG
+quality and public deployment follow-ups remain documented separately.

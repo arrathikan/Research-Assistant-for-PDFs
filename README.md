@@ -515,7 +515,7 @@ preserved. See [measured layout verification](docs/optional-pdf-workspace.md).
 
 ResearchAI now opens the existing Dashboard with an honest empty library. Upload
 one real PDF to explore its saved summary or start a sourced conversation. The
-shared blue/neutral controls, accessible document articles, keyboard tabs and
+shared warm brand/neutral controls, accessible document articles, keyboard tabs and
 compact chat suggestions are consistent across pages. The optional PDF code loads
 only when requested and retains its viewer state while hidden.
 
@@ -548,3 +548,11 @@ one live browser check and Docker smoke verification. The
 18 real responses and assistant source reviews, with 58 measured values and two
 explicit metric errors. Citation quality, dependency advisories and public
 production requirements remain documented follow-ups.
+
+### Warm branding and reading workspace
+
+The frontend now uses the supplied transparent logo, **#C6360A** brand accents,
+compact paper-library rows and a continuous five-section reading layout. Upload,
+chat and the optional PDF viewer keep their existing integration and state.
+See [design changes and verification](docs/frontend-brand-redesign.md) for page
+updates, logo provenance, responsive behavior and test scope.

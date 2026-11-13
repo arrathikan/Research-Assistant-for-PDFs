@@ -3,7 +3,7 @@ import { DocumentMetadata, WorkspaceTab } from '../types';
 import { DeleteDocumentDialog } from '../components/dashboard/DeleteDocumentDialog';
 import { DocumentCard } from '../components/dashboard/DocumentCard';
 import { EmptyState } from '../components/common/EmptyState';
-import { BookOpen, Search, UploadCloud, Layers, Database } from 'lucide-react';
+import { Search, UploadCloud } from 'lucide-react';
 
 import { PageContainer } from '../components/layout/PageContainer';
 interface DashboardViewProps {
@@ -38,13 +38,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   return (
     <PageContainer>
-      {/* Top Banner & Stats */}
+      {/* Library heading and primary action. */}
       <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <p className="ui-eyebrow mb-2">Your research</p>
           <h1 ref={heading} tabIndex={-1} className="ui-page-title">Paper Library</h1>
-          <p className="mt-2 text-sm leading-6 text-slate-600">
-            A home for your papers, their key ideas and your next question.
+          <p className="mt-2 text-sm leading-6 text-stone-600">
+            Read, understand and return to the papers that matter to your research.
           </p>
         </div>
 
@@ -57,63 +57,36 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </button>
       </div>
 
-      {notice && <p role="status" className="mb-4 text-sm text-slate-600">{notice}</p>}
-      {/* Metrics Bar */}
-      <section aria-label="Library statistics" className="grid min-w-0 grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div className="ui-card flex items-center gap-4 p-5">
-          <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
-            <BookOpen aria-hidden="true" className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-2xl font-semibold tracking-tight text-slate-900">{documents.length}</div>
-            <div className="text-sm text-slate-500">Total Research Papers</div>
-          </div>
-        </div>
-
-        <div className="ui-card flex items-center gap-4 p-5">
-          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-            <Layers aria-hidden="true" className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-2xl font-semibold tracking-tight text-slate-900">{readyCount}</div>
-            <div className="text-sm text-slate-500">Ready to explore</div>
-          </div>
-        </div>
-
-        <div className="ui-card flex items-center gap-4 p-5">
-          <div className="p-3 bg-slate-100 text-slate-600 rounded-xl">
-            <Database aria-hidden="true" className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-2xl font-semibold tracking-tight text-slate-900">{formattedStorage}</div>
-            <div className="text-sm text-slate-500">PDF Storage</div>
-          </div>
-        </div>
+      {notice && <p role="status" className="mb-4 text-sm text-stone-600">{notice}</p>}
+      <section aria-label="Library statistics" className="mb-7 flex flex-wrap gap-x-8 gap-y-3 border-y border-stone-200 py-4 text-sm text-stone-600">
+        <div className="flex items-baseline gap-2"><strong className="font-semibold tabular-nums text-stone-900">{documents.length}</strong><span>Total Research Papers</span></div>
+        <div className="flex items-baseline gap-2"><strong className="font-semibold tabular-nums text-stone-900">{readyCount}</strong><span>Ready to explore</span></div>
+        <div className="flex items-baseline gap-2"><strong className="font-semibold tabular-nums text-stone-900">{formattedStorage}</strong><span>PDF Storage</span></div>
       </section>
 
-      <h2 className="mb-4 mt-8 text-lg font-semibold tracking-tight text-slate-900">Your papers</h2>
+      <h2 className="mb-4 text-lg font-semibold tracking-tight text-stone-900">Your papers</h2>
 
       {/* Search & Filter Bar */}
       {documents.length > 0 && (
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div className="relative w-full sm:max-w-md">
-            <Search aria-hidden="true" className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search aria-hidden="true" className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
-              type="text"
+              type="search"
               aria-label="Search papers"
-              placeholder="Search papers by filename..."
+              placeholder="Search by filename"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="ui-field w-full pl-10"
             />
           </div>
-          <span className="shrink-0 text-sm text-slate-500">
+          <span className="shrink-0 text-sm text-stone-500">
             Showing {filteredDocuments.length} of {documents.length}
           </span>
         </div>
       )}
 
-      {/* Document Grid or Empty State */}
+      {/* Research library or an actionable empty state. */}
       {documents.length === 0 ? (
         <div className="py-4">
           <EmptyState
@@ -138,7 +111,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           />
         </div>
       ) : (
-        <section aria-label="Research papers" className="grid min-w-0 grid-cols-[repeat(auto-fit,minmax(min(100%,20rem),1fr))] gap-5">
+        <section aria-label="Research papers" className="paper-library min-w-0 divide-y divide-stone-200 rounded-xl border border-stone-200 bg-white">
           {filteredDocuments.map((doc) => (
             <DocumentCard
               key={doc.sha256}

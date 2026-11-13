@@ -134,8 +134,8 @@ export function PdfViewerPanel({ document: paper, activeCitation, onClearCitatio
 
   const targetInvalid = !!anchor && pages > 0 && anchor.page_number > pages;
   return (
-    <section data-testid="pdf-viewer-panel" aria-label="PDF source viewer" className="flex min-h-0 min-w-0 h-full flex-col bg-slate-100">
-      <div role="group" aria-label="PDF controls" className="flex shrink-0 flex-wrap items-center gap-1 border-b border-slate-200 bg-white p-2 text-xs">
+    <section data-testid="pdf-viewer-panel" aria-label="PDF source viewer" className="flex min-h-0 min-w-0 h-full flex-col bg-stone-100">
+      <div role="group" aria-label="PDF controls" className="flex shrink-0 flex-wrap items-center gap-1 border-b border-stone-200 bg-white p-2 text-xs">
         <button type="button" className="ui-button ui-button-ghost px-2 text-xs" aria-label="Previous Page" disabled={!pages || page <= 1} onClick={() => setPage({ id, value: page - 1 })}>Previous</button>
         <label className="flex items-center gap-2">Page <input aria-label="PDF page number" type="number" min={1} max={pages || 1} value={page} disabled={!pages} onChange={event => { const next = Number(event.target.value); if (Number.isInteger(next) && next >= 1 && next <= pages) setPage({ id, value: next }); }} className="ui-field w-14 px-2" /></label>
         <span>of {pages || '…'}</span>
@@ -144,16 +144,16 @@ export function PdfViewerPanel({ document: paper, activeCitation, onClearCitatio
         <span aria-label="PDF zoom">{zoom}%</span>
         <button type="button" className="ui-icon-button ui-button-ghost" title="Zoom in" aria-label="Zoom In" disabled={zoom >= 200} onClick={() => setZoom(value => Math.min(200, value + 25))}>+</button>
         <button type="button" className="ui-button ui-button-ghost px-2 text-xs" aria-label="Reset Zoom" onClick={() => setZoom(100)}>Reset zoom</button>
-        {valid && id && <a className="ui-button ui-button-ghost ml-auto px-2 text-xs text-blue-700" href={api.getPdfStreamUrl(id)} target="_blank" rel="noreferrer">Open original PDF</a>}
+        {valid && id && <a className="ui-button ui-button-ghost ml-auto px-2 text-xs text-brand-700" href={api.getPdfStreamUrl(id)} target="_blank" rel="noreferrer">Open original PDF</a>}
       </div>
       {resolving && <p role="status" className="p-3 text-sm">Opening citation…</p>}
       {sourceError && <p role="alert" className="p-3 text-sm text-red-700">{sourceError}</p>}
       {targetInvalid && <p role="alert" className="p-3 text-sm text-red-700">That source page is not available in this PDF. Try another citation.</p>}
       {anchor && !targetInvalid && (
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-blue-100 bg-white px-3 py-2 text-xs text-slate-600">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-brand-100 bg-white px-3 py-2 text-xs text-stone-600">
           <p className="font-medium">Source — Page {anchor.page_number}</p>
           <div className="flex items-center gap-2">
-            {page !== anchor.page_number && <button type="button" onClick={() => setPage({ id, value: anchor.page_number })} className="ui-button ui-button-ghost px-2 text-xs text-blue-700">Return to source</button>}
+            {page !== anchor.page_number && <button type="button" onClick={() => setPage({ id, value: anchor.page_number })} className="ui-button ui-button-ghost px-2 text-xs text-brand-700">Return to source</button>}
             {onClearCitation && <button type="button" className="ui-button ui-button-ghost px-2 text-xs" onClick={onClearCitation}>Clear source</button>}
           </div>
         </div>

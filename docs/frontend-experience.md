@@ -1,5 +1,10 @@
 # ResearchAI frontend experience
 
+Current branding and page presentation are documented in the
+[warm-brand redesign](frontend-brand-redesign.md). The blue-palette descriptions
+and measurements below record the earlier implementation.
+
+
 ## Problems and resulting behavior
 
 The shared 1440px frame from the previous increment was retained. Remaining issues

@@ -20,10 +20,10 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
     <div
       role="status"
       aria-live="polite"
-      className="flex flex-col items-center justify-center p-6 text-slate-500 gap-2"
+      className="flex flex-col items-center justify-center p-6 text-stone-500 gap-2"
     >
-      <Loader2 aria-hidden="true" className={`${sizeClass} motion-safe:animate-spin text-blue-600`} />
-      {label && <span className="text-xs font-medium text-slate-600">{label}</span>}
+      <Loader2 aria-hidden="true" className={`${sizeClass} motion-safe:animate-spin text-brand-600`} />
+      {label && <span className="text-xs font-medium text-stone-600">{label}</span>}
     </div>
   );
 };

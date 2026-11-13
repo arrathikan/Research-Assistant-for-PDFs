@@ -157,7 +157,7 @@ it('confirms deletion once, waits for success, then updates filtered cards, coun
   render(<App />); await uploadIntoLibrary();
   fireEvent.click(within(screen.getByTestId('document-card')).getByRole('button', { name: 'paper.pdf' }));
   nav('Dashboard'); sessionStorage.setItem('researchai.chat.' + ID, 'synthetic-conversation');
-  fireEvent.change(screen.getByRole('textbox', { name: 'Search papers' }), { target: { value: 'paper' } });
+  fireEvent.change(screen.getByRole('searchbox', { name: 'Search papers' }), { target: { value: 'paper' } });
   const dialog = askDelete(), confirm = within(dialog).getByRole('button', { name: 'Delete Paper' });
   fireEvent.click(confirm); fireEvent.click(confirm);
   expect(api.deleteDocument).toHaveBeenCalledOnce();

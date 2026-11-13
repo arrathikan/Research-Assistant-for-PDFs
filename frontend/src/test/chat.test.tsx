@@ -23,7 +23,7 @@ it('shows pending state then a sourced API answer', async () => {
   expect(screen.getByRole('log', { name: 'Chat messages' })).toHaveAttribute('aria-busy', 'true');
   expect(screen.getByRole('button', { name: 'Send Message' })).toBeDisabled();
   await act(async () => { finish(RESULT); });
-  expect(screen.getByText('Synthetic answer', { exact: false })).toHaveTextContent(RESULT.answer);
+  expect(screen.getByText('Synthetic answer', { exact: false })).toHaveTextContent('Synthetic answer [Page 1]');
   expect(screen.getByText('Synthetic evidence.')).not.toBeVisible();
   fireEvent.click(screen.getByText('Sources (1)'));
   fireEvent.click(screen.getByRole('button', { name: 'Page 1' }));
@@ -35,7 +35,7 @@ it('reports failure without inventing an assistant response', async () => {
   vi.spyOn(api, 'sendChatQuery').mockRejectedValue(new ApiError(503, 'unavailable'));
   render(<DocumentChatPanel documentId={ID} />); send();
   expect(await screen.findByRole('alert')).toHaveTextContent('Chat is unavailable');
-  expect(screen.queryByText(RESULT.answer)).not.toBeInTheDocument();
+  expect(screen.queryByText('Synthetic answer', { exact: false })).not.toBeInTheDocument();
   expect(screen.getByRole('textbox', { name: 'Question' })).toHaveValue('Synthetic question?');
 });
 
@@ -46,7 +46,7 @@ it('loads saved history without a paid send', async () => {
   const post = vi.spyOn(api, 'sendChatQuery');
   render(<DocumentChatPanel documentId={ID} />);
   expect(await screen.findByText('Earlier question')).toBeInTheDocument();
-  expect(screen.getByText('Synthetic answer', { exact: false })).toHaveTextContent(RESULT.answer);
+  expect(screen.getByText('Synthetic answer', { exact: false })).toHaveTextContent('Synthetic answer [Page 1]');
   expect(post).not.toHaveBeenCalled();
 });
 
@@ -56,7 +56,7 @@ it('ignores a late answer after switching documents', async () => {
   const view = render(<DocumentChatPanel documentId={ID} />); send();
   view.rerender(<DocumentChatPanel documentId="507f1f77bcf86cd799439012" />);
   await act(async () => { finish(RESULT); });
-  expect(screen.queryByText(RESULT.answer)).not.toBeInTheDocument();
+  expect(screen.queryByText('Synthetic answer', { exact: false })).not.toBeInTheDocument();
   expect(screen.queryByText('Synthetic question?')).not.toBeInTheDocument();
 });
 
@@ -64,7 +64,7 @@ it('rejects a response from another document', async () => {
   vi.spyOn(api, 'sendChatQuery').mockResolvedValue({ ...RESULT, document_id: '507f1f77bcf86cd799439012' });
   render(<DocumentChatPanel documentId={ID} />); send();
   expect(await screen.findByRole('alert')).toBeInTheDocument();
-  expect(screen.queryByText(RESULT.answer)).not.toBeInTheDocument();
+  expect(screen.queryByText('Synthetic answer', { exact: false })).not.toBeInTheDocument();
 });
 
 it('displays insufficient-evidence answers without invented sources', async () => {

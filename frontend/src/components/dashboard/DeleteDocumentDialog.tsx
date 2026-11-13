@@ -19,10 +19,10 @@ export function DeleteDocumentDialog({ document: paper, onCancel, onDelete, onDe
     } finally { inFlight.current = false; setBusy(false); }
   }
   return <Modal open title="Delete research paper?" description="This permanently removes the paper and its document-specific research data." busy={busy} initialFocus={cancel} onClose={onCancel} closeLabel="Close delete confirmation">
-    <p className="break-words text-sm leading-7 text-slate-700 [overflow-wrap:anywhere]">Are you sure you want to delete <strong className="font-semibold">“{paper.filename}”</strong>?</p>
-    <p className="mt-2 text-sm leading-6 text-slate-600">The original PDF, extracted content, summary and chat history will be removed. This cannot be undone.</p>
+    <p className="break-words text-sm leading-7 text-stone-700 [overflow-wrap:anywhere]">Are you sure you want to delete <strong className="font-semibold">“{paper.filename}”</strong>?</p>
+    <p className="mt-2 text-sm leading-6 text-stone-600">The original PDF, extracted content, summary and chat history will be removed. This cannot be undone.</p>
     {error && <p role="alert" className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm leading-6 text-red-800">{error}</p>}
-    {busy && <p role="status" className="mt-4 text-sm text-slate-600">Deleting this paper. Please wait until cleanup is confirmed.</p>}
+    {busy && <p role="status" className="mt-4 text-sm text-stone-600">Deleting this paper. Please wait until cleanup is confirmed.</p>}
     <div className="mt-6 flex flex-wrap justify-end gap-2">
       <button ref={cancel} type="button" disabled={busy} onClick={onCancel} className="ui-button ui-button-secondary">Cancel</button>
       <button type="button" disabled={busy} onClick={() => void confirm()} className="ui-button ui-button-danger">{busy ? <Loader2 size={16} aria-hidden="true" className="motion-safe:animate-spin" /> : <Trash2 size={16} aria-hidden="true" />}{busy ? 'Deleting…' : 'Delete Paper'}</button>
