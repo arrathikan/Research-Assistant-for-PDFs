@@ -606,3 +606,30 @@ component is imported lazily outside the session component and retained after it
 first use. A focused error boundary protects the conversation from optional PDF
 code/render failures. The mobile overlay keeps existing focus containment and
 makes the global header inert until closed. See [guidance and verification](frontend-experience.md).
+
+
+### Document deletion boundary
+
+`DELETE /api/v1/documents/{document_id}` delegates to
+`shared/document_lifecycle.py`. A metadata barrier and short conditional write guard
+serialize document-specific persistence against cleanup without locking AI calls.
+GridFS and scoped derived records are removed before metadata. Shared vector
+caches/indexes remain. Only acknowledged completion returns 204; partial failure
+retains the barrier and file identity for retry. Active/uncertain writes return 409.
+Ambiguous writes retain their token for operator review, without automatic expiry.
+Deploy the gateway, dispatcher and all writers together before using deletion.
+The existing application has no authentication or per-user ownership layer.
+
+Real MongoDB/GridFS cleanup and worker-race tests pass within the **471 passed,
+6 optional checks skipped** backend suite; all changed Python lint/format checks pass.
+No existing user paper was deleted during verification.
+
+
+### Upload dialog and paper actions
+
+App retains the upload controller across navigation; its native dialog hosts the
+existing picker, request and processing UI. Storage immediately upserts the session
+library. Closed-dialog polling updates real metadata without cancelling queued
+work. Dashboard menus confirm deletion, wait for its response, update library
+statistics and clear selected document state. Deleted IDs reject stale responses.
+See [cleanup contract, authorization boundary, guidance and verification](document-actions-upload-dialog.md).

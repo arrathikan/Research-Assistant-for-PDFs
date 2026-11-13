@@ -11,6 +11,7 @@ from backend.services.document_processor.chunk_storage import read_document_chun
 from backend.services.summary_service.models import summary_profile_id
 from backend.shared.config import Settings
 from backend.shared.database import StorageUnavailable
+from backend.shared.document_lifecycle import document_write
 from backend.shared.embedding_models import EmbeddingError, EmbeddingProfile, validate_vectors
 from backend.shared.models import ChunkingStatus, DocumentStatus, EmbeddingStatus
 from backend.shared.storage import DocumentNotFound
@@ -101,7 +102,7 @@ def read_embedding_summary(
     profile = embedding_profile(settings)
     try:
         document = database.documents.find_one({"_id": ObjectId(document_id)})
-        if document is None:
+        if document is None or document.get("deletion_state") == "DELETING":
             raise DocumentNotFound("Document not found")
         if (
             document.get("embedding_status") != EmbeddingStatus.COMPLETED
@@ -178,14 +179,15 @@ def save_embeddings(
             "created_at": _now(),
         }
         operations.append(UpdateOne({"_id": record["_id"]}, {"$setOnInsert": record}, upsert=True))
-    database.chunk_embeddings.bulk_write(operations, ordered=True)
-    scope = {
-        "document_id": document_id,
-        "chunk_set_id": chunk_set,
-        "embedding_profile_id": profile.id,
-    }
-    if database.chunk_embeddings.count_documents(scope) != len(chunks):
-        raise StorageUnavailable("Embedding snapshot coverage is incomplete")
+    with document_write(database, document_id):
+        database.chunk_embeddings.bulk_write(operations, ordered=True)
+        scope = {
+            "document_id": document_id,
+            "chunk_set_id": chunk_set,
+            "embedding_profile_id": profile.id,
+        }
+        if database.chunk_embeddings.count_documents(scope) != len(chunks):
+            raise StorageUnavailable("Embedding snapshot coverage is incomplete")
 
 
 def embed_stored_document(
@@ -203,7 +205,7 @@ def embed_stored_document(
     profile = embedding_profile(settings)
     try:
         document = database.documents.find_one({"_id": identifier})
-        if document is None:
+        if document is None or document.get("deletion_state") == "DELETING":
             raise DocumentNotFound("Document not found")
         if document.get("chunking_status") != ChunkingStatus.COMPLETED:
             raise EmbeddingNotReady("Complete chunking before creating embeddings")
@@ -237,6 +239,7 @@ def embed_stored_document(
         claim = database.documents.find_one_and_update(
             {
                 "_id": identifier,
+                "deletion_state": {"$exists": False},
                 "active_chunk_set_id": chunk_set,
                 "active_parse_run_id": parse_run,
                 "chunking_status": ChunkingStatus.COMPLETED,
@@ -301,6 +304,7 @@ def embed_stored_document(
         result = database.documents.update_one(
             {
                 "_id": identifier,
+                "deletion_state": {"$exists": False},
                 "active_chunk_set_id": chunk_set,
                 "active_parse_run_id": parse_run,
                 "embedding_run_id": attempt,

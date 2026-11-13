@@ -14,6 +14,7 @@ def reconcile_requests(database: Database, settings: Settings) -> None:
         records = database.documents.find(
             {
                 "processing_requested": True,
+                "deletion_state": {"$exists": False},
                 "processing_scheduled_job_id": {"$exists": False},
                 "status": {"$ne": "READY"},
             },

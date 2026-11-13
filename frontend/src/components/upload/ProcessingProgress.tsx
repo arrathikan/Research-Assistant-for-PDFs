@@ -7,6 +7,8 @@ import { UploadStatusCard, type UploadStage } from './UploadStatusCard';
 interface Props {
   document: DocumentMetadata;
   onOpen: (document: DocumentMetadata, tab: WorkspaceTab) => void;
+  onUpdate?: (document: DocumentMetadata, ready: boolean) => void;
+  showDocumentActions?: boolean;
 }
 
 const STEPS: Record<string, string> = {
@@ -21,7 +23,9 @@ export function ProcessingProgress(props: Props) {
   return <DocumentProcessing key={props.document.id} {...props} />;
 }
 
-function DocumentProcessing({ document: initialDocument, onOpen }: Props) {
+function DocumentProcessing({ document: initialDocument, onOpen, onUpdate, showDocumentActions = true }: Props) {
+  const updateCallback = useRef(onUpdate);
+  updateCallback.current = onUpdate;
   const [document, setDocument] = useState(initialDocument);
   const [job, setJob] = useState<ProcessingStatus | null>(null);
   const [summaryAvailable, setSummaryAvailable] = useState(false);
@@ -51,6 +55,7 @@ function DocumentProcessing({ document: initialDocument, onOpen }: Props) {
         setDocument(metadata);
         setNotice('');
         setSummaryAvailable(false);
+        updateCallback.current?.(metadata, false);
         const completed = current.status === 'COMPLETED' || current.status === 'NOT_SCHEDULED';
         if (metadata.status === 'READY' && completed) {
           // A READY label alone does not guarantee the current summary can be read.
@@ -58,7 +63,7 @@ function DocumentProcessing({ document: initialDocument, onOpen }: Props) {
           if (cancelled) return;
           if (summary.document_id !== id) throw new Error('Document mismatch');
           setSummaryAvailable(true);
-          if (metadata.embedding_status === 'COMPLETED') return;
+          if (metadata.embedding_status === 'COMPLETED') { updateCallback.current?.(metadata, true); return; }
         }
         if (current.status === 'DEAD_LETTER' || current.status === 'NOT_SCHEDULED') return;
       } catch (failure: unknown) {
@@ -120,6 +125,7 @@ function DocumentProcessing({ document: initialDocument, onOpen }: Props) {
   const canRetry = job?.status === 'NOT_SCHEDULED' && document.status !== 'READY'
     || job?.status === 'DEAD_LETTER' && !job.requires_review;
   return <UploadStatusCard
+    showDocumentActions={showDocumentActions}
     filename={document.filename}
     fileSize={document.file_size_bytes}
     stage={stage}

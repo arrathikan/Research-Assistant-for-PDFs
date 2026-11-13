@@ -662,3 +662,22 @@ no standalone lint pass is claimed. The session-scoped document library and
 upstream PDF.js warning remain documented limits. Backend/RAG/processing behavior
 was unchanged. See [frontend experience](frontend-experience.md) for files,
 guidance, measurements and test details.
+
+
+### Dashboard paper actions and upload dialog
+
+- [x] Reuse upload validation, APIs and processing states inside a native dialog.
+- [x] Keep active uploads and queued work independent of modal/navigation state.
+- [x] Refresh actual library metadata and deduplicate cards immediately.
+- [x] Add accessible paper menus, safe delete confirmation, pending/error recovery
+  and confirmed-success library/Workspace cleanup.
+- [x] Add idempotent document-scoped DELETE, GridFS/derived cleanup, partial-failure
+  retry and write barriers against late providers/jobs.
+- [x] Verify frontend/backend tests, TypeScript/build, scoped Python lint/format,
+  desktop/mobile interaction and responsive widths.
+
+Verification: **144 local / 140 isolated frontend tests passed; 471 backend tests passed with 6
+optional live/broker checks skipped**. No frontend lint command is configured.
+No existing user paper was deleted. A local synthetic upload confirmed durable
+queueing, safe modal closure and duplicate handling. Paid AI completion was not
+repeated. See [implementation and limits](document-actions-upload-dialog.md).

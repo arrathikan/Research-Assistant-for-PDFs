@@ -13,7 +13,8 @@ from backend.services.document_processor.parsed_models import ParsedDocument
 from backend.services.summary_service.models import SummaryError, SummaryResult
 from backend.services.summary_service.storage import SummaryNotReady, read_summary
 from backend.shared.config import get_settings
-from backend.shared.database import connect_database
+from backend.shared.database import StorageUnavailable, connect_database
+from backend.shared.document_lifecycle import DocumentBusy, delete_document
 from backend.shared.models import DocumentStatus
 from backend.shared.storage import (
     DocumentNotFound,
@@ -188,3 +189,17 @@ def document_summary(document_id: DocumentId, database: DatabaseDependency) -> S
         ) from None
     except SummaryError:
         raise HTTPException(503, "Summary generation failed; retry the summary job") from None
+
+
+@router.delete("/{document_id}", status_code=204, response_class=Response)
+def remove_document(document_id: DocumentId, database: DatabaseDependency) -> Response:
+    """Idempotent, document-scoped permanent cleanup; no provider calls."""
+    try:
+        delete_document(database, document_id)
+    except DocumentBusy:
+        raise HTTPException(
+            409, "Document data is being saved. Try deleting again shortly."
+        ) from None
+    except StorageUnavailable:
+        raise HTTPException(503, "Deletion did not finish. Retry deleting this paper.") from None
+    return Response(status_code=204)

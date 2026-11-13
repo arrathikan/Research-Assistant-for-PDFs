@@ -18,6 +18,7 @@ interface Props {
   retryLabel?: string;
   retrying?: boolean;
   onCheck?: () => void;
+  showDocumentActions?: boolean;
 }
 
 const BADGES: Record<UploadStage, { label: string; style: string }> = {
@@ -34,7 +35,7 @@ const TEXT_ACTION = 'ui-button ui-button-ghost text-blue-700';
 
 export function UploadStatusCard({
   filename, fileSize, stage, description, busy = false, notice, pdfUrl,
-  onSummary, onChat, onRetry, retryLabel = 'Retry processing', retrying = false, onCheck,
+  onSummary, onChat, onRetry, retryLabel = 'Retry processing', retrying = false, onCheck, showDocumentActions = true,
 }: Props) {
   const headingId = useId();
   const badge = BADGES[stage];
@@ -57,13 +58,13 @@ export function UploadStatusCard({
         <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
       </div>
       {notice && <p role="alert" className="mt-3 text-sm leading-6 text-rose-700">{notice}</p>}
-      <div className="mt-5 grid grid-cols-1 gap-2 border-t border-slate-100 pt-4 sm:grid-cols-3">
+      {showDocumentActions && <div className="mt-5 grid grid-cols-1 gap-2 border-t border-slate-100 pt-4 sm:grid-cols-3">
         <button type="button" disabled={!onSummary} onClick={onSummary} className={ACTION}><BookOpen size={16} aria-hidden="true" />View Summary</button>
         {pdfUrl
           ? <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className={ACTION}><ArrowUpRight size={16} aria-hidden="true" />Open PDF<span className="sr-only"> (opens in a new tab)</span></a>
           : <button type="button" disabled className={ACTION}><FileText size={16} aria-hidden="true" />Open PDF</button>}
         <button type="button" disabled={!onChat} onClick={onChat} className={ACTION}><MessageSquare size={16} aria-hidden="true" />Chat with Paper</button>
-      </div>
+      </div>}
       {(onRetry || onCheck) && <div className="mt-3 flex flex-wrap gap-2">
         {onRetry && <button type="button" disabled={retrying} onClick={onRetry} className={TEXT_ACTION}><RefreshCw size={15} aria-hidden="true" className={retrying ? 'motion-safe:animate-spin' : ''} />{retrying ? 'Restarting…' : retryLabel}</button>}
         {onCheck && <button type="button" disabled={retrying} onClick={onCheck} className={TEXT_ACTION}>Check status again</button>}

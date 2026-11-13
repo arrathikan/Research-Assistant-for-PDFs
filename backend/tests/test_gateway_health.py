@@ -1,7 +1,7 @@
 """Tests for FastAPI Gateway health endpoints."""
 
-from fastapi.testclient import TestClient
 from backend.gateway.main import app
+from fastapi.testclient import TestClient
 
 client = TestClient(app)
 

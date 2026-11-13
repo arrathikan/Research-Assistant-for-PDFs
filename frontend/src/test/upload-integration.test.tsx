@@ -15,6 +15,7 @@ beforeEach(() => {
 });
 afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); });
 async function selectAndUpload(name = 'paper.pdf') {
+  fireEvent.click(screen.getByTestId('main-upload-trigger'));
   const file = new File(['%PDF-1.7 synthetic'], name, { type: 'application/pdf' });
   await act(async () => {
     fireEvent.change(screen.getByTestId('file-input'), { target: { files: [file] } });
@@ -31,9 +32,8 @@ describe('upload status card', () => {
     expect(screen.getByText('Uploaded')).toBeInTheDocument();
     expect(screen.getAllByText('paper.pdf')).toHaveLength(1);
     expect(screen.getByText('PDF · 1.0 MB')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Open PDF/ })).toHaveAttribute('href', api.getPdfStreamUrl(ID));
-    expect(screen.getByRole('button', { name: 'View Summary' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Chat with Paper' })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Open Workspace' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Done' })).toBeEnabled();
     expect(screen.queryByText(/Raw internal|PENDING|Document ID|Upload successful|100%/)).not.toBeInTheDocument();
     expect(screen.queryByTestId('dropzone')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Upload paper' })).not.toBeInTheDocument();
@@ -52,10 +52,9 @@ describe('upload status card', () => {
     await act(async () => { await vi.advanceTimersByTimeAsync(2000); });
     expect(screen.getByText('Ready')).toBeInTheDocument();
     expect(screen.getAllByText('paper.pdf')).toHaveLength(1);
-    fireEvent.click(screen.getByRole('button', { name: 'View Summary' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Open Workspace' }));
     expect(open).toHaveBeenLastCalledWith(READY, 'summary');
-    fireEvent.click(screen.getByRole('button', { name: 'Chat with Paper' }));
-    expect(open).toHaveBeenLastCalledWith(READY, 'chat');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('shows uploading until the actual upload response and prevents another submission', async () => {
@@ -67,7 +66,7 @@ describe('upload status card', () => {
     expect(screen.getAllByText('paper.pdf')).toHaveLength(1);
     expect(screen.queryByTestId('file-input')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Upload another paper' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Open PDF' })).toBeDisabled();
+    expect(screen.queryByRole('link', { name: /Open PDF/ })).not.toBeInTheDocument();
     expect(api.getProcessingStatus).not.toHaveBeenCalled();
     await act(async () => { finish(STORED); });
     expect(screen.getByText('Uploaded')).toBeInTheDocument();
@@ -106,7 +105,7 @@ describe('upload status card', () => {
     render(<UploadView onUploadSuccess={vi.fn()} />);
     await selectAndUpload();
     await act(async () => { vi.advanceTimersByTime(2000); });
-    fireEvent.click(screen.getByRole('button', { name: 'Upload another paper' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Done' }));
     vi.mocked(api.uploadDocument).mockImplementationOnce(() => new Promise(resolve => { newUpload = resolve; }));
     await selectAndUpload('new-paper.pdf');
     await act(async () => { oldStatus({ ...QUEUED, status: 'COMPLETED' }); });
@@ -116,6 +115,6 @@ describe('upload status card', () => {
     expect(api.getDocumentSummary).not.toHaveBeenCalled();
     await act(async () => { newUpload({ ...STORED, document: { ...PAPER, id: OTHER_ID, filename: 'new-paper.pdf' } }); });
     expect(screen.getByText('Uploaded')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Chat with Paper' })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Open Workspace' })).not.toBeInTheDocument();
   });
 });

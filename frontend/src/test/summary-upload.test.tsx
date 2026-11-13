@@ -14,13 +14,13 @@ it('does not open or poll a summary while uploaded data is still pending', async
   const read = vi.spyOn(api, 'getDocumentSummary');
   const open = vi.fn();
   render(<UploadView onUploadSuccess={open} />);
+  fireEvent.click(screen.getByTestId('main-upload-trigger'));
   await act(async () => {
     fireEvent.change(screen.getByTestId('file-input'), { target: { files: [new File(['%PDF-1.7'], 'paper.pdf', { type: 'application/pdf' })] } });
     fireEvent.click(screen.getByRole('button', { name: 'Upload paper' }));
   });
   await act(async () => { await vi.advanceTimersByTimeAsync(2000); });
-  expect(screen.getByRole('button', { name: 'View Summary' })).toBeDisabled();
-  fireEvent.click(screen.getByRole('button', { name: 'View Summary' }));
+  expect(screen.queryByRole('button', { name: 'Open Workspace' })).not.toBeInTheDocument();
   expect(read).not.toHaveBeenCalled();
   expect(open).not.toHaveBeenCalled();
   expect(screen.queryByText('Summary not ready yet. Checking for updates…')).not.toBeInTheDocument();

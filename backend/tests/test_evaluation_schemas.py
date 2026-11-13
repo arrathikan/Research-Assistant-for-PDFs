@@ -2,7 +2,8 @@
 
 import json
 from pathlib import Path
-from evaluation.schemas import EvaluationSample, EvaluationReportSummary
+
+from evaluation.schemas import EvaluationReportSummary, EvaluationSample
 
 
 def test_evaluation_sample_schema():

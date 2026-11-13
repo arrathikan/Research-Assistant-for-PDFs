@@ -37,3 +37,15 @@ describe('upload API client', () => {
     expect(await api.uploadDocument(new File(['pdf'], 'paper.pdf'))).toMatchObject({ is_duplicate: true });
   });
 });
+
+
+it('deletes the canonical document and accepts the empty 204 response without parsing JSON', async () => {
+  const json = vi.fn().mockRejectedValue(new Error('204 has no body'));
+  const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 204, json });
+  vi.stubGlobal('fetch', fetchMock);
+  await expect(api.deleteDocument('507f1f77bcf86cd799439011')).resolves.toBeUndefined();
+  expect(fetchMock).toHaveBeenCalledWith(expect.stringMatching(/\/documents\/507f1f77bcf86cd799439011$/), expect.objectContaining({ method: 'DELETE' }));
+  expect(json).not.toHaveBeenCalled();
+  await expect(api.deleteDocument('invalid')).rejects.toThrow();
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+});

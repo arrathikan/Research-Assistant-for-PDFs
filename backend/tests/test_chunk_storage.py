@@ -56,7 +56,11 @@ def test_chunk_generation_writes_then_conditionally_publishes():
     ):
         assert chunk_stored_document(db, ID, CONFIG) == chunks
     db.chunks.bulk_write.assert_called_once()
-    committed = db.documents.update_one.call_args.args
+    committed = next(
+        call.args
+        for call in db.documents.update_one.call_args_list
+        if "active_chunk_set_id" in call.args[1].get("$set", {})
+    )
     assert committed[0]["active_parse_run_id"] == "parse-a"
     assert committed[1]["$set"]["chunking_status"] == "COMPLETED"
     assert committed[1]["$set"]["status"] == "PENDING"

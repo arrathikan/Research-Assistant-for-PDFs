@@ -2,13 +2,13 @@
 
 from backend.shared.config import Settings, get_settings
 from backend.shared.models import (
-    DocumentStatus,
-    DocumentMetadata,
-    ChunkMetadata,
-    StructuredSummary,
-    CitationReference,
     ChatQueryRequest,
     ChatQueryResponse,
+    ChunkMetadata,
+    CitationReference,
+    DocumentMetadata,
+    DocumentStatus,
+    StructuredSummary,
 )
 
 __all__ = [
@@ -22,4 +22,3 @@ __all__ = [
     "ChatQueryRequest",
     "ChatQueryResponse",
 ]
-

@@ -78,3 +78,13 @@ button:not(:disabled), summary { cursor: pointer; }
   .paper-card-header, .paper-card-meta { grid-column: 2; }
   .paper-card-actions { grid-column: 3; grid-row: 1 / span 2; align-self: center; border-top: 0; padding-top: 0; }
 }
+
+.research-dialog { width: calc(100% - 2rem); max-width: 38rem; max-height: min(90dvh, 54rem); padding: 0; }
+.research-dialog:modal { overscroll-behavior: contain; }
+.research-dialog::backdrop { background: rgb(15 23 42 / 0.45); overflow: hidden; overscroll-behavior: contain; }
+.ui-button-danger { background: var(--error); color: white; }
+.ui-button-danger:hover:not(:disabled) { background: #b91c1c; }
+.paper-actions-popup { position: fixed; inset: auto; margin: 0; width: 15rem; max-width: calc(100vw - 2rem); padding: 0.375rem; border: 1px solid var(--border); border-radius: 0.75rem; background: white; box-shadow: 0 8px 24px rgb(15 23 42 / 0.12); z-index: 30; }
+@supports (position-area: block-end) {
+  .paper-actions-popup { position-area: block-end span-inline-end; position-try-fallbacks: flip-block, flip-inline; }
+}

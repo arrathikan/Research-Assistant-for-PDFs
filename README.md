@@ -409,18 +409,18 @@ checks skipped**. Evaluation never runs during ordinary chat requests.
 
 ### Upload interface
 
-The upload page uses a compact file card with readable upload, queued, processing,
-ready and failure states. Status comes from the existing processing and document
-APIs; the interface does not estimate percentages. PDF access unlocks after
-storage, chat requires completed embeddings, and summary access requires a
-successful read of the current saved summary. Ready requires confirmed document
-and background-job completion plus the available summary and embeddings.
+The Upload page opens a native dialog for PDF selection, validation, upload and
+compact processing feedback. Done closes it after storage; the paper immediately
+appears in the session library and continues processing independently. Closing an
+active upload keeps its request alive while navigating within the app. Real status
+polling, safe retries and SHA-256 duplicate handling remain; no percentages or
+internal IDs are shown.
 
-Retry/start controls follow the backend's supported job states. Choosing another
-paper clears the previous result and cancels its status updates. Drag-and-drop,
-PDF validation and duplicate handling remain supported. The card and navigation
-adapt to narrow screens, with keyboard controls, visible focus and live status
-announcements. No processing APIs or worker logic were changed.
+Dashboard paper menus provide Workspace, original PDF and a confirmed Delete Paper
+action. `DELETE /api/v1/documents/{document_id}` removes owned files and scoped
+research data with a worker deletion barrier and retryable partial cleanup.
+Restart all workers with this version before using Delete. See [behavior, cleanup
+contract, verification and limits](docs/document-actions-upload-dialog.md).
 
 
 ### Responsive page layout

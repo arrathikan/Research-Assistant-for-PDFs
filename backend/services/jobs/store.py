@@ -6,6 +6,7 @@ from typing import Iterator, Literal
 
 from backend.shared.config import Settings
 from backend.shared.database import StorageUnavailable
+from backend.shared.document_lifecycle import document_write
 from backend.shared.job_models import FailureCode, JobMessage, JobStage, JobStatus, job_id
 from backend.shared.storage import DocumentNotFound, get_document
 from bson import ObjectId
@@ -87,33 +88,34 @@ def ensure_requested(database: Database, document_id: str, settings: Settings) -
             raise DocumentNotFound("Document not found")
         if document.status == "READY":
             return read_status(database, document_id)
-        database.documents.update_one(
-            {"_id": ObjectId(document_id)}, {"$set": {"processing_requested": True}}
-        )
-        message = JobMessage(job_id=job_id(document_id), document_id=document_id)
-        stamp = now()
-        record = {
-            "_id": message.job_id,
-            **message.model_dump(),
-            "status": "QUEUED",
-            "dispatch_status": "PENDING",
-            "max_attempts": settings.job_max_attempts,
-            "created_at": stamp,
-            "updated_at": stamp,
-            "next_attempt_at": stamp,
-            "error_code": None,
-        }
-        try:
-            database.processing_jobs.update_one(
-                {"_id": message.job_id}, {"$setOnInsert": record}, upsert=True
+        with document_write(database, document_id):
+            database.documents.update_one(
+                {"_id": ObjectId(document_id)}, {"$set": {"processing_requested": True}}
             )
-        except DuplicateKeyError:
-            pass  # Concurrent duplicate uploads share the deterministic job identity.
-        database.documents.update_one(
-            {"_id": ObjectId(document_id)},
-            {"$set": {"processing_scheduled_job_id": message.job_id}},
-        )
-        return read_status(database, document_id)
+            message = JobMessage(job_id=job_id(document_id), document_id=document_id)
+            stamp = now()
+            record = {
+                "_id": message.job_id,
+                **message.model_dump(),
+                "status": "QUEUED",
+                "dispatch_status": "PENDING",
+                "max_attempts": settings.job_max_attempts,
+                "created_at": stamp,
+                "updated_at": stamp,
+                "next_attempt_at": stamp,
+                "error_code": None,
+            }
+            try:
+                database.processing_jobs.update_one(
+                    {"_id": message.job_id}, {"$setOnInsert": record}, upsert=True
+                )
+            except DuplicateKeyError:
+                pass  # Concurrent duplicate uploads share the deterministic job identity.
+            database.documents.update_one(
+                {"_id": ObjectId(document_id)},
+                {"$set": {"processing_scheduled_job_id": message.job_id}},
+            )
+            return read_status(database, document_id)
 
 
 def read_status(database: Database, document_id: str) -> ProcessingView:

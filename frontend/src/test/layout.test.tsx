@@ -40,10 +40,10 @@ it('uses one shared content frame when navigating between dashboard and upload',
   expect(screen.getAllByTestId('page-frame')).toHaveLength(1);
   expect(screen.getAllByTestId('page-container')).toHaveLength(1);
   expect(screen.getByTestId('page-container')).toContainElement(screen.getByRole('heading', { name: 'Upload a research paper' }));
-  expect(screen.getByTestId('page-container')).toContainElement(screen.getByTestId('dropzone'));
+  expect(screen.getByTestId('page-container')).toContainElement(screen.getByTestId('main-upload-trigger'));
   const uploadColumn = screen.getByRole('heading', { name: 'Upload a research paper' }).parentElement?.parentElement;
   expect(uploadColumn).toHaveClass('max-w-5xl');
-  expect(uploadColumn).toContainElement(screen.getByTestId('dropzone'));
+  expect(uploadColumn).toContainElement(screen.getByTestId('main-upload-trigger'));
   expect(screen.queryByRole('heading', { name: 'Paper Library' })).not.toBeInTheDocument();
   expect(screen.queryByRole('region', { name: 'PDF pane' })).not.toBeInTheDocument();
 });
@@ -102,7 +102,7 @@ it('preserves real document counts, filtering and selection in the responsive li
   fireEvent.change(screen.getByRole('textbox', { name: 'Search papers' }), { target: { value: 'synthetic' } });
   const cards = screen.getByRole('region', { name: 'Research papers' });
   expect(within(cards).getAllByTestId('document-card')).toHaveLength(1);
-  fireEvent.click(within(cards).getByRole('button', { name: 'Workspace' }));
+  fireEvent.click(within(cards).getByRole('button', { name: PDF_DOCUMENT.filename }));
   expect(select).toHaveBeenCalledWith(PDF_DOCUMENT);
   fireEvent.change(screen.getByRole('textbox', { name: 'Search papers' }), { target: { value: 'missing-paper' } });
   expect(screen.getByRole('heading', { name: 'No matching papers found' })).toBeInTheDocument();
