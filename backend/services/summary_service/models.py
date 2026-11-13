@@ -10,7 +10,7 @@ from backend.shared.config import Settings
 from backend.shared.models import StructuredSummary
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
 
-WORKFLOW_VERSION = "grounded-summary-v1"
+WORKFLOW_VERSION = "grounded-summary-v2"
 UNAVAILABLE = "Not stated in the document."
 SummaryField = Literal[
     "title", "authors", "abstract", "problem_statement", "methodology", "key_results", "conclusion"
@@ -130,7 +130,9 @@ def validate_draft(raw: str, chunks: list[DocumentChunk]) -> SummaryDraft:
                 for span in chunk.page_spans
             ):
                 raise SummaryValidationError(
-                    f"Correct {field}.sources: use a supplied chunk ID, its page and an exact source quote"
+                    f"Correct {field}.sources: use a supplied chunk ID, its page and an exact source quote. "
+                    "Copy a short contiguous passage; do not insert ellipses, paraphrase, "
+                    "or remove Markdown. Shorten the quote instead of abbreviating it."
                 )
     return draft
 

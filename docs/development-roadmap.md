@@ -709,3 +709,13 @@ Prompt 14.2/14.3 configure three GitHub check jobs and document the real local
 verification above. Remote status is reported by the workflow's Actions run;
 configuration alone does not count as a passed remote run. See [CI](ci.md) and
 [deployment](deployment.md). No paid evaluation or final Prompt 15 QA was performed.
+
+### Prompt 15.1: Recover the verified live summary failure
+
+- [x] Reproduce a model quote containing inserted ellipses; keep exact validation.
+- [x] Version the stricter contiguous-quote prompt and targeted repair guidance.
+- [x] Verify supported live retry completes with current chunks/embeddings reused.
+- [x] Run backend tests: 474 passed, 4 paid checks deselected; Ruff checks pass.
+
+Browser QA, final offline evaluation follow-up and demo documentation continue in
+Prompt 15.2. No claim of complete answer/citation entailment is made.

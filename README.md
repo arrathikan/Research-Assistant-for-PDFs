@@ -522,3 +522,10 @@ only when requested and retains its viewer state while hidden.
 The library currently lasts for the App session; this frontend refinement adds no
 listing API or cross-reload persistence. See [frontend guidance, changed files,
 verification and limits](docs/frontend-experience.md).
+
+### Final QA: summary recovery
+
+The versioned summary workflow now requests short contiguous source quotes and
+preserves strict quote validation. A live failed summary recovered through the
+supported job retry without reparsing or re-embedding the paper. See the
+[verified correction](docs/structured-summary.md#final-qa-quote-correction-2026-11-13).

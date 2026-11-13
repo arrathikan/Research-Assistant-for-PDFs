@@ -661,3 +661,11 @@ lifecycle in its own containers. Offline Ragas schema/metric/report tests are al
 but live judge calls, accuracy benchmarks, image publication and deployment are not
 part of automatic CI. Official setup actions are SHA-pinned with read-only repository
 permissions. See [CI configuration and limits](ci.md).
+
+### Summary quote discipline (final QA)
+
+`grounded-summary-v2` asks for short, contiguous, verbatim page quotes rather than
+elided passages. Strict chunk/page/quote validation and bounded repairs remain
+unchanged. The workflow version changes the summary profile hash. Final live QA
+recovered a terminal failed summary using cached ingestion outputs; details are in
+[structured summaries](structured-summary.md#final-qa-quote-correction-2026-11-13).
