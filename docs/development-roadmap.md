@@ -719,3 +719,14 @@ configuration alone does not count as a passed remote run. See [CI](ci.md) and
 
 Browser QA, final offline evaluation follow-up and demo documentation continue in
 Prompt 15.2. No claim of complete answer/citation entailment is made.
+
+### Prompt 15.2: Browser and container verification
+
+- [x] Add approved Playwright development tooling and strict browser-test types.
+- [x] Verify 14 deterministic browser cases, six widths, PDF/citation state and focus.
+- [x] Verify one real-provider public-paper browser scenario, including deduplication.
+- [x] Add cost-free Chromium CI coverage and private artifact exclusions.
+- [x] Rebuild/smoke-test isolated Docker services without provider credentials.
+
+The source-equivalent frontend and final report are recorded in the final QA
+increment. Live Ragas findings remain separate from deterministic browser checks.

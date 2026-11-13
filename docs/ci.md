@@ -62,6 +62,9 @@ for the repository-level smoke script, so import classification matches existing
 cd frontend
 npm ci --no-audit --no-fund
 npm test
+npm run typecheck
+npx playwright install chromium
+npm run test:e2e
 npm run build
 ```
 
@@ -83,7 +86,9 @@ for startup, environment separation, cleanup, health semantics and runtime limit
 ## Review and maintenance
 
 Review all three jobs before merging. Branch protection is a repository-owner decision;
-this increment does not change it. Paid live QA and demo preparation remain Prompt 15.
+this increment does not change it. The frontend job also runs 14 deterministic Chromium browser checks without
+provider calls. Paid live QA and offline Ragas are explicitly excluded; see
+[browser QA](browser-qa.md).
 Update pinned action SHAs deliberately after checking official releases. Rebuild and
 verify base images when applying security updates. The existing broker version/data
 format is retained; broker upgrades require a separate compatibility/data migration.

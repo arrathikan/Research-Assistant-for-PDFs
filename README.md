@@ -529,3 +529,11 @@ The versioned summary workflow now requests short contiguous source quotes and
 preserves strict quote validation. A live failed summary recovered through the
 supported job retry without reparsing or re-embedding the paper. See the
 [verified correction](docs/structured-summary.md#final-qa-quote-correction-2026-11-13).
+
+### Browser verification
+
+The approved Playwright development suite now checks real browser interactions,
+PDF rendering and six responsive widths without paid API calls. Run
+`npm run test:e2e` and `npm run typecheck` in `frontend`; see
+[browser QA](docs/browser-qa.md) for installation, private screenshots and the
+separate opt-in real-provider check.

@@ -669,3 +669,12 @@ elided passages. Strict chunk/page/quote validation and bounded repairs remain
 unchanged. The workflow version changes the summary profile hash. Final live QA
 recovered a terminal failed summary using cached ingestion outputs; details are in
 [structured summaries](structured-summary.md#final-qa-quote-correction-2026-11-13).
+
+### Browser QA boundary
+
+Playwright lives in development tooling. Default browser tests intercept API
+responses and render an in-memory synthetic PDF using the existing viewer; CI
+runs these without provider credentials. A separately selected live check calls
+the actual gateway from the normal localhost development origin and verifies a
+hash-bound public source. Both use isolated browser contexts and private ignored
+artifacts. Vitest and browser test discovery are separated. See [browser QA](browser-qa.md).

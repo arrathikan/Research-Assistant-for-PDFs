@@ -80,3 +80,7 @@ frontend/public/pdfjs/
 .venv-evaluation/
 evaluation/results/*
 !evaluation/results/README.md
+
+# Private browser QA artifacts
+frontend/test-results/
+frontend/playwright-report/
