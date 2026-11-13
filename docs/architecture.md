@@ -697,3 +697,22 @@ uses responsive rows and compact real metrics, while the summary uses one divide
 reading sheet with named size-container rules. Citation prose displays actual page
 labels from existing metadata. Processing, retrieval and source verification
 contracts remain unchanged. See [frontend redesign](frontend-brand-redesign.md).
+
+### Reference dashboard and interaction theme
+
+One navigation DOM changes from compact tabs to a 224px sidebar at 1280px. The
+header spans both columns; the existing page frame caps the remaining content
+at 1440px. A native paper table reflows into stacked rows according to its own
+container width. Search/status/sort operate on the existing app-session metadata;
+no database/list endpoint or persistence model changed. Active processing counts
+only PARSING, EMBEDDING and SUMMARIZING, while pending remains uploaded/queued.
+Summary requires READY; chat also accepts completed embeddings. Row selection
+still opens an unfinished document's existing processing view.
+
+Shared CSS semantic tokens derive from the Tailwind brand scale. A reusable SVG
+viewport displays the user's original raster illustrations without altering
+pixels; statistics and labels remain real DOM content. The unchanged book PNG
+uses an icon viewport plus one readable wordmark, and remains the favicon.
+Mobile PDF presentation makes both the header and sidebar inert, restoring their
+previous state on close. Citation resolution, chat history and PDF loading are
+unchanged. See [dashboard theme audit](dashboard-reference-theme.md).

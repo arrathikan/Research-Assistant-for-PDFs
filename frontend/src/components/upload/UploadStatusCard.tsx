@@ -1,6 +1,7 @@
 import { useId } from 'react';
 import { ArrowUpRight, BookOpen, FileText, Loader2, MessageSquare, RefreshCw } from 'lucide-react';
 import { formatFileSize } from './formatFileSize';
+import { ResearchArtwork } from '../common/ResearchArtwork';
 
 export type UploadStage = 'uploading' | 'uploaded' | 'queued' | 'processing' | 'ready' | 'failed';
 
@@ -25,7 +26,7 @@ const BADGES: Record<UploadStage, { label: string; style: string }> = {
   uploading: { label: 'Uploading', style: 'bg-brand-50 text-brand-700 ring-brand-200' },
   uploaded: { label: 'Uploaded', style: 'bg-stone-100 text-stone-700 ring-stone-200' },
   queued: { label: 'Queued', style: 'bg-stone-100 text-stone-700 ring-stone-200' },
-  processing: { label: 'Processing', style: 'bg-brand-50 text-brand-700 ring-brand-200' },
+  processing: { label: 'Processing', style: 'bg-amber-50 text-amber-800 ring-amber-200' },
   ready: { label: 'Ready', style: 'bg-emerald-50 text-emerald-800 ring-emerald-200' },
   failed: { label: 'Failed', style: 'bg-rose-50 text-rose-800 ring-rose-200' },
 };
@@ -42,9 +43,7 @@ export function UploadStatusCard({
   return (
     <section aria-labelledby={headingId} className="ui-card w-full p-5 sm:p-6">
       <div className="flex items-start gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
-          <FileText size={22} aria-hidden="true" />
-        </div>
+        <ResearchArtwork kind={stage === 'ready' ? 'ready' : stage === 'processing' ? 'processing' : 'paper'} className="h-12 w-12" />
         <div className="min-w-0 flex-1">
           <h3 id={headingId} className="break-words text-sm font-semibold leading-6 text-stone-900 [overflow-wrap:anywhere]">{filename}</h3>
           <p className="mt-0.5 text-xs text-stone-500">PDF{fileSize !== undefined ? ' · ' + formatFileSize(fileSize) : ''}</p>

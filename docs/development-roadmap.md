@@ -609,3 +609,18 @@ indicator (Prompt 3.2) remains deferred. See [final QA](final-qa.md).
 
 See [implementation and scoped checks](frontend-brand-redesign.md). Backend/RAG
 quality and public deployment follow-ups remain documented separately.
+
+### Reference dashboard and complete orange interaction theme
+
+- [x] Reuse the supplied paper/processing/ready and welcome artwork; retain the
+  user's chosen book logo without duplicate wordmarks.
+- [x] Add responsive sidebar, four real statistics and semantic paper table.
+- [x] Add filename search, status filters and stable date/natural-name sorting.
+- [x] Centralize exact primary/hover/pressed/soft/border colors and apply input
+  focus, active-tab, citation and document-action states.
+- [x] Keep secondary controls neutral, processing amber, success green and errors red.
+- [x] Verify 150 proposed-source unit tests, strict types, production build and
+  20 Chromium scenarios across six widths, including real PDF rendering from
+  synthetic API fixtures. Inspect before/after screenshots and computed styles.
+
+See [scope, source audit and limitations](dashboard-reference-theme.md).

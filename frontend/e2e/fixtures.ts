@@ -45,6 +45,7 @@ export async function mockPaperApi(page: Page) {
       answer: 'The first finding is supported here [1]. Another finding is supported here [2].',
       citations: [citation(7), citation(2)], is_out_of_scope: false },
   };
+  const stored = new Map<string, DocumentMetadata>();
   await page.route('**/api/v1/**', async route => {
     const path = new URL(route.request().url()).pathname.replace('/api/v1', '');
     const method = route.request().method();
@@ -53,6 +54,7 @@ export async function mockPaperApi(page: Page) {
     if (path === '/documents' && method === 'POST') {
       state.uploads++;
       if (state.uploadFails) return fulfill({ detail: 'Synthetic network failure' }, 503);
+      stored.set(state.document.id!, { ...state.document });
       return fulfill({ document: state.document, message: 'Internal message', is_duplicate: false });
     }
     if (path.endsWith('/pdf')) {
@@ -66,7 +68,9 @@ export async function mockPaperApi(page: Page) {
       return state.resolveFails ? fulfill({ detail: 'Unavailable citation' }, 404) : fulfill(route.request().postDataJSON());
     }
     if (path.endsWith('/chat') && method === 'POST') return fulfill(state.response);
-    if (path === '/documents/' + PAPER.id) return fulfill(state.document);
+    if (path === '/documents/' + state.document.id) return fulfill(state.document);
+    const record = stored.get(path.replace('/documents/', ''));
+    if (record) return fulfill(record);
     throw new Error(`Unexpected browser API request: ${method} ${path}`);
   });
   await page.goto('/');

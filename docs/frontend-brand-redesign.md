@@ -1,5 +1,10 @@
 # ResearchAI brand and reading-workspace redesign
 
+This report records the earlier reading-layout increment. The later
+[reference-dashboard and complete state audit](dashboard-reference-theme.md)
+supersedes its library metrics, header layout, soft-orange token and compact-logo
+presentation. Its historical test counts describe that earlier increment.
+
 ## Cause and implementation
 
 The existing frontend combined hardcoded blue/slate utility colors with blue

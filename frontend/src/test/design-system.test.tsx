@@ -15,7 +15,7 @@ describe('ResearchAI controls', () => {
   });
   it('opens a document title with the keyboard using a real button', async () => {
     const select = vi.fn();
-    render(<DocumentCard document={PDF_DOCUMENT} onOpen={select} />);
+    render(<table><tbody><DocumentCard document={PDF_DOCUMENT} onOpen={select} /></tbody></table>);
     const title = screen.getByRole('button', { name: PDF_DOCUMENT.filename });
     title.focus(); await userEvent.keyboard('{Enter}');
     expect(select).toHaveBeenCalledWith(PDF_DOCUMENT);

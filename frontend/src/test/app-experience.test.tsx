@@ -29,7 +29,7 @@ it('starts with an honest empty library and an actionable first-upload state', (
   render(<App />);
   expect(screen.getByRole('heading', { name: 'No research papers uploaded yet' })).toBeInTheDocument();
   expect(screen.queryByTestId('document-card')).not.toBeInTheDocument();
-  expect(screen.queryByRole('button', { name: 'Workspace' })).not.toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Workspace' })).toBeDisabled();
   expect(screen.getByRole('button', { name: 'Upload First Paper' })).toBeInTheDocument();
   expect(api.getDocument).not.toHaveBeenCalled();
 });
@@ -53,5 +53,5 @@ it('keeps one library card after uploading the same stored document again', asyn
   vi.mocked(api.uploadDocument).mockResolvedValue({ ...STORED, document: READY, is_duplicate: true });
   await upload(); navigate('Dashboard');
   expect(screen.getAllByTestId('document-card')).toHaveLength(1);
-  expect(within(screen.getByRole('region', { name: 'Library statistics' })).getByText('Total Research Papers').parentElement?.firstElementChild).toHaveTextContent('1');
+  expect(within(screen.getByRole('region', { name: 'Library statistics' })).getByText('Total Papers').parentElement?.firstElementChild).toHaveTextContent('1');
 });

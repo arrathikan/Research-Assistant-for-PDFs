@@ -61,7 +61,7 @@ it('keeps workspace panes in one shared frame and preserves tab switching', asyn
   expect(screen.getAllByTestId('page-frame')).toHaveLength(1);
   const content = screen.getByTestId('page-container');
   expect(content).toHaveClass('max-w-[1440px]');
-  expect(screen.getByTestId('navigation-container')).toHaveClass('max-w-[1440px]');
+  expect(screen.getByTestId('navigation-container')).toHaveClass('max-w-[1680px]');
   expect(content).toContainElement(screen.getByRole('region', { name: 'Summary and chat' }));
   expect(screen.queryByRole('region', { name: 'Original PDF' })).not.toBeInTheDocument();
   expect(screen.queryByTestId('pdf-viewer-panel')).not.toBeInTheDocument();
@@ -72,10 +72,10 @@ it('keeps workspace panes in one shared frame and preserves tab switching', asyn
 
 it('uses the same application boundary for Dashboard and Upload navigation', () => {
   const view = render(<AppLayout activeTab="dashboard" onSelectTab={vi.fn()} activeDoc={PDF_DOCUMENT}><PageContainer>Dashboard</PageContainer></AppLayout>);
-  expect(screen.getByTestId('navigation-container')).toHaveClass('max-w-[1440px]');
+  expect(screen.getByTestId('navigation-container')).toHaveClass('max-w-[1680px]');
   expect(screen.getByTestId('page-container')).toHaveClass('max-w-[1440px]');
   view.rerender(<AppLayout activeTab="upload" onSelectTab={vi.fn()} activeDoc={PDF_DOCUMENT}><PageContainer>Upload</PageContainer></AppLayout>);
-  expect(screen.getByTestId('navigation-container')).toHaveClass('max-w-[1440px]');
+  expect(screen.getByTestId('navigation-container')).toHaveClass('max-w-[1680px]');
   expect(screen.getByTestId('page-container')).toHaveClass('max-w-[1440px]');
 });
 
@@ -96,8 +96,8 @@ it('preserves real document counts, filtering and selection in the responsive li
   };
   render(<DashboardView documents={[PDF_DOCUMENT, other]} onSelectDocument={select} onNavigateUpload={vi.fn()} />);
   const stats = screen.getByRole('region', { name: 'Library statistics' });
-  expect(within(stats).getByText('Total Research Papers').parentElement?.firstElementChild).toHaveTextContent('2');
-  expect(within(stats).getByText('Ready to explore').parentElement?.firstElementChild).toHaveTextContent('1');
+  expect(within(stats).getByText('Total Papers').parentElement?.firstElementChild).toHaveTextContent('2');
+  expect(within(stats).getByText('Ready to Explore').parentElement?.firstElementChild).toHaveTextContent('1');
   expect(within(screen.getByRole('region', { name: 'Research papers' })).getAllByTestId('document-card')).toHaveLength(2);
   fireEvent.change(screen.getByRole('searchbox', { name: 'Search papers' }), { target: { value: 'synthetic' } });
   const cards = screen.getByRole('region', { name: 'Research papers' });

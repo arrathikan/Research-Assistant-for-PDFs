@@ -144,7 +144,7 @@ export function PdfViewerPanel({ document: paper, activeCitation, onClearCitatio
         <span aria-label="PDF zoom">{zoom}%</span>
         <button type="button" className="ui-icon-button ui-button-ghost" title="Zoom in" aria-label="Zoom In" disabled={zoom >= 200} onClick={() => setZoom(value => Math.min(200, value + 25))}>+</button>
         <button type="button" className="ui-button ui-button-ghost px-2 text-xs" aria-label="Reset Zoom" onClick={() => setZoom(100)}>Reset zoom</button>
-        {valid && id && <a className="ui-button ui-button-ghost ml-auto px-2 text-xs text-brand-700" href={api.getPdfStreamUrl(id)} target="_blank" rel="noreferrer">Open original PDF</a>}
+        {valid && id && <a className="ui-button ui-button-ghost ui-link ml-auto px-2 text-xs" href={api.getPdfStreamUrl(id)} target="_blank" rel="noreferrer">Open original PDF</a>}
       </div>
       {resolving && <p role="status" className="p-3 text-sm">Opening citation…</p>}
       {sourceError && <p role="alert" className="p-3 text-sm text-red-700">{sourceError}</p>}
@@ -153,7 +153,7 @@ export function PdfViewerPanel({ document: paper, activeCitation, onClearCitatio
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-brand-100 bg-white px-3 py-2 text-xs text-stone-600">
           <p className="font-medium">Source — Page {anchor.page_number}</p>
           <div className="flex items-center gap-2">
-            {page !== anchor.page_number && <button type="button" onClick={() => setPage({ id, value: anchor.page_number })} className="ui-button ui-button-ghost px-2 text-xs text-brand-700">Return to source</button>}
+            {page !== anchor.page_number && <button type="button" onClick={() => setPage({ id, value: anchor.page_number })} className="ui-button ui-button-ghost ui-link px-2 text-xs">Return to source</button>}
             {onClearCitation && <button type="button" className="ui-button ui-button-ghost px-2 text-xs" onClick={onClearCitation}>Clear source</button>}
           </div>
         </div>

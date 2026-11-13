@@ -1,5 +1,10 @@
 # Shared application layout
 
+This records the earlier width fix. The later [reference dashboard](dashboard-reference-theme.md)
+adds a desktop sidebar and changes the available main-column width. Its six-width
+browser checks supersede the historical full-viewport measurements below. The
+1440px page cap, readable Workspace cap and optional PDF behavior are retained.
+
 ## Cause and scope
 
 Workspace had already gained a 1440px frame, but the default PageContainer and
