@@ -1,12 +1,12 @@
 """Tests for shared Pydantic schemas and domain models."""
 
 from backend.shared.models import (
-    DocumentStatus,
-    DocumentMetadata,
-    StructuredSummary,
-    CitationReference,
     ChatQueryRequest,
     ChatQueryResponse,
+    CitationReference,
+    DocumentMetadata,
+    DocumentStatus,
+    StructuredSummary,
 )
 
 
@@ -68,9 +68,7 @@ def test_chat_query_models():
 
     resp = ChatQueryResponse(
         answer="The model achieved a 28.4 BLEU score.",
-        citations=[
-            CitationReference(page_number=5, quote_snippet="28.4 BLEU score on WMT 2014")
-        ],
+        citations=[CitationReference(page_number=5, quote_snippet="28.4 BLEU score on WMT 2014")],
         document_id="doc_123",
     )
     assert resp.answer.startswith("The model achieved")
