@@ -1,0 +1,6 @@
+{
+  "status": "BLOCKED",
+  "code": 20,
+  "reason": "The maximum number of FTS indexes has been reached for this instance size.",
+  "production_indexes_modified": false
+}

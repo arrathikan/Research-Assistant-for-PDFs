@@ -1,0 +1,17 @@
+{
+  "documents_still_zero": true,
+  "queues": {
+    "qa_c7cc0c3d252a_ingestion": {
+      "messages": 0,
+      "consumers": 1
+    },
+    "qa_c7cc0c3d252a_summary": {
+      "messages": 0,
+      "consumers": 1
+    },
+    "qa_c7cc0c3d252a_dlq": {
+      "messages": 1,
+      "consumers": 0
+    }
+  }
+}

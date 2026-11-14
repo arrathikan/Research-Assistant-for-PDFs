@@ -566,3 +566,11 @@ book-logo PNG is retained. Shared orange tokens cover primary/pressed buttons,
 active tabs, citations and input focus while cards and secondary controls stay
 neutral. Summary/Chat shortcuts respect data readiness. See the
 [dashboard implementation and browser audit](docs/dashboard-reference-theme.md).
+
+## Latest live QA — 13–14 November 2026
+
+The [live QA report](docs/live-e2e-qa-2026-11-14.md) distinguishes real integration results from deterministic tests. It records refresh/session fixes, native publication evidence in chunks, truthful summary errors, measured Ragas failures and blocked OpenRouter retests. The paid account used for that QA run was exhausted. A replacement key was later configured; full post-fix paid-model verification remains incomplete. No all-green release claim is made.
+
+## Free-model development follow-up
+
+A replacement free key and compatible response schemas were tested, but full-paper summaries still failed strict source-quote checks. The optional reasoning setting and exact results are recorded in [the free-model setup report](docs/free-model-development.md). No claim of complete free-model or interview readiness is made.

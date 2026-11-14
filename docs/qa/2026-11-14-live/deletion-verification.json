@@ -1,0 +1,36 @@
+{
+  "before": {
+    "chat_turns": 23,
+    "processing_jobs": 3,
+    "chat_conversations": 5,
+    "summaries": 0,
+    "chunks": 413,
+    "fs.files": 3,
+    "source_elements": 579,
+    "chat_messages": 0,
+    "fs.chunks": 15,
+    "chunk_embeddings": 413,
+    "parsed_pages": 34,
+    "embedding_vectors": 207,
+    "summary_runs": 3,
+    "documents": 3
+  },
+  "after": {
+    "chat_turns": 0,
+    "processing_jobs": 0,
+    "chat_conversations": 0,
+    "summaries": 0,
+    "chunks": 0,
+    "fs.files": 0,
+    "source_elements": 0,
+    "chat_messages": 0,
+    "fs.chunks": 0,
+    "chunk_embeddings": 0,
+    "parsed_pages": 0,
+    "embedding_vectors": 207,
+    "summary_runs": 0,
+    "documents": 0
+  },
+  "document_collections_and_gridfs_empty": true,
+  "shared_embedding_cache_intentionally_retained": 207
+}

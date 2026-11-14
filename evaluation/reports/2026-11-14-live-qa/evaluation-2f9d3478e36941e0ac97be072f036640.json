@@ -1,0 +1,1822 @@
+{
+  "schema_version": 1,
+  "evaluation_id": "2f9d3478e36941e0ac97be072f036640",
+  "created_at": "2026-11-14T05:37:45.274594Z",
+  "collection": {
+    "schema_version": 1,
+    "run_id": "8e6b6e250c4c49a7a83e04d65cb2db63",
+    "created_at": "2026-11-13T14:38:05.145593Z",
+    "dataset_id": "lost-in-middle-20",
+    "dataset_version": "1.0.0",
+    "dataset_size": 20,
+    "dataset_sha256": "4330654b6d080f06e39354ffbc5c2d39db522a8f82c7519a867964c6870044dc",
+    "git_commit": "529c3947d74d5ff54879d9b6c50bbe8980f28475",
+    "source_scopes": {
+      "lost-in-middle-tacl-2024": {
+        "document_id": "6af71e91bd87d548bb785fce",
+        "chunk_set_id": "e0f752fc6805a7da3a275d76d2bf61b6b305bb6771eb87eda1a38d58f0d144e0",
+        "parse_run_id": "99b55162a04e4096a709fc09e5736c44",
+        "embedding_profile_id": "cd617356fdb2672b5289bb19ebd45e5243a43fe93766c1675a284871f9635536"
+      }
+    },
+    "records": [
+      {
+        "case": {
+          "sample_id": "lim_02",
+          "document_key": "lost-in-middle-tacl-2024",
+          "category": "authors",
+          "user_question": "Who are the authors of the paper?",
+          "reference_answer": "Nelson F. Liu, Kevin Lin, John Hewitt, Ashwin Paranjape, Michele Bevilacqua, Fabio Petroni, and Percy Liang.",
+          "is_answerable": true,
+          "expected_page_numbers": [
+            1
+          ],
+          "source_evidence": [
+            {
+              "page_number": 1,
+              "section": "Author block",
+              "quote": "Nelson F. Liu"
+            }
+          ],
+          "review_note": "Check the complete referenced passage, including qualifiers; short anchors locate evidence and are not a full support proof."
+        },
+        "strategy": "hybrid",
+        "review": {
+          "sample_id": "lim_02",
+          "case_sha256": "4dbb052d158c10f80f3b4adef0766b83c39b03b0bb8bcaaf11aa6a78a48bb403",
+          "review_kind": "assistant",
+          "reviewer": "Codex",
+          "reviewed_at": "2026-11-12T06:23:32.134696Z",
+          "decision": "approved",
+          "notes": "All seven authors checked against the title-page author block; affiliations excluded."
+        },
+        "output": {
+          "response": {
+            "document_id": "6af71e91bd87d548bb785fce",
+            "conversation_id": "7617a1c095e8473194133dd299a7648c",
+            "turn_id": "534934f8872448e8882cce8b7402ee8c",
+            "answer": "The authors are Nelson F. Liu, Kevin Lin, John Hewitt, Ashwin Paranjape, Michele Bevilacqua, Fabio Petroni, and Percy Liang. [1] [2]",
+            "citations": [
+              {
+                "citation_id": "a6c58990218b4024eca2d95f074a8a93cde4b20669bf7b46493a46489b34498b",
+                "document_id": "6af71e91bd87d548bb785fce",
+                "chunk_id": "f485b5be7994fe734ae7f9c5e46751fd22ecec08568db7642089c7846bece9c9",
+                "page_number": 1,
+                "quote_snippet": "## **Lost in the Middle: How Language Models Use Long Contexts**",
+                "chunk_set_id": "e0f752fc6805a7da3a275d76d2bf61b6b305bb6771eb87eda1a38d58f0d144e0",
+                "parse_run_id": "99b55162a04e4096a709fc09e5736c44",
+                "page_width": 595.276,
+                "page_height": 841.89,
+                "source_element_ids": [
+                  "6af71e91bd87d548bb785fce:p1:e0"
+                ],
+                "bounding_boxes": [
+                  {
+                    "element_id": "6af71e91bd87d548bb785fce:p1:e0",
+                    "x": 108.081,
+                    "y": 65.003,
+                    "width": 381.162,
+                    "height": 13.215000000000003,
+                    "coordinate_system": "points",
+                    "origin": "top_left",
+                    "rotation_degrees": null,
+                    "renderable": false
+                  }
+                ]
+              },
+              {
+                "citation_id": "bbde8e98cdf147db1fa4fb57cd031dd6d59a2363b829efde8f7fcec1780b6cd2",
+                "document_id": "6af71e91bd87d548bb785fce",
+                "chunk_id": "f485b5be7994fe734ae7f9c5e46751fd22ecec08568db7642089c7846bece9c9",
+                "page_number": 1,
+                "quote_snippet": "**Nelson F. Liu**<sup>1\\*</sup> **Kevin Lin**<sup>2</sup> **John Hewitt**<sup>1</sup> **Ashwin Paranjape**<sup>3,4</sup>\n**Michele Bevilacqua**<sup>3</sup> **Fabio Petroni**<sup>3</sup> **Percy Liang**<sup>1</sup>",
+                "chunk_set_id": "e0f752fc6805a7da3a275d76d2bf61b6b305bb6771eb87eda1a38d58f0d144e0",
+                "parse_run_id": "99b55162a04e4096a709fc09e5736c44",
+                "page_width": 595.276,
+                "page_height": 841.89,
+                "source_element_ids": [
+                  "6af71e91bd87d548bb785fce:p1:e1"
+                ],
+                "bounding_boxes": [
+                  {
+                    "element_id": "6af71e91bd87d548bb785fce:p1:e1",
+                    "x": 123.9,
+                    "y": 104.97,
+                    "width": 349.05,
+                    "height": 26.32,
+                    "coordinate_system": "points",
+                    "origin": "top_left",
+                    "rotation_degrees": null,
+                    "renderable": false
+                  }
+                ]
+              }
+            ],
+            "is_out_of_scope": false
+          },
+          "trace": {
+            "question": "Who are the authors of the paper?",
+            "answer": "The authors are Nelson F. Liu, Kevin Lin, John Hewitt, Ashwin Paranjape, Michele Bevilacqua, Fabio Petroni, and Percy Liang. [1] [2]",
+            "document_id": "6af71e91bd87d548bb785fce",
+            "retrieved_contexts": [
+              "## Acknowledgments\n\nWe would like to thank Luke Zettlemoyer, who served as our TACL action editor, and the anonymous reviewers for their comments and feedback. We also thank Claudiu Leoveanu-Condrei, Megan Leszczynski, Dmytro Okhonko, Maithra Raghu, Eric Wallace, and Sang Michael Xie for feedback and discussions that helped improve this work. Further, we are grateful to Sewon Min for her help with the AmbigQA dataset. This work was supported by the Stanford Center for Research on Foundation Models (CRFM), by OpenAI via an API credits grant to the Stanford CRFM, and by Anthropic via the Claude academic access program.",
+              "## Input Context\n\nWrite a high-quality answer for the given question using only the provided search results (some of which might be irrelevant).\n\n**Document 1 ...**\nDocument 2 ...\nDocument 3 ...\n\nQuestion: who got the first nobel prize in physics\nAnswer:",
+              "## Input Context\n\nWrite a high-quality answer for the given question using only the provided search results (some of which might be irrelevant).\n\nDocument 1 ...\n**Document 2 ...**\nDocument 3 ...\nDocument 4 ...\nDocument 5 ...\n\nQuestion: who got the first nobel prize in physics\nAnswer:",
+              "## **Lost in the Middle: How Language Models Use Long Contexts**\n\n**Nelson F. Liu**<sup>1\\*</sup> **Kevin Lin**<sup>2</sup> **John Hewitt**<sup>1</sup> **Ashwin Paranjape**<sup>3,4</sup>\n**Michele Bevilacqua**<sup>3</sup> **Fabio Petroni**<sup>3</sup> **Percy Liang**<sup>1</sup>\n\n<sup>1</sup>Stanford University, USA <sup>2</sup>University of California, Berkeley, USA\n<sup>3</sup>Samaya AI, UK <sup>4</sup>Samaya AI, USA\n`nfliu@cs.stanford.edu`",
+              "## Input Context\n\nWrite a high-quality answer for the given question using only the provided search results (some of which might be irrelevant).\n\nDocument 1 Prize in physics for discovery of the subatomic particle J/ψ. Subrahmanyan Chandrasekhar shared...\n**Document 2 The first Nobel Prize in Physics was awarded in 1901 to Wilhelm Conrad Röntgen, of Germany, who received...**\nDocument 3 and pursued through a unique method, was essentially in place. Ramón y Cajal won the Nobel Prize in 1906 for his remarkable...\n\nQuestion: who got the first nobel prize in physics\nAnswer:",
+              "Hugo Touvron, Louis Martin, Kevin Stone, Peter Albert, Amjad Almahairi, Yasmine Babaei, Nikolay Bashlykov, Soumya Batra, Prajjwal Bhargava, Shruti Bhosale, Dan Bikel, Lukas Blecher, Cristian Canton Ferrer, Moya Chen, Guillem Cucurull, David Esiobu, Jude Fernandes, Jeremy Fu, Wenyin Fu, Brian Fuller, Cynthia Gao, Vedanuj Goswami, Naman Goyal, Anthony Hartshorn, Saghar Hosseini, Rui Hou, Hakan Inan, Marcin Kardas, Viktor Kerkez, Madian Khabsa, Isabel Kloumann, Artem Korenev, Punit Singh Koura, Marie-Anne Lachaux, Thibaut Lavril, Jenya Lee, Diana Liskovich, Yinghai Lu, Yuning Mao, Xavier Martinet, Todor Mihaylov, Pushkar Mishra, Igor Molybog, Yixin Nie, Andrew Poulton, Jeremy Reizenstein, Rashi Rungta, Kalyan Saladi, Alan Schelten, Ruan Silva, Eric Michael Smith, Ranjan Subramanian, Xiaoqing Ellen Tan, Binh Tang, Ross Taylor, Adina Williams, Jian Xiang Kuan, Puxin Xu, Zheng Yan, Iliyan Zarov, Yuchen Zhang, Angela Fan, Melanie Kambadur, Sharan Narang, Aurelien Rodriguez, Robert Stojnic, Sergey Edunov, and Thomas Scialom. 2023b. Llama 2: Open foundation and fine-tuned chat models. *ArXiv:2307.09288*."
+            ],
+            "retrieved_chunk_ids": [
+              "1c5b0c77dfde7657578dc849a6763c313ad6aa07ff1f53f20d93969e63afd788",
+              "ca1c469fc51d2061c467ee2fa15c385bb76da207b7da59a51de51c9ed3ced1a7",
+              "1eb96b69dccbc20a5fe35034fc40e9b1017c62d5797b5e543d764160f3e36ceb",
+              "f485b5be7994fe734ae7f9c5e46751fd22ecec08568db7642089c7846bece9c9",
+              "61850623fc159302aded80a9ea8954e5f431d2103684fd4082283411231c75e8",
+              "805a6f6e739896e17202e0e865d7bca67fd1e12710e0fce47aba7399081d86ee"
+            ],
+            "source_pages": [
+              [
+                11
+              ],
+              [
+                4
+              ],
+              [
+                4
+              ],
+              [
+                1
+              ],
+              [
+                4
+              ],
+              [
+                14
+              ]
+            ],
+            "citations": [
+              {
+                "citation_id": "a6c58990218b4024eca2d95f074a8a93cde4b20669bf7b46493a46489b34498b",
+                "document_id": "6af71e91bd87d548bb785fce",
+                "chunk_id": "f485b5be7994fe734ae7f9c5e46751fd22ecec08568db7642089c7846bece9c9",
+                "page_number": 1,
+                "quote_snippet": "## **Lost in the Middle: How Language Models Use Long Contexts**",
+                "chunk_set_id": "e0f752fc6805a7da3a275d76d2bf61b6b305bb6771eb87eda1a38d58f0d144e0",
+                "parse_run_id": "99b55162a04e4096a709fc09e5736c44",
+                "page_width": 595.276,
+                "page_height": 841.89,
+                "source_element_ids": [
+                  "6af71e91bd87d548bb785fce:p1:e0"
+                ],
+                "bounding_boxes": [
+                  {
+                    "element_id": "6af71e91bd87d548bb785fce:p1:e0",
+                    "x": 108.081,
+                    "y": 65.003,
+                    "width": 381.162,
+                    "height": 13.215000000000003,
+                    "coordinate_system": "points",
+                    "origin": "top_left",
+                    "rotation_degrees": null,
+                    "renderable": false
+                  }
+                ]
+              },
+              {
+                "citation_id": "bbde8e98cdf147db1fa4fb57cd031dd6d59a2363b829efde8f7fcec1780b6cd2",
+                "document_id": "6af71e91bd87d548bb785fce",
+                "chunk_id": "f485b5be7994fe734ae7f9c5e46751fd22ecec08568db7642089c7846bece9c9",
+                "page_number": 1,
+                "quote_snippet": "**Nelson F. Liu**<sup>1\\*</sup> **Kevin Lin**<sup>2</sup> **John Hewitt**<sup>1</sup> **Ashwin Paranjape**<sup>3,4</sup>\n**Michele Bevilacqua**<sup>3</sup> **Fabio Petroni**<sup>3</sup> **Percy Liang**<sup>1</sup>",
+                "chunk_set_id": "e0f752fc6805a7da3a275d76d2bf61b6b305bb6771eb87eda1a38d58f0d144e0",
+                "parse_run_id": "99b55162a04e4096a709fc09e5736c44",
+                "page_width": 595.276,
+                "page_height": 841.89,
+                "source_element_ids": [
+                  "6af71e91bd87d548bb785fce:p1:e1"
+                ],
+                "bounding_boxes": [
+                  {
+                    "element_id": "6af71e91bd87d548bb785fce:p1:e1",
+                    "x": 123.9,
+                    "y": 104.97,
+                    "width": 349.05,
+                    "height": 26.32,
+                    "coordinate_system": "points",
+                    "origin": "top_left",
+                    "rotation_degrees": null,
+                    "renderable": false
+                  }
+                ]
+              }
+            ],
+            "latency_ms": 1873.4156250029628,
+            "configuration": {
+              "pipeline_version": "research-assistant-rag-v4",
+              "citation_contract": "numbered_passages_v1",
+              "context_diversity_policy": "ranked_prefix_then_sections",
+              "question_intent": "fact",
+              "retrieval_query": "Who are the authors of the paper?",
+              "uses_conversation_context": false,
+              "context_strategy": "hybrid",
+              "summary_reused": false,
+              "saved_summary": null,
+              "system_prompt_sha256": "5d692b20cec70f53999606dd62421545414063f3d7c4a39ff99995f4fcf79884",
+              "context_coverage": {
+                "context_strategy": "hybrid",
+                "total_document_chunks": 105,
+                "included_chunks": 6,
+                "full_document_context": false
+              },
+              "query_embedding_performed": true,
+              "conversation_history": [],
+              "full_document_context": false,
+              "retrieval": "hybrid",
+              "model": "openai/gpt-5.6-luna",
+              "embedding_model": "voyage-4-lite",
+              "dimensions": 1024,
+              "embedding_profile_id": "cd617356fdb2672b5289bb19ebd45e5243a43fe93766c1675a284871f9635536",
+              "chunk_set_id": "e0f752fc6805a7da3a275d76d2bf61b6b305bb6771eb87eda1a38d58f0d144e0",
+              "candidate_k": 20,
+              "context_k": 6,
+              "configured_factual_context_k": 6,
+              "rrf_constant": 60,
+              "context_bytes": 32000,
+              "temperature": null,
+              "chunk_size": 1200,
+              "chunk_overlap": 150,
+              "shared_retrieval_ms": 561.1654170024849,
+              "evaluation_history": "single_turn_no_chat_storage"
+            }
+          }
+        },
+        "error_code": null,
+        "shared_retrieval_ms": 561.1654170024849
+      },
+      {
+        "case": {
+          "sample_id": "lim_02",
+          "document_key": "lost-in-middle-tacl-2024",
+          "category": "authors",
+          "user_question": "Who are the authors of the paper?",
+          "reference_answer": "Nelson F. Liu, Kevin Lin, John Hewitt, Ashwin Paranjape, Michele Bevilacqua, Fabio Petroni, and Percy Liang.",
+          "is_answerable": true,
+          "expected_page_numbers": [
+            1
+          ],
+          "source_evidence": [
+            {
+              "page_number": 1,
+              "section": "Author block",
+              "quote": "Nelson F. Liu"
+            }
+          ],
+          "review_note": "Check the complete referenced passage, including qualifiers; short anchors locate evidence and are not a full support proof."
+        },
+        "strategy": "semantic",
+        "review": {
+          "sample_id": "lim_02",
+          "case_sha256": "4dbb052d158c10f80f3b4adef0766b83c39b03b0bb8bcaaf11aa6a78a48bb403",
+          "review_kind": "assistant",
+          "reviewer": "Codex",
+          "reviewed_at": "2026-11-12T06:23:32.134696Z",
+          "decision": "approved",
+          "notes": "All seven authors checked against the title-page author block; affiliations excluded."
+        },
+        "output": {
+          "response": {
+            "document_id": "6af71e91bd87d548bb785fce",
+            "conversation_id": "f8dc9a64f5934b438d96af6dc6a1014d",
+            "turn_id": "729e026d689a49bb928fa17fc3168ba0",
+            "answer": "The authors are Nelson F. Liu, Kevin Lin, John Hewitt, Ashwin Paranjape, Michele Bevilacqua, Fabio Petroni, and Percy Liang. [1] [2]",
+            "citations": [
+              {
+                "citation_id": "a6c58990218b4024eca2d95f074a8a93cde4b20669bf7b46493a46489b34498b",
+                "document_id": "6af71e91bd87d548bb785fce",
+                "chunk_id": "f485b5be7994fe734ae7f9c5e46751fd22ecec08568db7642089c7846bece9c9",
+                "page_number": 1,
+                "quote_snippet": "## **Lost in the Middle: How Language Models Use Long Contexts**",
+                "chunk_set_id": "e0f752fc6805a7da3a275d76d2bf61b6b305bb6771eb87eda1a38d58f0d144e0",
+                "parse_run_id": "99b55162a04e4096a709fc09e5736c44",
+                "page_width": 595.276,
+                "page_height": 841.89,
+                "source_element_ids": [
+                  "6af71e91bd87d548bb785fce:p1:e0"
+                ],
+                "bounding_boxes": [
+                  {
+                    "element_id": "6af71e91bd87d548bb785fce:p1:e0",
+                    "x": 108.081,
+                    "y": 65.003,
+                    "width": 381.162,
+                    "height": 13.215000000000003,
+                    "coordinate_system": "points",
+                    "origin": "top_left",
+                    "rotation_degrees": null,
+                    "renderable": false
+                  }
+                ]
+              },
+              {
+                "citation_id": "bbde8e98cdf147db1fa4fb57cd031dd6d59a2363b829efde8f7fcec1780b6cd2",
+                "document_id": "6af71e91bd87d548bb785fce",
+                "chunk_id": "f485b5be7994fe734ae7f9c5e46751fd22ecec08568db7642089c7846bece9c9",
+                "page_number": 1,
+                "quote_snippet": "**Nelson F. Liu**<sup>1\\*</sup> **Kevin Lin**<sup>2</sup> **John Hewitt**<sup>1</sup> **Ashwin Paranjape**<sup>3,4</sup>\n**Michele Bevilacqua**<sup>3</sup> **Fabio Petroni**<sup>3</sup> **Percy Liang**<sup>1</sup>",
+                "chunk_set_id": "e0f752fc6805a7da3a275d76d2bf61b6b305bb6771eb87eda1a38d58f0d144e0",
+                "parse_run_id": "99b55162a04e4096a709fc09e5736c44",
+                "page_width": 595.276,
+                "page_height": 841.89,
+                "source_element_ids": [
+                  "6af71e91bd87d548bb785fce:p1:e1"
+                ],
+                "bounding_boxes": [
+                  {
+                    "element_id": "6af71e91bd87d548bb785fce:p1:e1",
+                    "x": 123.9,
+                    "y": 104.97,
+                    "width": 349.05,
+                    "height": 26.32,
+                    "coordinate_system": "points",
+                    "origin": "top_left",
+                    "rotation_degrees": null,
+                    "renderable": false
+                  }
+                ]
+              }
+            ],
+            "is_out_of_scope": false
+          },
+          "trace": {
+            "question": "Who are the authors of the paper?",
+            "answer": "The authors are Nelson F. Liu, Kevin Lin, John Hewitt, Ashwin Paranjape, Michele Bevilacqua, Fabio Petroni, and Percy Liang. [1] [2]",
+            "document_id": "6af71e91bd87d548bb785fce",
+            "retrieved_contexts": [
+              "## **Lost in the Middle: How Language Models Use Long Contexts**\n\n**Nelson F. Liu**<sup>1\\*</sup> **Kevin Lin**<sup>2</sup> **John Hewitt**<sup>1</sup> **Ashwin Paranjape**<sup>3,4</sup>\n**Michele Bevilacqua**<sup>3</sup> **Fabio Petroni**<sup>3</sup> **Percy Liang**<sup>1</sup>\n\n<sup>1</sup>Stanford University, USA <sup>2</sup>University of California, Berkeley, USA\n<sup>3</sup>Samaya AI, UK <sup>4</sup>Samaya AI, USA\n`nfliu@cs.stanford.edu`",
+              "Hugo Touvron, Louis Martin, Kevin Stone, Peter Albert, Amjad Almahairi, Yasmine Babaei, Nikolay Bashlykov, Soumya Batra, Prajjwal Bhargava, Shruti Bhosale, Dan Bikel, Lukas Blecher, Cristian Canton Ferrer, Moya Chen, Guillem Cucurull, David Esiobu, Jude Fernandes, Jeremy Fu, Wenyin Fu, Brian Fuller, Cynthia Gao, Vedanuj Goswami, Naman Goyal, Anthony Hartshorn, Saghar Hosseini, Rui Hou, Hakan Inan, Marcin Kardas, Viktor Kerkez, Madian Khabsa, Isabel Kloumann, Artem Korenev, Punit Singh Koura, Marie-Anne Lachaux, Thibaut Lavril, Jenya Lee, Diana Liskovich, Yinghai Lu, Yuning Mao, Xavier Martinet, Todor Mihaylov, Pushkar Mishra, Igor Molybog, Yixin Nie, Andrew Poulton, Jeremy Reizenstein, Rashi Rungta, Kalyan Saladi, Alan Schelten, Ruan Silva, Eric Michael Smith, Ranjan Subramanian, Xiaoqing Ellen Tan, Binh Tang, Ross Taylor, Adina Williams, Jian Xiang Kuan, Puxin Xu, Zheng Yan, Iliyan Zarov, Yuchen Zhang, Angela Fan, Melanie Kambadur, Sharan Narang, Aurelien Rodriguez, Robert Stojnic, Sergey Edunov, and Thomas Scialom. 2023b. Llama 2: Open foundation and fine-tuned chat models. *ArXiv:2307.09288*.",
+              "Romal Thoppilan, Daniel De Freitas, Jamie Hall, Noam Shazeer, Apoorv Kulshreshtha, Heng-Tze Cheng, Alicia Jin, Taylor Bos, Leslie Baker, Yu Du, YaGuang Li, Hongrae Lee, Huaixiu Steven Zheng, Amin Ghafouri, Marcelo Menegali, Yanping Huang, Maxim Krikun, Dmitry Lepikhin, James Qin, Dehao Chen, Yuanzhong Xu, Zhifeng Chen, Adam Roberts, Maarten Bosma, Vincent Zhao, Yanqi Zhou, Chung-Ching Chang, Igor Krivokon, Will Rusch, Marc Pickett, Pranesh Srinivasan, Laichee Man, Kathleen Meier-Hellstern, Meredith Ringel Morris, Tulsee Doshi, Renelito Delos Santos, Toju Duke, Johnny Soraker, Ben Zevenbergen, Vinodkumar Prabhakaran, Mark Diaz, Ben Hutchinson, Kristen Olson, Alejandra Molina, Erin Hoffman-John, Josh Lee, Lora Aroyo, Ravi Rajakumar, Alena Butryna, Matthew Lamm, Viktoriya Kuzmina, Joe Fenton, Aaron Cohen, Rachel Bernstein, Ray Kurzweil, Blaise Aguera-Arcas, Claire Cui, Marian Croak, Ed Chi, and Quoc Le. 2022. LaMDA: Language models for dialog applications. *ArXiv:2201.08239*.",
+              "Yi Tay, Mostafa Dehghani, Vinh Q. Tran, Xavier Garcia, Jason Wei, Xuezhi Wang, Hyung Won Chung, Siamak Shakeri, Dara Bahri, Tal Schuster, Huaixiu Steven Zheng, Denny Zhou, Neil Houlsby, and Donald Metzler. 2023. UL2: Unifying language learning paradigms. *ArXiv:2205.05131*.",
+              "Hugo Touvron, Thibaut Lavril, Gautier Izacard, Xavier Martinet, Marie-Anne Lachaux, Timothée Lacroix, Baptiste Rozière, Naman Goyal, Eric Hambro, Faisal Azhar, Aurelien Rodriguez, Armand Joulin, Edouard Grave, and Guillaume Lample. 2023a. LLaMA: Open and efficient foundation language models. *ArXiv:2302.13971*.",
+              "## Acknowledgments\n\nWe would like to thank Luke Zettlemoyer, who served as our TACL action editor, and the anonymous reviewers for their comments and feedback. We also thank Claudiu Leoveanu-Condrei, Megan Leszczynski, Dmytro Okhonko, Maithra Raghu, Eric Wallace, and Sang Michael Xie for feedback and discussions that helped improve this work. Further, we are grateful to Sewon Min for her help with the AmbigQA dataset. This work was supported by the Stanford Center for Research on Foundation Models (CRFM), by OpenAI via an API credits grant to the Stanford CRFM, and by Anthropic via the Claude academic access program."
+            ],
+            "retrieved_chunk_ids": [
+              "f485b5be7994fe734ae7f9c5e46751fd22ecec08568db7642089c7846bece9c9",
+              "805a6f6e739896e17202e0e865d7bca67fd1e12710e0fce47aba7399081d86ee",
+              "af247a3416b39c317432fa04719056fbfe7795c4b8a8de7425b7089f2b8939a7",
+              "4e829de0f9f7044ad66cf2e8bc5bc2433967ea4d6e06494fcb7d2f7caa2877b1",
+              "c6d98b765e9800d8ec1410a0b218f92bb3202b231d79f4058cd470b1649699b6",
+              "1c5b0c77dfde7657578dc849a6763c313ad6aa07ff1f53f20d93969e63afd788"
+            ],
+            "source_pages": [
+              [
+                1
+              ],
+              [
+                14
+              ],
+              [
+                14
+              ],
+              [
+                14
+              ],
+              [
+                14
+              ],
+              [
+                11
+              ]
+            ],
+            "citations": [
+              {
+                "citation_id": "a6c58990218b4024eca2d95f074a8a93cde4b20669bf7b46493a46489b34498b",
+                "document_id": "6af71e91bd87d548bb785fce",
+                "chunk_id": "f485b5be7994fe734ae7f9c5e46751fd22ecec08568db7642089c7846bece9c9",
+                "page_number": 1,
+                "quote_snippet": "## **Lost in the Middle: How Language Models Use Long Contexts**",
+                "chunk_set_id": "e0f752fc6805a7da3a275d76d2bf61b6b305bb6771eb87eda1a38d58f0d144e0",
+                "parse_run_id": "99b55162a04e4096a709fc09e5736c44",
+                "page_width": 595.276,
+                "page_height": 841.89,
+                "source_element_ids": [
+                  "6af71e91bd87d548bb785fce:p1:e0"
+                ],
+                "bounding_boxes": [
+                  {
+                    "element_id": "6af71e91bd87d548bb785fce:p1:e0",
+                    "x": 108.081,
+                    "y": 65.003,
+                    "width": 381.162,
+                    "height": 13.215000000000003,
+                    "coordinate_system": "points",
+                    "origin": "top_left",
+                    "rotation_degrees": null,
+                    "renderable": false
+                  }
+                ]
+              },
+              {
+                "citation_id": "bbde8e98cdf147db1fa4fb57cd031dd6d59a2363b829efde8f7fcec1780b6cd2",
+                "document_id": "6af71e91bd87d548bb785fce",
+                "chunk_id": "f485b5be7994fe734ae7f9c5e46751fd22ecec08568db7642089c7846bece9c9",
+                "page_number": 1,
+                "quote_snippet": "**Nelson F. Liu**<sup>1\\*</sup> **Kevin Lin**<sup>2</sup> **John Hewitt**<sup>1</sup> **Ashwin Paranjape**<sup>3,4</sup>\n**Michele Bevilacqua**<sup>3</sup> **Fabio Petroni**<sup>3</sup> **Percy Liang**<sup>1</sup>",
+                "chunk_set_id": "e0f752fc6805a7da3a275d76d2bf61b6b305bb6771eb87eda1a38d58f0d144e0",
+                "parse_run_id": "99b55162a04e4096a709fc09e5736c44",
+                "page_width": 595.276,
+                "page_height": 841.89,
+                "source_element_ids": [
+                  "6af71e91bd87d548bb785fce:p1:e1"
+                ],
+                "bounding_boxes": [
+                  {
+                    "element_id": "6af71e91bd87d548bb785fce:p1:e1",
+                    "x": 123.9,
+                    "y": 104.97,
+                    "width": 349.05,
+                    "height": 26.32,
+                    "coordinate_system": "points",
+                    "origin": "top_left",
+                    "rotation_degrees": null,
+                    "renderable": false
+                  }
+                ]
+              }
+            ],
+            "latency_ms": 1903.9098340035707,
+            "configuration": {
+              "pipeline_version": "research-assistant-rag-v4",
+              "citation_contract": "numbered_passages_v1",
+              "context_diversity_policy": "ranked_prefix_then_sections",
+              "question_intent": "fact",
+              "retrieval_query": "Who are the authors of the paper?",
+              "uses_conversation_context": false,
+              "context_strategy": "hybrid",
+              "summary_reused": false,
+              "saved_summary": null,
+              "system_prompt_sha256": "5d692b20cec70f53999606dd62421545414063f3d7c4a39ff99995f4fcf79884",
+              "context_coverage": {
+                "context_strategy": "hybrid",
+                "total_document_chunks": 105,
+                "included_chunks": 6,
+                "full_document_context": false
+              },
+              "query_embedding_performed": true,
+              "conversation_history": [],
+              "full_document_context": false,
+              "retrieval": "semantic",
+              "model": "openai/gpt-5.6-luna",
+              "embedding_model": "voyage-4-lite",
+              "dimensions": 1024,
+              "embedding_profile_id": "cd617356fdb2672b5289bb19ebd45e5243a43fe93766c1675a284871f9635536",
+              "chunk_set_id": "e0f752fc6805a7da3a275d76d2bf61b6b305bb6771eb87eda1a38d58f0d144e0",
+              "candidate_k": 20,
+              "context_k": 6,
+              "configured_factual_context_k": 6,
+              "rrf_constant": 60,
+              "context_bytes": 32000,
+              "temperature": null,
+              "chunk_size": 1200,
+              "chunk_overlap": 150,
+              "shared_retrieval_ms": 561.1654170024849,
+              "evaluation_history": "single_turn_no_chat_storage"
+            }
+          }
+        },
+        "error_code": null,
+        "shared_retrieval_ms": 561.1654170024849
+      },
+      {
+        "case": {
+          "sample_id": "lim_05",
+          "document_key": "lost-in-middle-tacl-2024",
+          "category": "results",
+          "user_question": "Where in a long context is relevant information generally used best and worst?",
+          "reference_answer": "Performance is generally best near the beginning or end and worse in the middle.",
+          "is_answerable": true,
+          "expected_page_numbers": [
+            2
+          ],
+          "source_evidence": [
+            {
+              "page_number": 2,
+              "section": "Figure 1",
+              "quote": "U-shaped performance curve"
+            }
+          ],
+          "review_note": "Check the complete referenced passage, including qualifiers; short anchors locate evidence and are not a full support proof."
+        },
+        "strategy": "hybrid",
+        "review": {
+          "sample_id": "lim_05",
+          "case_sha256": "6fd966d12c445440548cf7fbf5319f65250a3356f93296ec0548601b294f27f6",
+          "review_kind": "assistant",
+          "reviewer": "Codex",
+          "reviewed_at": "2026-11-12T06:23:32.134725Z",
+          "decision": "approved",
+          "notes": "Figure 1 caption checked for primacy/recency and middle degradation; reference keeps the generally/often qualifier."
+        },
+        "output": {
+          "response": {
+            "document_id": "6af71e91bd87d548bb785fce",
+            "conversation_id": "d818cca999f34feb8b2a8246298ad7cd",
+            "turn_id": "c04548e536a74b26994bfe52acc51892",
+            "answer": "## General background (not from this paper)\n\nIn long-context processing, relevant information is generally used best when it appears near the beginning or end of the context—the “primacy” and “recency” positions. It is often used worst when placed in the middle, where models may under-attend to or miss information despite having enough context capacity. This pattern is commonly called the “lost-in-the-middle” effect. Clear structure, repeated references, and placing critical information near section boundaries can help mitigate it.",
+            "citations": [],
+            "is_out_of_scope": true
+          },
+          "trace": {
+            "question": "Where in a long context is relevant information generally used best and worst?",
+            "answer": "## General background (not from this paper)\n\nIn long-context processing, relevant information is generally used best when it appears near the beginning or end of the context—the “primacy” and “recency” positions. It is often used worst when placed in the middle, where models may under-attend to or miss information despite having enough context capacity. This pattern is commonly called the “lost-in-the-middle” effect. Clear structure, repeated references, and placing critical information near section boundaries can help mitigate it.",
+            "document_id": "6af71e91bd87d548bb785fce",
+            "retrieved_contexts": [],
+            "retrieved_chunk_ids": [],
+            "source_pages": [],
+            "citations": [],
+            "latency_ms": 2283.8342080031,
+            "configuration": {
+              "pipeline_version": "research-assistant-rag-v4",
+              "citation_contract": "numbered_passages_v1",
+              "context_diversity_policy": "ranked_prefix_then_sections",
+              "question_intent": "general",
+              "retrieval_query": "Where in a long context is relevant information generally used best and worst?",
+              "uses_conversation_context": false,
+              "context_strategy": "general_background",
+              "summary_reused": false,
+              "saved_summary": null,
+              "system_prompt_sha256": "5d692b20cec70f53999606dd62421545414063f3d7c4a39ff99995f4fcf79884",
+              "context_coverage": {
+                "context_strategy": "general_background",
+                "total_document_chunks": 105,
+                "included_chunks": 0,
+                "full_document_context": false
+              },
+              "query_embedding_performed": false,
+              "conversation_history": [],
+              "full_document_context": false,
+              "retrieval": "hybrid",
+              "model": "openai/gpt-5.6-luna",
+              "embedding_model": "voyage-4-lite",
+              "dimensions": 1024,
+              "embedding_profile_id": "cd617356fdb2672b5289bb19ebd45e5243a43fe93766c1675a284871f9635536",
+              "chunk_set_id": "e0f752fc6805a7da3a275d76d2bf61b6b305bb6771eb87eda1a38d58f0d144e0",
+              "candidate_k": 20,
+              "context_k": 0,
+              "configured_factual_context_k": 6,
+              "rrf_constant": 60,
+              "context_bytes": 32000,
+              "temperature": null,
+              "chunk_size": null,
+              "chunk_overlap": null,
+              "shared_retrieval_ms": 0.0791669990576338,
+              "evaluation_history": "single_turn_no_chat_storage"
+            }
+          }
+        },
+        "error_code": null,
+        "shared_retrieval_ms": 0.0791669990576338
+      },
+      {
+        "case": {
+          "sample_id": "lim_05",
+          "document_key": "lost-in-middle-tacl-2024",
+          "category": "results",
+          "user_question": "Where in a long context is relevant information generally used best and worst?",
+          "reference_answer": "Performance is generally best near the beginning or end and worse in the middle.",
+          "is_answerable": true,
+          "expected_page_numbers": [
+            2
+          ],
+          "source_evidence": [
+            {
+              "page_number": 2,
+              "section": "Figure 1",
+              "quote": "U-shaped performance curve"
+            }
+          ],
+          "review_note": "Check the complete referenced passage, including qualifiers; short anchors locate evidence and are not a full support proof."
+        },
+        "strategy": "semantic",
+        "review": {
+          "sample_id": "lim_05",
+          "case_sha256": "6fd966d12c445440548cf7fbf5319f65250a3356f93296ec0548601b294f27f6",
+          "review_kind": "assistant",
+          "reviewer": "Codex",
+          "reviewed_at": "2026-11-12T06:23:32.134725Z",
+          "decision": "approved",
+          "notes": "Figure 1 caption checked for primacy/recency and middle degradation; reference keeps the generally/often qualifier."
+        },
+        "output": {
+          "response": {
+            "document_id": "6af71e91bd87d548bb785fce",
+            "conversation_id": "d0e8780e505d4271b6fd41780cf31608",
+            "turn_id": "48c84f35b213495ea149a0f079fbd346",
+            "answer": "## General background (not from this paper)\n\nIn long-context processing, relevant information is generally used best when it appears near the beginning or end of the context—the “primacy” and “recency” positions. It is often used worst when buried in the middle, a pattern commonly called the “lost in the middle” effect. Performance can also decline when relevant information is surrounded by large amounts of distracting or semantically similar material.",
+            "citations": [],
+            "is_out_of_scope": true
+          },
+          "trace": {
+            "question": "Where in a long context is relevant information generally used best and worst?",
+            "answer": "## General background (not from this paper)\n\nIn long-context processing, relevant information is generally used best when it appears near the beginning or end of the context—the “primacy” and “recency” positions. It is often used worst when buried in the middle, a pattern commonly called the “lost in the middle” effect. Performance can also decline when relevant information is surrounded by large amounts of distracting or semantically similar material.",
+            "document_id": "6af71e91bd87d548bb785fce",
+            "retrieved_contexts": [],
+            "retrieved_chunk_ids": [],
+            "source_pages": [],
+            "citations": [],
+            "latency_ms": 2212.6661670008616,
+            "configuration": {
+              "pipeline_version": "research-assistant-rag-v4",
+              "citation_contract": "numbered_passages_v1",
+              "context_diversity_policy": "ranked_prefix_then_sections",
+              "question_intent": "general",
+              "retrieval_query": "Where in a long context is relevant information generally used best and worst?",
+              "uses_conversation_context": false,
+              "context_strategy": "general_background",
+              "summary_reused": false,
+              "saved_summary": null,
+              "system_prompt_sha256": "5d692b20cec70f53999606dd62421545414063f3d7c4a39ff99995f4fcf79884",
+              "context_coverage": {
+                "context_strategy": "general_background",
+                "total_document_chunks": 105,
+                "included_chunks": 0,
+                "full_document_context": false
+              },
+              "query_embedding_performed": false,
+              "conversation_history": [],
+              "full_document_context": false,
+              "retrieval": "semantic",
+              "model": "openai/gpt-5.6-luna",
+              "embedding_model": "voyage-4-lite",
+              "dimensions": 1024,
+              "embedding_profile_id": "cd617356fdb2672b5289bb19ebd45e5243a43fe93766c1675a284871f9635536",
+              "chunk_set_id": "e0f752fc6805a7da3a275d76d2bf61b6b305bb6771eb87eda1a38d58f0d144e0",
+              "candidate_k": 20,
+              "context_k": 0,
+              "configured_factual_context_k": 6,
+              "rrf_constant": 60,
+              "context_bytes": 32000,
+              "temperature": null,
+              "chunk_size": null,
+              "chunk_overlap": null,
+              "shared_retrieval_ms": 0.0791669990576338,
+              "evaluation_history": "single_turn_no_chat_storage"
+            }
+          }
+        },
+        "error_code": null,
+        "shared_retrieval_ms": 0.0791669990576338
+      },
+      {
+        "case": {
+          "sample_id": "lim_07",
+          "document_key": "lost-in-middle-tacl-2024",
+          "category": "dataset_size",
+          "user_question": "How many queries are selected for the controlled multi-document QA experiments?",
+          "reference_answer": "2,655 queries whose annotated long answer is a paragraph.",
+          "is_answerable": true,
+          "expected_page_numbers": [
+            3
+          ],
+          "source_evidence": [
+            {
+              "page_number": 3,
+              "section": "Section 2.1",
+              "quote": "2655 queries"
+            }
+          ],
+          "review_note": "Check the complete referenced passage, including qualifiers; short anchors locate evidence and are not a full support proof."
+        },
+        "strategy": "hybrid",
+        "review": {
+          "sample_id": "lim_07",
+          "case_sha256": "709cd996013e0fa92f36fde8c301ce860df063e8baa8b1601994893577f27410",
+          "review_kind": "assistant",
+          "reviewer": "Codex",
+          "reviewed_at": "2026-11-12T06:23:32.134738Z",
+          "decision": "approved",
+          "notes": "Section 2.1 explicitly selects 2655 queries; reference uses the same count."
+        },
+        "output": {
+          "response": {
+            "document_id": "6af71e91bd87d548bb785fce",
+            "conversation_id": "654f3dd0e74744a686e898a6088d0514",
+            "turn_id": "68a0fd62d01246feb98c8b94cb0e1d11",
+            "answer": "The controlled multi-document QA experiments select 2,655 queries from NaturalQuestions-Open—specifically, queries whose annotated long answer is a paragraph rather than a list or table. [1] [2]",
+            "citations": [
+              {
+                "citation_id": "43e837d391039fa5169cca1957be898c909f41f089d82e8831ce01c7d77228b2",
+                "document_id": "6af71e91bd87d548bb785fce",
+                "chunk_id": "12e5ea63d6b325d43431c660bc24db61bf814f4e97885a853d67dbf106b06634",
+                "page_number": 3,
+                "quote_snippet": "We instantiate this task with data from NaturalQuestions-Open (Lee et al., 2019; Kwiatkowski et al., 2019), which contains historical queries issued to the Google search engine, coupled with human-annotated answers extracted from Wikipedia. In particular, we take the 2655",
+                "chunk_set_id": "e0f752fc6805a7da3a275d76d2bf61b6b305bb6771eb87eda1a38d58f0d144e0",
+                "parse_run_id": "99b55162a04e4096a709fc09e5736c44",
+                "page_width": 595.276,
+                "page_height": 841.89,
+                "source_element_ids": [
+                  "6af71e91bd87d548bb785fce:p3:e9"
+                ],
+                "bounding_boxes": [
+                  {
+                    "element_id": "6af71e91bd87d548bb785fce:p3:e9",
+                    "x": 306.56714,
+                    "y": 336.75600000000003,
+                    "width": 220.25212,
+                    "height": 226.46841,
+                    "coordinate_system": "points",
+                    "origin": "top_left",
+                    "rotation_degrees": null,
+                    "renderable": false
+                  }
+                ]
+              },
+              {
+                "citation_id": "9b78e04095810982eb6b54b130088d393ba946556d5689873d3978efcae32a91",
+                "document_id": "6af71e91bd87d548bb785fce",
+                "chunk_id": "12e5ea63d6b325d43431c660bc24db61bf814f4e97885a853d67dbf106b06634",
+                "page_number": 3,
+                "quote_snippet": "queries where the annotated long answer is a paragraph (as opposed to a list or a table). We use passages (chunks of at most 100 tokens) from Wikipedia as documents within our input contexts. For each of the queries, we need a document that contains the answer and $k - 1$",
+                "chunk_set_id": "e0f752fc6805a7da3a275d76d2bf61b6b305bb6771eb87eda1a38d58f0d144e0",
+                "parse_run_id": "99b55162a04e4096a709fc09e5736c44",
+                "page_width": 595.276,
+                "page_height": 841.89,
+                "source_element_ids": [
+                  "6af71e91bd87d548bb785fce:p3:e9"
+                ],
+                "bounding_boxes": [
+                  {
+                    "element_id": "6af71e91bd87d548bb785fce:p3:e9",
+                    "x": 306.56714,
+                    "y": 336.75600000000003,
+                    "width": 220.25212,
+                    "height": 226.46841,
+                    "coordinate_system": "points",
+                    "origin": "top_left",
+                    "rotation_degrees": null,
+                    "renderable": false
+                  }
+                ]
+              }
+            ],
+            "is_out_of_scope": false
+          },
+          "trace": {
+            "question": "How many queries are selected for the controlled multi-document QA experiments?",
+            "answer": "The controlled multi-document QA experiments select 2,655 queries from NaturalQuestions-Open—specifically, queries whose annotated long answer is a paragraph rather than a list or table. [1] [2]",
+            "document_id": "6af71e91bd87d548bb785fce",
+            "retrieved_contexts": [
+              "## B Random Distractors in Multi-Document QA\n\nWe also run multi-document question answering experiments with random Wikipedia documents as distractors, which allows us to ablate the impact of retrieved distractors (hard negatives). Note that in this setting, the document containing the answer can often be identified with simple heuristics (e.g.,\n\n20 Total Retrieved Documents (~4K tokens, random distractors)",
+              "----\n\n<sup>5</sup>We use the 0613 OpenAI model versions.\n<sup>6</sup>We also evaluate GPT-4 (8K) on a subset of multi-document QA experiments, finding similar results and trends as other models (though GPT-4 has higher absolute performance). Evaluating GPT-4 on the full multi-document QA and key-value retrieval experiments would cost upwards of $6000. See Appendix D for GPT-4 results and discussion.",
+              "## 2 Multi-Document Question Answering\n\nOur goal is to better understand how language models use their input context. To this end, we analyze model performance on multi-document question answering, which requires models to find relevant information within an input context and use it to answer the question. In particular, we make controlled changes to the length of the input context and the position of the relevant information and measure changes in task performance.",
+              "## **E Llama-2 Performance**\n\nWe evaluate Llama-2 (Touvron et al., 2023b) on multi-document QA with 20 total documents in each input context. The Llama tokenizer produces longer sequences than the tokenizers for our previously-studied models, so we discard 20 examples (out of 2655) that exceed Llama-2’s maximum context length of 4096 tokens. We experiment with models of varying sizes (7B, 13B, and 70B parameters), with and without additional\n\n20 Total Retrieved Documents (~4K tokens, 500 question sample)",
+              "We first experiment with multi-document question answering, which requires models to reason over provided documents to find relevant information and use it to answer a given question; this task mimics the retrieval-augmented generation setup underlying many commercial generative search and question answering applications (e.g., Bing Chat). In this setting, we control (i) the input context length by changing the number of documents in the input context (akin to retrieving more or less documents in retrieval-augmented generation), and (ii) control the position of the relevant information within the input context by changing the order of the documents to place the relevant document at the beginning, middle or end of the context.",
+              "We instantiate this task with data from NaturalQuestions-Open (Lee et al., 2019; Kwiatkowski et al., 2019), which contains historical queries issued to the Google search engine, coupled with human-annotated answers extracted from Wikipedia. In particular, we take the 2655 queries where the annotated long answer is a paragraph (as opposed to a list or a table). We use passages (chunks of at most 100 tokens) from Wikipedia as documents within our input contexts. For each of the queries, we need a document that contains the answer and $k - 1$ distractor documents that do not contain the answer. To obtain a document that answers the question, we use the Wikipedia paragraph that contains the answer from the NaturalQuestions annotations.\n\nTo collect $k - 1$ distractor documents that do not contain the answer, we use a retrieval system (Contriever, fine-tuned on MS-MARCO; Izacard et al., 2021) to retrieve the $k - 1$ Wikipedia chunks that are most relevant to the query and do not contain any of the NaturalQuestions-annotated answers.<sup>2,3</sup> In the input context, the distractor\n\n----\n\n<sup>1</sup>nelsonliu.me/papers/lost-in-the-middle."
+            ],
+            "retrieved_chunk_ids": [
+              "de9908856a30804903bdd961e67067896f7938f44f6bc0d2212b4aae1e6ff649",
+              "f7004c0183abe106aa95364f259ce4522a364a33fde99baa43e0305d92c2f161",
+              "57e791d3b2417dee1ca7bb56598abbb7a9b75ce01fdf332310be26f3c95eba41",
+              "09aebd918cacfced3115f06d9252e664b8005c9faeb37e22321c930818fd40b3",
+              "7f0bac3b778c7adc0e05cf4a3cd3f176dc3f703147fa95a72496ac995778802c",
+              "12e5ea63d6b325d43431c660bc24db61bf814f4e97885a853d67dbf106b06634"
+            ],
+            "source_pages": [
+              [
+                15
+              ],
+              [
+                5
+              ],
+              [
+                3
+              ],
+              [
+                16
+              ],
+              [
+                2
+              ],
+              [
+                3
+              ]
+            ],
+            "citations": [
+              {
+                "citation_id": "43e837d391039fa5169cca1957be898c909f41f089d82e8831ce01c7d77228b2",
+                "document_id": "6af71e91bd87d548bb785fce",
+                "chunk_id": "12e5ea63d6b325d43431c660bc24db61bf814f4e97885a853d67dbf106b06634",
+                "page_number": 3,
+                "quote_snippet": "We instantiate this task with data from NaturalQuestions-Open (Lee et al., 2019; Kwiatkowski et al., 2019), which contains historical queries issued to the Google search engine, coupled with human-annotated answers extracted from Wikipedia. In particular, we take the 2655",
+                "chunk_set_id": "e0f752fc6805a7da3a275d76d2bf61b6b305bb6771eb87eda1a38d58f0d144e0",
+                "parse_run_id": "99b55162a04e4096a709fc09e5736c44",
+                "page_width": 595.276,
+                "page_height": 841.89,
+                "source_element_ids": [
+                  "6af71e91bd87d548bb785fce:p3:e9"
+                ],
+                "bounding_boxes": [
+                  {
+                    "element_id": "6af71e91bd87d548bb785fce:p3:e9",
+                    "x": 306.56714,
+                    "y": 336.75600000000003,
+                    "width": 220.25212,
+                    "height": 226.46841,
+                    "coordinate_system": "points",
+                    "origin": "top_left",
+                    "rotation_degrees": null,
+                    "renderable": false
+                  }
+                ]
+              },
+              {
+                "citation_id": "9b78e04095810982eb6b54b130088d393ba946556d5689873d3978efcae32a91",
+                "document_id": "6af71e91bd87d548bb785fce",
+                "chunk_id": "12e5ea63d6b325d43431c660bc24db61bf814f4e97885a853d67dbf106b06634",
+                "page_number": 3,
+                "quote_snippet": "queries where the annotated long answer is a paragraph (as opposed to a list or a table). We use passages (chunks of at most 100 tokens) from Wikipedia as documents within our input contexts. For each of the queries, we need a document that contains the answer and $k - 1$",
+                "chunk_set_id": "e0f752fc6805a7da3a275d76d2bf61b6b305bb6771eb87eda1a38d58f0d144e0",
+                "parse_run_id": "99b55162a04e4096a709fc09e5736c44",
+                "page_width": 595.276,
+                "page_height": 841.89,
+                "source_element_ids": [
+                  "6af71e91bd87d548bb785fce:p3:e9"
+                ],
+                "bounding_boxes": [
+                  {
+                    "element_id": "6af71e91bd87d548bb785fce:p3:e9",
+                    "x": 306.56714,
+                    "y": 336.75600000000003,
+                    "width": 220.25212,
+                    "height": 226.46841,
+                    "coordinate_system": "points",
+                    "origin": "top_left",
+                    "rotation_degrees": null,
+                    "renderable": false
+                  }
+                ]
+              }
+            ],
+            "latency_ms": 1770.394708000822,
+            "configuration": {
+              "pipeline_version": "research-assistant-rag-v4",
+              "citation_contract": "numbered_passages_v1",
+              "context_diversity_policy": "ranked_prefix_then_sections",
+              "question_intent": "fact",
+              "retrieval_query": "How many queries are selected for the controlled multi-document QA experiments?",
+              "uses_conversation_context": false,
+              "context_strategy": "hybrid",
+              "summary_reused": false,
+              "saved_summary": null,
+              "system_prompt_sha256": "5d692b20cec70f53999606dd62421545414063f3d7c4a39ff99995f4fcf79884",
+              "context_coverage": {
+                "context_strategy": "hybrid",
+                "total_document_chunks": 105,
+                "included_chunks": 6,
+                "full_document_context": false
+              },
+              "query_embedding_performed": true,
+              "conversation_history": [],
+              "full_document_context": false,
+              "retrieval": "hybrid",
+              "model": "openai/gpt-5.6-luna",
+              "embedding_model": "voyage-4-lite",
+              "dimensions": 1024,
+              "embedding_profile_id": "cd617356fdb2672b5289bb19ebd45e5243a43fe93766c1675a284871f9635536",
+              "chunk_set_id": "e0f752fc6805a7da3a275d76d2bf61b6b305bb6771eb87eda1a38d58f0d144e0",
+              "candidate_k": 20,
+              "context_k": 6,
+              "configured_factual_context_k": 6,
+              "rrf_constant": 60,
+              "context_bytes": 32000,
+              "temperature": null,
+              "chunk_size": 1200,
+              "chunk_overlap": 150,
+              "shared_retrieval_ms": 1272.3580000019865,
+              "evaluation_history": "single_turn_no_chat_storage"
+            }
+          }
+        },
+        "error_code": null,
+        "shared_retrieval_ms": 1272.3580000019865
+      },
+      {
+        "case": {
+          "sample_id": "lim_07",
+          "document_key": "lost-in-middle-tacl-2024",
+          "category": "dataset_size",
+          "user_question": "How many queries are selected for the controlled multi-document QA experiments?",
+          "reference_answer": "2,655 queries whose annotated long answer is a paragraph.",
+          "is_answerable": true,
+          "expected_page_numbers": [
+            3
+          ],
+          "source_evidence": [
+            {
+              "page_number": 3,
+              "section": "Section 2.1",
+              "quote": "2655 queries"
+            }
+          ],
+          "review_note": "Check the complete referenced passage, including qualifiers; short anchors locate evidence and are not a full support proof."
+        },
+        "strategy": "semantic",
+        "review": {
+          "sample_id": "lim_07",
+          "case_sha256": "709cd996013e0fa92f36fde8c301ce860df063e8baa8b1601994893577f27410",
+          "review_kind": "assistant",
+          "reviewer": "Codex",
+          "reviewed_at": "2026-11-12T06:23:32.134738Z",
+          "decision": "approved",
+          "notes": "Section 2.1 explicitly selects 2655 queries; reference uses the same count."
+        },
+        "output": {
+          "response": {
+            "document_id": "6af71e91bd87d548bb785fce",
+            "conversation_id": "447f11b095c446b0aac8af7c27f8224f",
+            "turn_id": "896987d93faa4e28a11fca40cb8cd6b1",
+            "answer": "The controlled multi-document QA experiments use a sample of 500 questions (queries). [1]",
+            "citations": [
+              {
+                "citation_id": "6cd13b50ddebd67625020b74897c1b7aaf63c1d38a4024bfb32e1d7566225f80",
+                "document_id": "6af71e91bd87d548bb785fce",
+                "chunk_id": "09aebd918cacfced3115f06d9252e664b8005c9faeb37e22321c930818fd40b3",
+                "page_number": 16,
+                "quote_snippet": "20 Total Retrieved Documents (~4K tokens, 500 question sample)",
+                "chunk_set_id": "e0f752fc6805a7da3a275d76d2bf61b6b305bb6771eb87eda1a38d58f0d144e0",
+                "parse_run_id": "99b55162a04e4096a709fc09e5736c44",
+                "page_width": 595.276,
+                "page_height": 841.89,
+                "source_element_ids": [
+                  "6af71e91bd87d548bb785fce:p16:e8"
+                ],
+                "bounding_boxes": []
+              }
+            ],
+            "is_out_of_scope": false
+          },
+          "trace": {
+            "question": "How many queries are selected for the controlled multi-document QA experiments?",
+            "answer": "The controlled multi-document QA experiments use a sample of 500 questions (queries). [1]",
+            "document_id": "6af71e91bd87d548bb785fce",
+            "retrieved_contexts": [
+              "## B Random Distractors in Multi-Document QA\n\nWe also run multi-document question answering experiments with random Wikipedia documents as distractors, which allows us to ablate the impact of retrieved distractors (hard negatives). Note that in this setting, the document containing the answer can often be identified with simple heuristics (e.g.,\n\n20 Total Retrieved Documents (~4K tokens, random distractors)",
+              "### 2.1 Experimental Setup\n\nIn the multi-document question answering task, the model inputs are (i) a question to answer and (ii) $k$ documents (e.g., passages from Wikipedia), where *exactly one* of the documents contains the answer to the question and $k - 1$ \"distractor\" documents do not. This task requires the model to access the document that contains the answer within its input context and use it to answer the question. Figure 2 presents an example.",
+              "We first experiment with multi-document question answering, which requires models to reason over provided documents to find relevant information and use it to answer a given question; this task mimics the retrieval-augmented generation setup underlying many commercial generative search and question answering applications (e.g., Bing Chat). In this setting, we control (i) the input context length by changing the number of documents in the input context (akin to retrieving more or less documents in retrieval-augmented generation), and (ii) control the position of the relevant information within the input context by changing the order of the documents to place the relevant document at the beginning, middle or end of the context.",
+              "## **E Llama-2 Performance**\n\nWe evaluate Llama-2 (Touvron et al., 2023b) on multi-document QA with 20 total documents in each input context. The Llama tokenizer produces longer sequences than the tokenizers for our previously-studied models, so we discard 20 examples (out of 2655) that exceed Llama-2’s maximum context length of 4096 tokens. We experiment with models of varying sizes (7B, 13B, and 70B parameters), with and without additional\n\n20 Total Retrieved Documents (~4K tokens, 500 question sample)",
+              "----\n\n<sup>5</sup>We use the 0613 OpenAI model versions.\n<sup>6</sup>We also evaluate GPT-4 (8K) on a subset of multi-document QA experiments, finding similar results and trends as other models (though GPT-4 has higher absolute performance). Evaluating GPT-4 on the full multi-document QA and key-value retrieval experiments would cost upwards of $6000. See Appendix D for GPT-4 results and discussion.",
+              "Figure 13: Language model performance on multi-document QA when using random distractors, rather than retrieved distractors.\n\nlexical overlap with the query). Figure 13 presents the results of this experiment. Although all models have higher absolute accuracy in this setting, they surprisingly still struggle to reason over their entire input context, indicating that their performance degradation is not solely due to an inability to identify relevant documents."
+            ],
+            "retrieved_chunk_ids": [
+              "de9908856a30804903bdd961e67067896f7938f44f6bc0d2212b4aae1e6ff649",
+              "142f16b314c879f9fca0929881eb3a0878f67152fbb2614973503787c0b72f3b",
+              "7f0bac3b778c7adc0e05cf4a3cd3f176dc3f703147fa95a72496ac995778802c",
+              "09aebd918cacfced3115f06d9252e664b8005c9faeb37e22321c930818fd40b3",
+              "f7004c0183abe106aa95364f259ce4522a364a33fde99baa43e0305d92c2f161",
+              "fa195f24e2e573f6ea59acb0855242495e368a297b921321d7840ff5ae77141b"
+            ],
+            "source_pages": [
+              [
+                15
+              ],
+              [
+                3
+              ],
+              [
+                2
+              ],
+              [
+                16
+              ],
+              [
+                5
+              ],
+              [
+                15
+              ]
+            ],
+            "citations": [
+              {
+                "citation_id": "6cd13b50ddebd67625020b74897c1b7aaf63c1d38a4024bfb32e1d7566225f80",
+                "document_id": "6af71e91bd87d548bb785fce",
+                "chunk_id": "09aebd918cacfced3115f06d9252e664b8005c9faeb37e22321c930818fd40b3",
+                "page_number": 16,
+                "quote_snippet": "20 Total Retrieved Documents (~4K tokens, 500 question sample)",
+                "chunk_set_id": "e0f752fc6805a7da3a275d76d2bf61b6b305bb6771eb87eda1a38d58f0d144e0",
+                "parse_run_id": "99b55162a04e4096a709fc09e5736c44",
+                "page_width": 595.276,
+                "page_height": 841.89,
+                "source_element_ids": [
+                  "6af71e91bd87d548bb785fce:p16:e8"
+                ],
+                "bounding_boxes": []
+              }
+            ],
+            "latency_ms": 2489.942415999394,
+            "configuration": {
+              "pipeline_version": "research-assistant-rag-v4",
+              "citation_contract": "numbered_passages_v1",
+              "context_diversity_policy": "ranked_prefix_then_sections",
+              "question_intent": "fact",
+              "retrieval_query": "How many queries are selected for the controlled multi-document QA experiments?",
+              "uses_conversation_context": false,
+              "context_strategy": "hybrid",
+              "summary_reused": false,
+              "saved_summary": null,
+              "system_prompt_sha256": "5d692b20cec70f53999606dd62421545414063f3d7c4a39ff99995f4fcf79884",
+              "context_coverage": {
+                "context_strategy": "hybrid",
+                "total_document_chunks": 105,
+                "included_chunks": 6,
+                "full_document_context": false
+              },
+              "query_embedding_performed": true,
+              "conversation_history": [],
+              "full_document_context": false,
+              "retrieval": "semantic",
+              "model": "openai/gpt-5.6-luna",
+              "embedding_model": "voyage-4-lite",
+              "dimensions": 1024,
+              "embedding_profile_id": "cd617356fdb2672b5289bb19ebd45e5243a43fe93766c1675a284871f9635536",
+              "chunk_set_id": "e0f752fc6805a7da3a275d76d2bf61b6b305bb6771eb87eda1a38d58f0d144e0",
+              "candidate_k": 20,
+              "context_k": 6,
+              "configured_factual_context_k": 6,
+              "rrf_constant": 60,
+              "context_bytes": 32000,
+              "temperature": null,
+              "chunk_size": 1200,
+              "chunk_overlap": 150,
+              "shared_retrieval_ms": 1272.3580000019865,
+              "evaluation_history": "single_turn_no_chat_storage"
+            }
+          }
+        },
+        "error_code": null,
+        "shared_retrieval_ms": 1272.3580000019865
+      },
+      {
+        "case": {
+          "sample_id": "lim_19",
+          "document_key": "lost-in-middle-tacl-2024",
+          "category": "unanswerable",
+          "user_question": "What vision-backbone training schedule does this paper prescribe?",
+          "reference_answer": null,
+          "is_answerable": false,
+          "expected_page_numbers": [],
+          "source_evidence": [],
+          "review_note": "Check the full paper scope; no such experimental specification or measurement is established."
+        },
+        "strategy": "hybrid",
+        "review": {
+          "sample_id": "lim_19",
+          "case_sha256": "ab1371b71d8840fe0fa0c06b48600acb3d2cc6c3db86232e806df9c74314074c",
+          "review_kind": "assistant",
+          "reviewer": "Codex",
+          "reviewed_at": "2026-11-12T06:23:32.134813Z",
+          "decision": "approved",
+          "notes": "Full-paper topic/scope checked: no vision-backbone training schedule is prescribed; expected behavior is abstention."
+        },
+        "output": {
+          "response": {
+            "document_id": "6af71e91bd87d548bb785fce",
+            "conversation_id": "1a90383fb1334712b692a949ebc04202",
+            "turn_id": "241ee62a3ffb4638b80760b3d8880383",
+            "answer": "I couldn’t find enough evidence in this document to answer that question.",
+            "citations": [],
+            "is_out_of_scope": true
+          },
+          "trace": {
+            "question": "What vision-backbone training schedule does this paper prescribe?",
+            "answer": "I couldn’t find enough evidence in this document to answer that question.",
+            "document_id": "6af71e91bd87d548bb785fce",
+            "retrieved_contexts": [
+              "Figure 8: When encoder-decoder models (Flan-UL2 and Flan-T5-XXL) evaluated on sequences that are *shorter* than their encoder’s training-time maximum sequence length (2048 and 512 tokens, respectively), they are relatively robust to changes in the position of relevant information within their input context (left subplot). In contrast, when these models are evaluated on sequences *longer* than those seen during training (center and right subplots), we observe a U-shaped performance curve—performance is higher when relevant information occurs at the beginning or end of the input context, as opposed to the middle of the input context.\n\nthese maximum context lengths; Shaham et al. (2023) find that both models can perform well with sequences of up to 8K tokens.",
+              "## **4.3 Effect of Instruction Fine-Tuning**\n\nThe models we evaluated are all instruction fine-tuned—after their initial pre-training, they\n\n164\n\n20 Total Retrieved Documents (~4K tokens, query-aware contextualization)",
+              "We first experiment with multi-document question answering, which requires models to reason over provided documents to find relevant information and use it to answer a given question; this task mimics the retrieval-augmented generation setup underlying many commercial generative search and question answering applications (e.g., Bing Chat). In this setting, we control (i) the input context length by changing the number of documents in the input context (akin to retrieving more or less documents in retrieval-augmented generation), and (ii) control the position of the relevant information within the input context by changing the order of the documents to place the relevant document at the beginning, middle or end of the context.",
+              "base model best- and worst-case performance to around 4%.\n\nThese observations complement prior work, which found that non-instruction fine-tuned language models are biased towards recent tokens (i.e., the end of the input context; Khandelwal et al., 2018; Press et al., 2021). This recency bias has been observed in past work when evaluating models on next-word prediction of contiguous text, a setting where language models minimally benefit from long-range information (Sun et al., 2021). In contrast, our results show that language models are capable of using longer-range information (i.e., the beginning of the input context) when prompted with instruction-formatted data. We hypothesize that non-instruction fine-tuned language models learn to use these long contexts from similarly formatted data that may occur in Internet text seen during pre-training, e.g., StackOverflow questions and answers.",
+              "Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Łukasz Kaiser, and Illia Polosukhin. 2017. Attention is all you need. In *Proceedings of NeurIPS*.\n\nSinong Wang, Belinda Z. Li, Madian Khabsa, Han Fang, and Hao Ma. 2020. Linformer: Self-attention with linear complexity. *ArXiv:2006.04768*.\n\nManzil Zaheer, Guru Guruganesh, Kumar Avinava Dubey, Joshua Ainslie, Chris Alberti, Santiago Ontanon, Philip Pham, Anirudh Ravula, Qifan Wang, Li Yang, and Amr Ahmed. 2020. Big Bird: Transformers for longer sequences. In *Proceedings of NeurIPS*.\n\n20 Total Retrieved Documents (~4K tokens, unambiguous questions)",
+              "## A Ambiguity in Multi-Document QA Distractor Documents\n\nFollowing past work on NaturalQuestions-Open (Izacard et al., 2021; Izacard and Grave, 2021, *inter alia*), we use a Wikipedia dump from late 2018 as our retrieval corpus. However, this standard Wikipedia dump has a small amount of temporal mismatch with the NaturalQuestions annotations.\n\nFor example, consider the question “what nfl team does robert griffin iii play for”. The NaturalQuestions annotated answer is “currently a free agent”. However, the Wikipedia retrieval corpus contains the information that he plays for the “Baltimore Ravens”, since he was released from the team between the Wikipedia dump’s timestamp and the NaturalQuestions annotation process.\n\nWe use the ambiguity annotations of Min et al. (2020) to create a subset unambiguous questions. Experiments on this unambiguous subset of the data show similar results and conclusions as the experiments on the full questions collection (Figure 12)."
+            ],
+            "retrieved_chunk_ids": [
+              "57df04e1452ff058e44b8fb9944091c317840b6bf0dd91388b48aa8a33a38e8d",
+              "52c2e388f012de088fb9dd4ea967370f4b24501d9a68d48412e2fd29162e71b5",
+              "7f0bac3b778c7adc0e05cf4a3cd3f176dc3f703147fa95a72496ac995778802c",
+              "1b2978f7c0d0ca97a6cecbaa1b25c9f0ebb3bd166be811089a80fd498066df04",
+              "a5d47829eccca04ecce3867511e068dbc07f2f6f9be753c31af6c7fc5ae804ec",
+              "841305583e06b5c3271873a555fed74f1c7de80d2bd1662026e650100efc6328"
+            ],
+            "source_pages": [
+              [
+                8
+              ],
+              [
+                8,
+                9
+              ],
+              [
+                2
+              ],
+              [
+                9
+              ],
+              [
+                14,
+                15
+              ],
+              [
+                15
+              ]
+            ],
+            "citations": [],
+            "latency_ms": 2067.350458000874,
+            "configuration": {
+              "pipeline_version": "research-assistant-rag-v4",
+              "citation_contract": "numbered_passages_v1",
+              "context_diversity_policy": "ranked_prefix_then_sections",
+              "question_intent": "fact",
+              "retrieval_query": "What vision-backbone training schedule does this paper prescribe?",
+              "uses_conversation_context": false,
+              "context_strategy": "hybrid",
+              "summary_reused": false,
+              "saved_summary": null,
+              "system_prompt_sha256": "5d692b20cec70f53999606dd62421545414063f3d7c4a39ff99995f4fcf79884",
+              "context_coverage": {
+                "context_strategy": "hybrid",
+                "total_document_chunks": 105,
+                "included_chunks": 6,
+                "full_document_context": false
+              },
+              "query_embedding_performed": true,
+              "conversation_history": [],
+              "full_document_context": false,
+              "retrieval": "hybrid",
+              "model": "openai/gpt-5.6-luna",
+              "embedding_model": "voyage-4-lite",
+              "dimensions": 1024,
+              "embedding_profile_id": "cd617356fdb2672b5289bb19ebd45e5243a43fe93766c1675a284871f9635536",
+              "chunk_set_id": "e0f752fc6805a7da3a275d76d2bf61b6b305bb6771eb87eda1a38d58f0d144e0",
+              "candidate_k": 20,
+              "context_k": 6,
+              "configured_factual_context_k": 6,
+              "rrf_constant": 60,
+              "context_bytes": 32000,
+              "temperature": null,
+              "chunk_size": 1200,
+              "chunk_overlap": 150,
+              "shared_retrieval_ms": 357.2956249990966,
+              "evaluation_history": "single_turn_no_chat_storage"
+            }
+          }
+        },
+        "error_code": null,
+        "shared_retrieval_ms": 357.2956249990966
+      },
+      {
+        "case": {
+          "sample_id": "lim_19",
+          "document_key": "lost-in-middle-tacl-2024",
+          "category": "unanswerable",
+          "user_question": "What vision-backbone training schedule does this paper prescribe?",
+          "reference_answer": null,
+          "is_answerable": false,
+          "expected_page_numbers": [],
+          "source_evidence": [],
+          "review_note": "Check the full paper scope; no such experimental specification or measurement is established."
+        },
+        "strategy": "semantic",
+        "review": {
+          "sample_id": "lim_19",
+          "case_sha256": "ab1371b71d8840fe0fa0c06b48600acb3d2cc6c3db86232e806df9c74314074c",
+          "review_kind": "assistant",
+          "reviewer": "Codex",
+          "reviewed_at": "2026-11-12T06:23:32.134813Z",
+          "decision": "approved",
+          "notes": "Full-paper topic/scope checked: no vision-backbone training schedule is prescribed; expected behavior is abstention."
+        },
+        "output": {
+          "response": {
+            "document_id": "6af71e91bd87d548bb785fce",
+            "conversation_id": "1296c0d58e9240b29d3bfd78b2d5a61d",
+            "turn_id": "2eb96457dc154171b35621077361a861",
+            "answer": "I couldn’t find enough evidence in this document to answer that question.",
+            "citations": [],
+            "is_out_of_scope": true
+          },
+          "trace": {
+            "question": "What vision-backbone training schedule does this paper prescribe?",
+            "answer": "I couldn’t find enough evidence in this document to answer that question.",
+            "document_id": "6af71e91bd87d548bb785fce",
+            "retrieved_contexts": [
+              "Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Łukasz Kaiser, and Illia Polosukhin. 2017. Attention is all you need. In *Proceedings of NeurIPS*.\n\nSinong Wang, Belinda Z. Li, Madian Khabsa, Han Fang, and Hao Ma. 2020. Linformer: Self-attention with linear complexity. *ArXiv:2006.04768*.\n\nManzil Zaheer, Guru Guruganesh, Kumar Avinava Dubey, Joshua Ainslie, Chris Alberti, Santiago Ontanon, Philip Pham, Anirudh Ravula, Qifan Wang, Li Yang, and Amr Ahmed. 2020. Big Bird: Transformers for longer sequences. In *Proceedings of NeurIPS*.\n\n20 Total Retrieved Documents (~4K tokens, unambiguous questions)",
+              "Hao Peng, Nikolaos Pappas, Dani Yogatama, Roy Schwartz, Noah Smith, and Lingpeng Kong. 2021. Random feature attention. In *Proceedings of ICLR*.\n\nFabio Petroni, Patrick Lewis, Aleksandra Piktus, Tim Rocktäschel, Yuxiang Wu, Alexander H. Miller, and Sebastian Riedel. 2020. How context affects language models’ factual predictions. In *Proceedings of AKBC*.\n\nMichael Poli, Stefano Massaroli, Eric Nguyen, Daniel Y. Fu, Tri Dao, Stephen Baccus, Yoshua Bengio, Stefano Ermon, and Christopher Ré. 2023. Hyena hierarchy: Towards larger convolutional language models. In *Proceedings of ICML*.\n\nOfir Press, Noah A. Smith, and Mike Lewis. 2021. Shortformer: Better language modeling using shorter inputs. In *Proceedings of ACL*. https://doi.org/10.18653/v1/2021.acl-long.427\n\nOfir Press, Noah A. Smith, and Mike Lewis. 2022. Train short, test long: Attention with linear biases enables input length extrapolation. In *Proceedings of ICLR*.\n\nGuanghui Qin, Yukun Feng, and Benjamin Van Durme. 2023. The NLP task effectiveness of long-range transformers. In *Proceedings of EACL*. https://doi.org/10.18653/v1/2023.eacl-main.273",
+              "To better understand the effect of additional fine-tuning and model scale, we also experimented with Llama-2 models of varying sizes (7B, 13B, and 70B) with and without additional supervised fine-tuning and reinforcement learning from human feedback (Appendix E). We find that the U-shaped performance curve only appears in sufficiently large language models (with or without\n\n165\n\nadditional fine-tuning)—the 7B Llama-2 models are solely recency-biased, while the 13B and 70B models exhibit a U-shaped performance curve. In addition, we see that the Llama-2 supervised fine-tuning and reinforcement learning from human feedback procedure slightly mitigates the positional bias in smaller models (13B, akin to trends shown when comparing MPT-30B and MPT-30B-Instruct), but minimally affects trends on larger models (70B).",
+              "Figure 8: When encoder-decoder models (Flan-UL2 and Flan-T5-XXL) evaluated on sequences that are *shorter* than their encoder’s training-time maximum sequence length (2048 and 512 tokens, respectively), they are relatively robust to changes in the position of relevant information within their input context (left subplot). In contrast, when these models are evaluated on sequences *longer* than those seen during training (center and right subplots), we observe a U-shaped performance curve—performance is higher when relevant information occurs at the beginning or end of the input context, as opposed to the middle of the input context.\n\nthese maximum context lengths; Shaham et al. (2023) find that both models can perform well with sequences of up to 8K tokens.",
+              "Michał Daniluk, Tim Rocktäschel, Johannes Welbl, and Sebastian Riedel. 2017. Frustratingly short attention spans in neural language modeling. In *Proceedings of ICLR*.\n\nTri Dao, Daniel Y. Fu, Stefano Ermon, Atri Rudra, and Christopher Ré. 2022. FlashAttention: Fast and memory-efficient exact attention with IO-awareness. *ArXiv:2205.14135*.\n\nHermann Ebbinghaus. 1913. Memory: A contribution to experimental psychology. *H. A. Ruger & C. E. Bussenius, Trans.* https://doi.org/10.1037/10011-000\n\nAlbert Gu, Karan Goel, and Christopher Ré. 2022. Efficiently modeling long sequences with structured state spaces. In *Proceedings of ICLR*.\n\nMao Ivgi, Uri Shaham, and Jonathan Berant. 2023. Efficient long-text understanding with short-text models. *Transactions of the Association for Computational Linguistics*, 11:284–299. https://doi.org/10.1162/tacl_a_00547\n\nGautier Izacard, Mathilde Caron, Lucas Hosseini, Sebastian Riedel, Piotr Bojanowski, Armand Joulin, and Edouard Grave. 2021. Unsupervised dense information retrieval with contrastive learning. *ArXiv:2112.09118*.",
+              "## **4.3 Effect of Instruction Fine-Tuning**\n\nThe models we evaluated are all instruction fine-tuned—after their initial pre-training, they\n\n164\n\n20 Total Retrieved Documents (~4K tokens, query-aware contextualization)"
+            ],
+            "retrieved_chunk_ids": [
+              "a5d47829eccca04ecce3867511e068dbc07f2f6f9be753c31af6c7fc5ae804ec",
+              "22b7e330c37699a610f7725030c052d47a12c5aab85f72ad209e01895a688b0c",
+              "fc502ea890dd0ff4a257bb1752a0d840a662d9f55a489b2c77c1902b180b1795",
+              "57df04e1452ff058e44b8fb9944091c317840b6bf0dd91388b48aa8a33a38e8d",
+              "42d45c038cd4a04dc94f822c5523502497ced4fb9de055f493fbd8c859cb2ba2",
+              "52c2e388f012de088fb9dd4ea967370f4b24501d9a68d48412e2fd29162e71b5"
+            ],
+            "source_pages": [
+              [
+                14,
+                15
+              ],
+              [
+                13
+              ],
+              [
+                9,
+                10
+              ],
+              [
+                8
+              ],
+              [
+                12
+              ],
+              [
+                8,
+                9
+              ]
+            ],
+            "citations": [],
+            "latency_ms": 4172.921207999025,
+            "configuration": {
+              "pipeline_version": "research-assistant-rag-v4",
+              "citation_contract": "numbered_passages_v1",
+              "context_diversity_policy": "ranked_prefix_then_sections",
+              "question_intent": "fact",
+              "retrieval_query": "What vision-backbone training schedule does this paper prescribe?",
+              "uses_conversation_context": false,
+              "context_strategy": "hybrid",
+              "summary_reused": false,
+              "saved_summary": null,
+              "system_prompt_sha256": "5d692b20cec70f53999606dd62421545414063f3d7c4a39ff99995f4fcf79884",
+              "context_coverage": {
+                "context_strategy": "hybrid",
+                "total_document_chunks": 105,
+                "included_chunks": 6,
+                "full_document_context": false
+              },
+              "query_embedding_performed": true,
+              "conversation_history": [],
+              "full_document_context": false,
+              "retrieval": "semantic",
+              "model": "openai/gpt-5.6-luna",
+              "embedding_model": "voyage-4-lite",
+              "dimensions": 1024,
+              "embedding_profile_id": "cd617356fdb2672b5289bb19ebd45e5243a43fe93766c1675a284871f9635536",
+              "chunk_set_id": "e0f752fc6805a7da3a275d76d2bf61b6b305bb6771eb87eda1a38d58f0d144e0",
+              "candidate_k": 20,
+              "context_k": 6,
+              "configured_factual_context_k": 6,
+              "rrf_constant": 60,
+              "context_bytes": 32000,
+              "temperature": null,
+              "chunk_size": 1200,
+              "chunk_overlap": 150,
+              "shared_retrieval_ms": 357.2956249990966,
+              "evaluation_history": "single_turn_no_chat_storage"
+            }
+          }
+        },
+        "error_code": null,
+        "shared_retrieval_ms": 357.2956249990966
+      }
+    ]
+  },
+  "evaluator": {
+    "judge_model": "meta-llama/llama-3.3-70b-instruct",
+    "temperature": 0.1,
+    "timeout_seconds": 60,
+    "metric_timeout_seconds": 180,
+    "max_output_tokens": 2048,
+    "max_workers": 1,
+    "max_llm_requests": 160,
+    "max_embedding_inputs": 60,
+    "relevancy_questions": 3,
+    "max_samples": 4,
+    "ragas_version": "0.2.15",
+    "completion_gateway": "OpenRouter",
+    "temperature_effective": 0.1,
+    "relevancy_embeddings": "Voyage query embeddings",
+    "manual_review_of": "3bcd23fd450b4245a13db69299363158"
+  },
+  "request_usage": {
+    "llm_requests": 64,
+    "embedding_inputs": 16
+  },
+  "status": "complete",
+  "rows": [
+    {
+      "sample_id": "lim_02",
+      "strategy": "hybrid",
+      "metrics": {
+        "faithfulness": {
+          "status": "ok",
+          "value": 1.0,
+          "reason": null
+        },
+        "answer_relevancy": {
+          "status": "ok",
+          "value": 0.9256009404920021,
+          "reason": null
+        },
+        "context_precision": {
+          "status": "ok",
+          "value": 0.249999999975,
+          "reason": null
+        },
+        "context_recall": {
+          "status": "ok",
+          "value": 1.0,
+          "reason": null
+        },
+        "factual_correctness": {
+          "status": "ok",
+          "value": 1.0,
+          "reason": null
+        }
+      },
+      "checks": {
+        "answerability_correct": true,
+        "citations_present_when_answered": true,
+        "citation_identity_and_scope": true,
+        "quote_in_context": true,
+        "expected_page_coverage": 1.0
+      },
+      "manual": {
+        "result_sha256": "2776f0b33158348635a5033306672f57d47fe5cabaed877cadf235217c92ee2f",
+        "reviewer": "Codex",
+        "review_kind": "assistant",
+        "reviewed_at": "2026-11-14T05:37:45.274092Z",
+        "outcomes": {
+          "answer_correct": "pass",
+          "evidence_support": "pass",
+          "citation_pages": "pass",
+          "source_text_matching": "pass",
+          "unsupported_handling": "not_applicable"
+        },
+        "notes": "Assistant cross-check against the downloaded public PDF page 1 author block: all seven authors correct; the author-block quote supports them. The additional title-only citation is redundant, not evidence for the author list. Both quoted passages match their stored page-one source."
+      }
+    },
+    {
+      "sample_id": "lim_02",
+      "strategy": "semantic",
+      "metrics": {
+        "faithfulness": {
+          "status": "ok",
+          "value": 1.0,
+          "reason": null
+        },
+        "answer_relevancy": {
+          "status": "ok",
+          "value": 0.9999633705307861,
+          "reason": null
+        },
+        "context_precision": {
+          "status": "ok",
+          "value": 0.9999999999,
+          "reason": null
+        },
+        "context_recall": {
+          "status": "ok",
+          "value": 1.0,
+          "reason": null
+        },
+        "factual_correctness": {
+          "status": "ok",
+          "value": 1.0,
+          "reason": null
+        }
+      },
+      "checks": {
+        "answerability_correct": true,
+        "citations_present_when_answered": true,
+        "citation_identity_and_scope": true,
+        "quote_in_context": true,
+        "expected_page_coverage": 1.0
+      },
+      "manual": {
+        "result_sha256": "da92c239266f04e0c94aaf06c4afa0c9abdf4e751da7c0067afe2466a21570b5",
+        "reviewer": "Codex",
+        "review_kind": "assistant",
+        "reviewed_at": "2026-11-14T05:37:45.274204Z",
+        "outcomes": {
+          "answer_correct": "pass",
+          "evidence_support": "pass",
+          "citation_pages": "pass",
+          "source_text_matching": "pass",
+          "unsupported_handling": "not_applicable"
+        },
+        "notes": "Assistant cross-check against the downloaded public PDF page 1 author block: all seven authors correct; the author-block quote supports them. The additional title-only citation is redundant, not evidence for the author list. Both quoted passages match their stored page-one source."
+      }
+    },
+    {
+      "sample_id": "lim_05",
+      "strategy": "hybrid",
+      "metrics": {
+        "faithfulness": {
+          "status": "skipped",
+          "value": null,
+          "reason": "contexts_empty"
+        },
+        "answer_relevancy": {
+          "status": "skipped",
+          "value": null,
+          "reason": "abstention_has_no_factual_answer"
+        },
+        "context_precision": {
+          "status": "skipped",
+          "value": null,
+          "reason": "contexts_empty"
+        },
+        "context_recall": {
+          "status": "skipped",
+          "value": null,
+          "reason": "contexts_empty"
+        },
+        "factual_correctness": {
+          "status": "skipped",
+          "value": null,
+          "reason": "abstention_has_no_factual_answer"
+        }
+      },
+      "checks": {
+        "answerability_correct": false,
+        "citations_present_when_answered": true,
+        "citation_identity_and_scope": true,
+        "quote_in_context": true,
+        "expected_page_coverage": 0.0
+      },
+      "manual": {
+        "result_sha256": "5e47d14350439210c567bd2e9188151a1f29ba27c190065b56b4c2a9108e5e50",
+        "reviewer": "Codex",
+        "review_kind": "assistant",
+        "reviewed_at": "2026-11-14T05:37:45.274247Z",
+        "outcomes": {
+          "answer_correct": "fail",
+          "evidence_support": "fail",
+          "citation_pages": "fail",
+          "source_text_matching": "not_applicable",
+          "unsupported_handling": "fail"
+        },
+        "notes": "Page 2 and the paper abstract describe best performance at the beginning/end and worst in the middle. The direction is correct, but this paper question was misrouted as general background with no retrieved contexts or paper citations. Additional mitigation advice is not verified by this evidence. Fail the paper-supported answer contract; do not treat fluent prose or skipped Ragas metrics as a pass."
+      }
+    },
+    {
+      "sample_id": "lim_05",
+      "strategy": "semantic",
+      "metrics": {
+        "faithfulness": {
+          "status": "skipped",
+          "value": null,
+          "reason": "contexts_empty"
+        },
+        "answer_relevancy": {
+          "status": "skipped",
+          "value": null,
+          "reason": "abstention_has_no_factual_answer"
+        },
+        "context_precision": {
+          "status": "skipped",
+          "value": null,
+          "reason": "contexts_empty"
+        },
+        "context_recall": {
+          "status": "skipped",
+          "value": null,
+          "reason": "contexts_empty"
+        },
+        "factual_correctness": {
+          "status": "skipped",
+          "value": null,
+          "reason": "abstention_has_no_factual_answer"
+        }
+      },
+      "checks": {
+        "answerability_correct": false,
+        "citations_present_when_answered": true,
+        "citation_identity_and_scope": true,
+        "quote_in_context": true,
+        "expected_page_coverage": 0.0
+      },
+      "manual": {
+        "result_sha256": "d9a6ba9b83765f8bdf7419ac75a3213d4f6f4f1b7daae0f9a650ea0fcb57d380",
+        "reviewer": "Codex",
+        "review_kind": "assistant",
+        "reviewed_at": "2026-11-14T05:37:45.274281Z",
+        "outcomes": {
+          "answer_correct": "fail",
+          "evidence_support": "fail",
+          "citation_pages": "fail",
+          "source_text_matching": "not_applicable",
+          "unsupported_handling": "fail"
+        },
+        "notes": "Page 2 and the paper abstract describe best performance at the beginning/end and worst in the middle. The direction is correct, but this paper question was misrouted as general background with no retrieved contexts or paper citations. Additional mitigation advice is not verified by this evidence. Fail the paper-supported answer contract; do not treat fluent prose or skipped Ragas metrics as a pass."
+      }
+    },
+    {
+      "sample_id": "lim_07",
+      "strategy": "hybrid",
+      "metrics": {
+        "faithfulness": {
+          "status": "ok",
+          "value": 1.0,
+          "reason": null
+        },
+        "answer_relevancy": {
+          "status": "ok",
+          "value": 0.9011294477738208,
+          "reason": null
+        },
+        "context_precision": {
+          "status": "ok",
+          "value": 0.16666666665,
+          "reason": null
+        },
+        "context_recall": {
+          "status": "ok",
+          "value": 1.0,
+          "reason": null
+        },
+        "factual_correctness": {
+          "status": "ok",
+          "value": 0.67,
+          "reason": null
+        }
+      },
+      "checks": {
+        "answerability_correct": true,
+        "citations_present_when_answered": true,
+        "citation_identity_and_scope": true,
+        "quote_in_context": true,
+        "expected_page_coverage": 1.0
+      },
+      "manual": {
+        "result_sha256": "52b1d1d95f35ad7f24f924f3eec8d9ede2d8e179a38d170f41b5ec41c2f4d546",
+        "reviewer": "Codex",
+        "review_kind": "assistant",
+        "reviewed_at": "2026-11-14T05:37:45.274354Z",
+        "outcomes": {
+          "answer_correct": "pass",
+          "evidence_support": "pass",
+          "citation_pages": "pass",
+          "source_text_matching": "pass",
+          "unsupported_handling": "not_applicable"
+        },
+        "notes": "Public PDF page 3, section 2.1 explicitly selects 2,655 paragraph-answer NaturalQuestions-Open queries, excluding lists/tables. Both page-3 quote fragments together support the answer and match the source."
+      }
+    },
+    {
+      "sample_id": "lim_07",
+      "strategy": "semantic",
+      "metrics": {
+        "faithfulness": {
+          "status": "ok",
+          "value": 1.0,
+          "reason": null
+        },
+        "answer_relevancy": {
+          "status": "ok",
+          "value": 0.8579522010989115,
+          "reason": null
+        },
+        "context_precision": {
+          "status": "ok",
+          "value": 0.0,
+          "reason": null
+        },
+        "context_recall": {
+          "status": "ok",
+          "value": 0.0,
+          "reason": null
+        },
+        "factual_correctness": {
+          "status": "ok",
+          "value": 0.0,
+          "reason": null
+        }
+      },
+      "checks": {
+        "answerability_correct": true,
+        "citations_present_when_answered": true,
+        "citation_identity_and_scope": true,
+        "quote_in_context": true,
+        "expected_page_coverage": 1.0
+      },
+      "manual": {
+        "result_sha256": "638fd9afae0f6b1e799c6bfb682d04cb785779d3a2a9d079914b2cd44d042326",
+        "reviewer": "Codex",
+        "review_kind": "assistant",
+        "reviewed_at": "2026-11-14T05:37:45.274402Z",
+        "outcomes": {
+          "answer_correct": "fail",
+          "evidence_support": "fail",
+          "citation_pages": "fail",
+          "source_text_matching": "pass",
+          "unsupported_handling": "not_applicable"
+        },
+        "notes": "Wrong experiment count: the main controlled experiment selects 2,655 queries on PDF page 3. The cited page-16 caption refers to a 500-question sample for a separate experiment. Its text matches exactly, but it does not support the claimed main experiment count. Identity/quote checks alone cannot establish relevance or correctness."
+      }
+    },
+    {
+      "sample_id": "lim_19",
+      "strategy": "hybrid",
+      "metrics": {
+        "faithfulness": {
+          "status": "skipped",
+          "value": null,
+          "reason": "unanswerable_case_use_guardrail_review"
+        },
+        "answer_relevancy": {
+          "status": "skipped",
+          "value": null,
+          "reason": "unanswerable_case_use_guardrail_review"
+        },
+        "context_precision": {
+          "status": "skipped",
+          "value": null,
+          "reason": "unanswerable_case_use_guardrail_review"
+        },
+        "context_recall": {
+          "status": "skipped",
+          "value": null,
+          "reason": "unanswerable_case_use_guardrail_review"
+        },
+        "factual_correctness": {
+          "status": "skipped",
+          "value": null,
+          "reason": "unanswerable_case_use_guardrail_review"
+        }
+      },
+      "checks": {
+        "answerability_correct": true,
+        "citations_present_when_answered": true,
+        "citation_identity_and_scope": true,
+        "quote_in_context": true,
+        "expected_page_coverage": null
+      },
+      "manual": {
+        "result_sha256": "f4c5e2751c7274264dafd1dff09b85817c69de14b94ba15c99438163f48346d1",
+        "reviewer": "Codex",
+        "review_kind": "assistant",
+        "reviewed_at": "2026-11-14T05:37:45.274443Z",
+        "outcomes": {
+          "answer_correct": "pass",
+          "evidence_support": "not_applicable",
+          "citation_pages": "not_applicable",
+          "source_text_matching": "not_applicable",
+          "unsupported_handling": "pass"
+        },
+        "notes": "This language-model context-usage paper prescribes no vision-backbone training schedule. The answer explicitly abstains and invents no such schedule. No claim-bearing citation was given, so citation/evidence/quote criteria are not applicable."
+      }
+    },
+    {
+      "sample_id": "lim_19",
+      "strategy": "semantic",
+      "metrics": {
+        "faithfulness": {
+          "status": "skipped",
+          "value": null,
+          "reason": "unanswerable_case_use_guardrail_review"
+        },
+        "answer_relevancy": {
+          "status": "skipped",
+          "value": null,
+          "reason": "unanswerable_case_use_guardrail_review"
+        },
+        "context_precision": {
+          "status": "skipped",
+          "value": null,
+          "reason": "unanswerable_case_use_guardrail_review"
+        },
+        "context_recall": {
+          "status": "skipped",
+          "value": null,
+          "reason": "unanswerable_case_use_guardrail_review"
+        },
+        "factual_correctness": {
+          "status": "skipped",
+          "value": null,
+          "reason": "unanswerable_case_use_guardrail_review"
+        }
+      },
+      "checks": {
+        "answerability_correct": true,
+        "citations_present_when_answered": true,
+        "citation_identity_and_scope": true,
+        "quote_in_context": true,
+        "expected_page_coverage": null
+      },
+      "manual": {
+        "result_sha256": "e4d7bae7f4dcbf13767a6a7c13c0e4472fea58f5525b92be93054b3852b0e949",
+        "reviewer": "Codex",
+        "review_kind": "assistant",
+        "reviewed_at": "2026-11-14T05:37:45.274483Z",
+        "outcomes": {
+          "answer_correct": "pass",
+          "evidence_support": "not_applicable",
+          "citation_pages": "not_applicable",
+          "source_text_matching": "not_applicable",
+          "unsupported_handling": "pass"
+        },
+        "notes": "This language-model context-usage paper prescribes no vision-backbone training schedule. The answer explicitly abstains and invents no such schedule. No claim-bearing citation was given, so citation/evidence/quote criteria are not applicable."
+      }
+    }
+  ],
+  "metric_summary": {
+    "hybrid": {
+      "faithfulness": {
+        "mean": 1.0,
+        "scored": 2,
+        "skipped": 2,
+        "errors": 0
+      },
+      "answer_relevancy": {
+        "mean": 0.9133651941329115,
+        "scored": 2,
+        "skipped": 2,
+        "errors": 0
+      },
+      "context_precision": {
+        "mean": 0.20833333331249998,
+        "scored": 2,
+        "skipped": 2,
+        "errors": 0
+      },
+      "context_recall": {
+        "mean": 1.0,
+        "scored": 2,
+        "skipped": 2,
+        "errors": 0
+      },
+      "factual_correctness": {
+        "mean": 0.835,
+        "scored": 2,
+        "skipped": 2,
+        "errors": 0
+      }
+    },
+    "semantic": {
+      "faithfulness": {
+        "mean": 1.0,
+        "scored": 2,
+        "skipped": 2,
+        "errors": 0
+      },
+      "answer_relevancy": {
+        "mean": 0.9289577858148488,
+        "scored": 2,
+        "skipped": 2,
+        "errors": 0
+      },
+      "context_precision": {
+        "mean": 0.49999999995,
+        "scored": 2,
+        "skipped": 2,
+        "errors": 0
+      },
+      "context_recall": {
+        "mean": 0.5,
+        "scored": 2,
+        "skipped": 2,
+        "errors": 0
+      },
+      "factual_correctness": {
+        "mean": 0.5,
+        "scored": 2,
+        "skipped": 2,
+        "errors": 0
+      }
+    }
+  },
+  "paired_summary": {
+    "faithfulness": {
+      "paired_samples": 2,
+      "mean_hybrid_minus_semantic": 0.0
+    },
+    "answer_relevancy": {
+      "paired_samples": 2,
+      "mean_hybrid_minus_semantic": -0.015592591681937329
+    },
+    "context_precision": {
+      "paired_samples": 2,
+      "mean_hybrid_minus_semantic": -0.2916666666375
+    },
+    "context_recall": {
+      "paired_samples": 2,
+      "mean_hybrid_minus_semantic": 0.5
+    },
+    "factual_correctness": {
+      "paired_samples": 2,
+      "mean_hybrid_minus_semantic": 0.335
+    }
+  }
+}
