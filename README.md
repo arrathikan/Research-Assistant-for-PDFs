@@ -1,576 +1,437 @@
-# ResearchAI — AI Research Paper Assistant
+# ResearchAI — AI-Powered Research Paper Assistant
 
-ResearchAI is a modular, production-grade academic research paper assistant designed for researchers, graduate students, and software engineers. It automates academic paper comprehension through a predefined 5-section structured summary, conversational Hybrid RAG with citation generation, and an embedded PDF viewer featuring real-time source text highlighting.
+**Understand research papers faster. Ask questions with confidence. Verify every answer against its source.**
 
----
+ResearchAI is a full-stack, AI-powered research assistant that transforms complex academic PDF documents into structured summaries and interactive, citation-grounded conversations.
 
-## 📑 Core Capabilities
+Built with **React, FastAPI, LangGraph, Hybrid RAG, MongoDB Atlas, and RabbitMQ**, ResearchAI combines intelligent document processing, retrieval-augmented generation, and source verification in a unified research workspace.
 
-1. **Deterministic Structured Summarization (LangGraph):**
-   - Automatically breaks down complex academic PDFs into 5 standard sections:
-     - **Title, Authors, and Abstract**
-     - **Problem Statement & Motivation**
-     - **Methodology & Architecture**
-     - **Key Empirical Results & Benchmarks**
-     - **Conclusion & Future Directions**
+[![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-TypeScript-149ECA?logo=react&logoColor=white)](https://react.dev/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/atlas)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 
-2. **Conversational Hybrid RAG Chatbot:**
-   - **Semantic Dense Search:** Powered by domain-specific Voyage AI embeddings (`voyage-3`).
-   - **Lexical Sparse Search:** BM25 indexing targeting exact terminology, variable names, and mathematical symbols.
-   - **Reciprocal Rank Fusion (RRF):** Merges dense and sparse candidates to maximize both recall and precision.
-   - **Guardrails:** Grounded answers only; gracefully abstains when queries fall outside the paper's scope.
-
-3. **Interactive PDF Viewer with Citation Highlighting:**
-   - Built on React-PDF / PDF.js.
-   - Every response provides source citation chips (e.g. `[Page 4, Section 3.2]`).
-   - Clicking a citation scrolls the embedded viewer directly to the source page and highlights the supporting passage.
-
-4. **Rigorous Offline Ragas Evaluation:**
-   - Complete evaluation suite decoupled from live user requests.
-   - Separate measurement of Retrieval Quality (*Context Precision*, *Context Recall*) and Generation Quality (*Faithfulness*, *Answer Relevancy*, *Factual Correctness*).
-   - Curated benchmark dataset containing both answerable and unanswerable questions to test abstention.
+**[Repository](https://github.com/arrathikan/Research-Assistant-for-PDFs)** · **[Architecture](docs/architecture.md)** · **[Demo Guide](docs/demo-guide.md)** · **[Evaluation](evaluation/README.md)**
 
 ---
 
-## 🛠️ Technology Stack
+## Overview
 
-| Domain | Technology | Purpose |
+Academic research papers often contain dense technical explanations, complex methodologies, and extensive experimental results. Understanding these documents requires significant time, while conventional AI chatbots may produce answers without reliable evidence.
+
+ResearchAI addresses these challenges by providing a document-centered research environment where users can upload papers, explore standardized summaries, ask natural-language questions, and navigate directly to supporting evidence inside the original PDF.
+
+### Key Capabilities
+
+- **Structured AI Summarization:** Generate consistent, five-section research paper summaries.
+- **Hybrid Retrieval-Augmented Generation:** Combine dense semantic retrieval and BM25 keyword search for document-grounded question answering.
+- **Verifiable Citations:** Navigate directly from generated answers to supporting PDF pages and highlighted passages.
+- **Automated Document Processing:** Process uploaded documents through durable background jobs with retry and recovery handling.
+- **Research Workspace:** Manage papers, search the document library, and interact with research content through a responsive interface.
+- **RAG Quality Evaluation:** Evaluate retrieval and answer generation using Ragas benchmarks and source-based manual reviews.
+
+---
+
+## System Architecture
+
+ResearchAI uses a modular architecture that separates the user interface, API layer, background processing, document storage, and AI workflows.
+
+```mermaid
+flowchart TD
+    U["Researcher"] --> UI["React + TypeScript Frontend"]
+    UI --> API["FastAPI Gateway"]
+
+    API --> DB[("MongoDB Atlas + GridFS")]
+    API --> JOB["Durable Processing Jobs"]
+    JOB --> MQ["RabbitMQ"]
+    MQ --> WORKER["Background Workers"]
+
+    WORKER --> PARSE["LlamaParse Extraction"]
+    PARSE --> CHUNK["Markdown-Aware Chunking"]
+    CHUNK --> EMBED["Voyage AI Embeddings"]
+    EMBED --> DB
+
+    WORKER --> SUMMARY["LangGraph Summarization"]
+    SUMMARY --> DB
+
+    UI --> CHAT["Research Chat Interface"]
+    CHAT --> API
+    API --> RAG["Hybrid RAG Pipeline"]
+
+    RAG --> VECTOR["Atlas Vector Search"]
+    RAG --> BM25["BM25 Search"]
+    VECTOR --> RRF["Reciprocal Rank Fusion"]
+    BM25 --> RRF
+    RRF --> LLM["LLM Answer Generation"]
+    LLM --> CITE["Citation Verification"]
+    CITE --> UI
+```
+
+### Document Processing Workflow
+
+1. **Upload and validation:** A PDF is checked for file format, integrity, size, and duplicate content.
+2. **Secure document persistence:** The original PDF is stored in MongoDB GridFS with associated metadata.
+3. **Background execution:** RabbitMQ workers coordinate extraction, chunking, embedding generation, and summarization.
+4. **Content extraction:** LlamaParse extracts page-aware Markdown and available document structure.
+5. **Intelligent chunking:** LangChain splitters preserve headings, relevant context, page references, and source metadata.
+6. **Vectorization:** Voyage AI generates semantic embeddings, which are persisted for retrieval.
+7. **Structured summarization:** LangGraph coordinates source-grounded summary generation and validation.
+8. **Research interaction:** Users explore saved summaries and ask questions through the Hybrid RAG chatbot.
+
+Completed intermediate processing artifacts can be reused during supported retries, reducing unnecessary provider calls and repeated processing.
+
+---
+
+## Core Features
+
+### 1. Five-Section Research Paper Summarization
+
+ResearchAI converts academic papers into a predictable structure, helping researchers identify essential information without reading the entire document first.
+
+Every generated summary follows five sections:
+
+| Section | Information Provided |
+|---|---|
+| Title, Authors & Abstract | Paper identity and research overview |
+| Problem Statement & Motivation | Research problem and the reason for addressing it |
+| Methodology & Architecture | Proposed methods, algorithms, and system design |
+| Key Results & Benchmarks | Experimental findings and reported performance |
+| Conclusion & Future Directions | Research contributions, limitations, and future work |
+
+The LangGraph workflow uses bounded source context, evidence validation, and controlled output repair. Missing or unsupported information is handled explicitly rather than presented as a verified finding.
+
+### 2. Hybrid Retrieval-Augmented Generation
+
+ResearchAI combines two complementary retrieval techniques.
+
+**Semantic Search — Voyage AI + MongoDB Atlas Vector Search**
+
+Identifies passages based on semantic similarity, allowing the system to retrieve relevant information even when a question uses different wording from the paper.
+
+**Keyword Search — BM25**
+
+Retrieves passages based on exact terms, improving coverage for technical vocabulary, mathematical notation, model names, and specific concepts.
+
+**Reciprocal Rank Fusion (RRF)**
+
+Combines ranked retrieval candidates into a single evidence set for answer generation.
+
+The answer-generation pipeline then uses the selected context to generate responses, validate source references, and abstain when sufficient evidence is unavailable.
+
+This approach is designed to improve evidence coverage compared with relying on semantic similarity alone.
+
+### 3. Interactive PDF Citations
+
+Generated answers and summary sections include source references that can be opened in the original document.
+
+The PDF workspace supports:
+
+- Direct navigation to referenced PDF pages
+- Text and source-region highlighting when verified coordinates are available
+- Page-level fallback when precise highlighting cannot be established
+- Zoom, page navigation, and responsive PDF viewing
+- A collapsible evidence section to keep answers readable
+
+The PDF viewer remains closed by default, allowing researchers to focus on reading summaries and conversations. Users open it only when they need to inspect the original evidence.
+
+### 4. Reliable Asynchronous Processing
+
+Research papers may require computationally expensive extraction, embedding, and LLM operations.
+
+ResearchAI uses **RabbitMQ and persistent processing jobs** to handle these operations outside normal HTTP request execution.
+
+The processing system supports retryable jobs, recovery of interrupted work, status tracking, and reuse of completed processing artifacts.
+
+This design separates interactive API requests from longer-running AI workloads and provides a foundation for concurrent document processing.
+
+### 5. Research Dashboard
+
+The React interface provides a centralized document library featuring PDF upload, document search, processing status, sorting, filtering, and paper deletion.
+
+A responsive workspace organizes generated summaries, chatbot conversations, and the optional PDF viewer into a consistent reading experience.
+
+---
+
+## Technology Stack
+
+| Layer | Technologies | Responsibility |
 |---|---|---|
-| **Frontend** | React 18, TypeScript, Vite, Tailwind CSS | Responsive split-view workspace |
-| **PDF Viewer** | React-PDF / PDF.js | Highlighting overlay, canvas rendering, text layer |
-| **API Gateway** | FastAPI, Pydantic v2, Uvicorn | Central REST API and request routing |
-| **Message Broker** | RabbitMQ | Asynchronous job queues for heavy extraction and summarization |
-| **PDF Extraction** | LlamaParse | Academic layout parsing with page tracking |
-| **Text Chunking** | LangChain Text Splitters | Markdown- and header-aware chunk segmentation |
-| **Embeddings** | Voyage AI (`voyage-3`) | Dense vector representations for technical literature |
-| **Database & Storage** | MongoDB Atlas + GridFS | Structured metadata, chunk vectors, raw PDF binaries |
-| **Hybrid Search** | Dense Vector + BM25 + RRF | Multimodal text retrieval with rank fusion |
-| **Summarizer** | LangGraph | Stateful deterministic extraction graph |
-| **Chat Engine** | LangChain + Configurable LLM | Conversational QA with verifiable citations |
-| **RAG Evaluation** | Ragas + Manual Benchmarking | Automated evaluation suite and failure tracking |
-| **Testing** | pytest + Vitest | Unit, integration, and UI testing |
-| **Infrastructure** | Docker Compose | Local multi-service orchestration |
+| Frontend | React, TypeScript, Vite, Tailwind CSS | User interface and research workspace |
+| Backend | Python, FastAPI, Pydantic | REST APIs, validation, and orchestration |
+| Document Parsing | LlamaParse | PDF text, layout, and page-aware extraction |
+| Document Chunking | LangChain | Structured text segmentation |
+| Embeddings | Voyage AI | Semantic vector generation |
+| Database | MongoDB Atlas, GridFS | Document metadata, PDFs, chunks, and vectors |
+| Retrieval | Atlas Vector Search, BM25, RRF | Hybrid document retrieval |
+| AI Orchestration | LangGraph, LangChain | Summarization and RAG workflows |
+| LLM Integration | OpenRouter | Configurable language-model access |
+| Background Processing | RabbitMQ | Asynchronous task execution and recovery |
+| Evaluation | Ragas, manual source review | Retrieval and generation quality analysis |
+| Testing | pytest, Vitest, Playwright | Backend, frontend, and browser verification |
+| Deployment | Docker Compose, GitHub Actions | Reproducible development and CI |
 
 ---
 
-## 📁 Monorepo Project Structure
+## Project Structure
 
-```
-.
-├── frontend/                               # React + Vite + Tailwind CSS client
-│   ├── src/
-│   │   ├── components/                     # Navbar, SplitView, UI components
-│   │   ├── types/                          # TypeScript contracts mirroring backend
-│   │   ├── App.tsx                         # Main application layout
-│   │   └── main.tsx                        # Application mount
-│   ├── package.json                        # Frontend dependency definitions
-│   └── vite.config.ts                      # Vite build configuration
-│
-├── backend/                                # Python FastAPI services & workers
-│   ├── gateway/                            # Central API Gateway service
-│   │   ├── main.py                         # Health endpoints and route orchestrator
-│   │   └── README.md                       # Gateway architecture documentation
+```text
+Research-Assistant-for-PDFs/
+├── frontend/
+│   └── src/                    # React interface and PDF workspace
+├── backend/
+│   ├── gateway/                # FastAPI routes and API contracts
 │   ├── services/
-│   │   ├── document_processor/             # PDF extraction & chunking worker
-│   │   │   ├── main.py                     # LlamaParse & RabbitMQ consumer
-│   │   │   └── README.md
-│   │   ├── summary_service/                # LangGraph 5-section summarizer
-│   │   │   ├── main.py                     # Deterministic state machine
-│   │   │   └── README.md
-│   │   └── rag_service/                    # Hybrid RAG & citation engine
-│   │       ├── main.py                     # Voyage AI + BM25 + RRF retriever
-│   │       └── README.md
-│   ├── shared/                             # Cross-cutting configurations & contracts
-│   │   ├── config.py                       # Pydantic BaseSettings (.env loading)
-│   │   ├── models.py                       # Shared Pydantic data schemas
-│   │   ├── logging.py                      # Standardized structured logging
-│   │   └── README.md
-│   ├── tests/                              # Backend pytest test suite
-│   │   ├── test_shared_models.py           # Domain schema validation tests
-│   │   ├── test_gateway_health.py          # API Gateway health tests
-│   │   └── test_evaluation_schemas.py      # Evaluation schema & benchmark tests
-│   ├── pyproject.toml                      # Modern Python packaging configuration
-│   └── requirements.txt                    # Pinned backend dependencies
-│
-├── evaluation/                             # Offline Ragas benchmarking subsystem
-│   ├── schemas.py                          # Evaluation sample & report data models
-│   ├── benchmark_dataset.json              # Curated queries (answerable & unanswerable)
-│   ├── README.md                           # Ragas evaluation rules & guidelines
-│   └── reports/                            # Versioned evaluation benchmark reports
-│
-├── docs/                                   # Architectural & operational documentation
-│   ├── architecture.md                     # System design, data flows, and schemas
-│   └── development-roadmap.md              # Staged development plan & progress tracker
-│
-├── docker-compose.yml                      # Containerized MongoDB & RabbitMQ services
-├── .env.example                            # Configuration environment template
-├── .gitignore                              # Git exclusion rules
-├── AGENTS.md                               # Project engineering & mentor rules
-└── README.md                               # Project introduction and overview
+│   │   ├── document_processor/ # PDF extraction, chunking, embeddings
+│   │   ├── summary_service/    # LangGraph summarization
+│   │   ├── rag_service/        # Retrieval and question answering
+│   │   └── jobs/               # Background job orchestration
+│   ├── shared/                 # Shared models and configuration
+│   └── tests/                  # Backend test suite
+├── evaluation/                 # Ragas benchmarks and reports
+├── docs/                       # Technical and operational documentation
+├── docker-compose.yml
+├── .env.example
+└── README.md
 ```
+
+Detailed component responsibilities and system data flows are available in [Architecture Documentation](docs/architecture.md).
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
-### Docker application (Prompt 14)
+### Prerequisites
 
-Install Docker Desktop/Compose 2.24+, copy `.env.example` to `.env`, and configure
-your existing Atlas URI and provider keys. From the project root:
+- Python 3.11+
+- Node.js 22+
+- Docker Desktop with Docker Compose
+- MongoDB Atlas connection
+- API credentials for the configured LlamaParse, Voyage AI, and OpenRouter providers
+
+External providers may require a paid account or available usage credits.
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/arrathikan/Research-Assistant-for-PDFs.git
+cd Research-Assistant-for-PDFs
+```
+
+### 2. Configure Environment Variables
+
+```bash
+cp .env.example .env
+```
+
+Update `.env` with the MongoDB connection string and the API credentials required by your selected providers.
+
+Refer to [Provider Configuration](docs/provider-configuration.md) for supported settings and model compatibility.
+
+**Security:** Never commit `.env`, API keys, database passwords, or provider credentials to version control.
+
+### 3. Run with Docker
 
 ```bash
 docker compose up -d --build --wait
 ```
 
-Open **http://localhost:3000**. Compose starts the built frontend, gateway,
-RabbitMQ and processing workers together. This prevents a running UI from being
-left without its API or workers. The local MongoDB service is optional; Atlas
-remains the configured storage/search service.
+Open the application at:
 
-For local storage-only testing:
+**http://localhost:3000**
 
-```bash
-MONGODB_URI=mongodb://mongodb:27017 docker compose --profile local up -d --build --wait
-```
+Docker Compose starts the configured application components, including the frontend, API gateway, RabbitMQ, and processing workers.
 
-Local MongoDB does not provide Atlas vector/BM25 search. See [Docker setup,
-configuration, safe smoke checks and operations](docs/deployment.md).
+For deployment configuration and troubleshooting, see [Deployment Guide](docs/deployment.md).
 
-### Continuous integration
+### Alternative: Local Development
 
-[GitHub Actions](https://github.com/arrathikan/Research-Assistant-for-PDFs/actions/workflows/ci.yml)
-checks backend tests/lint with disposable MongoDB and RabbitMQ, frontend tests and
-TypeScript/build, then a complete Docker smoke check. Normal CI has no provider
-secrets and never runs a paid Ragas evaluation. See [CI checks, local reproduction
-and limitations](docs/ci.md).
-
-### Native development alternative
-
-Use Python 3.11+ and Node.js 22. Keep the ignored `.env` configured for Atlas.
-Start only the broker before launching the gateway, workers and Vite in separate
-terminals:
+Start RabbitMQ:
 
 ```bash
 docker compose up -d rabbitmq
 ```
 
-### 4. Run Backend Gateway
+Install backend dependencies and start the gateway:
+
 ```bash
 pip install -r backend/requirements.txt
 python -m uvicorn backend.gateway.main:app --host 127.0.0.1 --port 8000 --reload
-# Separate terminal, same backend environment:
+```
+
+Run the background worker in a separate terminal:
+
+```bash
 python -m backend.services.jobs.main run
 ```
 
-### 5. Run Frontend Development Server
+Start the frontend in another terminal:
+
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-### 6. Run Test Suite
-```bash
-PYTHONPATH=. pytest backend/tests/
-```
+The native development setup uses the configured MongoDB Atlas deployment.
 
 ---
 
-## 📖 Guidelines & Architecture
+## API Overview
 
-- **[AGENTS.md](AGENTS.md):** Coding mentor persona, 20 automatic Git rules, and 16 Ragas evaluation principles.
-- **[docs/architecture.md](docs/architecture.md):** Detailed system architecture, data flows, and MongoDB collection schemas.
-- **[docs/development-roadmap.md](docs/development-roadmap.md):** 10-stage implementation roadmap and increment log.
+ResearchAI provides document-oriented REST endpoints.
 
-## Current implementation status
+| Method | Endpoint | Purpose |
+|---|---|---|
+| POST | `/api/v1/documents` | Upload a PDF |
+| GET | `/api/v1/documents/{id}/summary` | Retrieve saved structured summary |
+| GET | `/api/v1/documents/{id}/chunks` | Retrieve processed chunks |
+| POST | `/api/v1/documents/{id}/chat` | Ask a question about a paper |
+| GET | `/api/v1/documents/{id}/chat/{conversation_id}` | Retrieve conversation history |
+| DELETE | `/api/v1/documents/{id}` | Delete a paper and associated data |
 
-Prompts 0–2 supplied the existing scaffolding and frontend. Prompt 3 gateway
-contracts, centralized errors, JSON logging and CORS checks are implemented; see
-[the gateway guide](backend/gateway/README.md) for verification commands. The
-capabilities described above are the target architecture; upload, storage and AI
-processing are not yet implemented end to end. Health checks indicate gateway
-liveness only. The original prompt progression is tracked in
-[the roadmap](docs/development-roadmap.md).
+Refer to [Gateway Documentation](backend/gateway/README.md) for complete request contracts, status handling, and additional routes.
 
-### MongoDB setup
+---
 
-Prompt 4 adds explicit MongoDB connection and index initialization. After
-configuring `MONGODB_URI`, `MONGODB_DB_NAME`, and `MONGODB_TIMEOUT_MS`, run
-`python -m backend.shared.database` from the project root. See
-[the storage guide](backend/shared/README.md) for permissions and lifecycle details.
+## RAG Evaluation and Quality Assurance
 
-Prompt 4 now includes GridFS persistence and retrieval, validated metadata, and
-SHA-256 uniqueness under concurrent writes. These are internal storage helpers;
-HTTP upload routes remain Prompt 5. Offline unit tests use mocked drivers.
-Opt-in live tests create/drop only uniquely named disposable databases:
+ResearchAI includes an offline evaluation workflow built with **Ragas** and curated source-grounded questions.
 
-```bash
-RESEARCHAI_TEST_MONGODB_URI=mongodb://localhost:27017 python -m pytest backend/tests -m integration -q
-```
+The evaluation process separates retrieval performance from answer-generation quality.
 
-See the storage guide for non-atomic write recovery limits and complete checks.
-Atlas-specific DNS, TLS, credentials, and network rules require verification
-against your own configured test cluster; local integration results do not
-prove Atlas connectivity.
+| Metric | Evaluation Objective |
+|---|---|
+| Context Precision | Relevance of retrieved supporting passages |
+| Context Recall | Coverage of information required to answer |
+| Faithfulness | Consistency of generated claims with retrieved evidence |
+| Answer Relevancy | Relevance of generated responses to questions |
+| Factual Correctness | Agreement with reference answers |
 
-### PDF upload validation (Prompt 5)
+The benchmark includes answerable and unanswerable questions and supports comparisons between semantic-only and hybrid retrieval strategies.
 
-Uploads use the configurable `MAX_UPLOAD_SIZE_BYTES` (default 26214400 bytes).
-The validator checks extension, MIME, header/trailer, PDF structure and page tree
-using pypdf. Corrupt, encrypted, empty or zero-page PDFs are rejected. Browser
-MIME may be empty or `application/octet-stream`, but the bytes must still pass
-PDF validation. Filenames are reduced to a basename. Strict validation can reject
-PDFs that a viewer might repair; it is not malware scanning or content extraction.
+### Evaluation Approach
 
-The gateway now exposes `POST /api/v1/documents` (compatibility alias
-`/documents/upload`), metadata/status GET routes, and an original-PDF GET route.
-New uploads return 201; exact duplicates return 200 and the existing record.
-Documents remain `PENDING` until later processing stages are implemented.
-See [gateway API details](backend/gateway/README.md) for commands, errors and limits.
+1. Collect and validate research questions and supporting references.
+2. Execute the RAG pipeline against a controlled benchmark.
+3. Calculate applicable Ragas metrics.
+4. Review answer quality and citation support.
+5. Record unsupported claims, incorrect responses, false abstentions, and other failure cases.
 
-### Local verification
+Evaluation executes separately from normal chat requests to avoid unnecessary cost and latency.
 
-Upload, duplicate detection, invalid-file rejection, status and exact original
-PDF download have been verified with isolated local MongoDB and the browser UI.
-The backend suite passed 87 tests; the current frontend working checkout passed
-22 tests and a full production build. See [verification details](docs/verification-report.md)
-for scope, local workspace status and features still awaiting implementation.
+**Evaluation transparency:** Benchmark reports document observed answer-quality limitations, incomplete citation support, and metric execution errors. Successful integration tests do not imply that scientific-answer accuracy has been fully established.
 
-### Page-aware PDF extraction (Prompt 6)
+See [Evaluation Methodology](evaluation/README.md) and [Latest QA Evaluation Report](evaluation/reports/2026-11-13-final-qa/README.md).
 
-Extraction contracts now preserve page-specific Markdown, headings/tables, source
-elements and available coordinates. Missing coordinates support page-navigation
-fallback; page numbers are never inferred from an incomplete parser response.
+---
 
-Prompt 6 uses LlamaParse v2 through the provider's supported `llama-cloud` SDK.
-Configure `LLAMA_CLOUD_API_KEY`, `LLAMA_PARSE_TIMEOUT_SECONDS`,
-`LLAMA_PARSE_TIER` and `LLAMA_PARSE_VERSION`; see the
-[document processor guide](backend/services/document_processor/README.md).
-Source boxes retain their documented coordinate units and nested relationships.
+## Testing and Verification
 
-GridFS extraction now records `parsing_status` and `parsed_at`, with versioned
-per-page/source persistence. Successful parsing leaves the overall document
-`PENDING` for later stages; it does not imply embeddings, summaries or chat are
-ready. Failed or interrupted attempts never publish incomplete page results.
+The project uses multiple testing levels to check component behavior and integration.
 
-Prompt 6 extraction is available through an explicit CLI after configuring the
-LlamaParse key and the database containing the uploaded file:
+**Backend testing**
 
 ```bash
-python -m backend.services.document_processor.main DOCUMENT_ID
-curl http://localhost:8000/api/v1/documents/DOCUMENT_ID/parsed
+PYTHONPATH=. python -m pytest backend/tests/ -q
 ```
 
-The parsed-result endpoint is read-only; uploads do not invoke paid parsing
-automatically. Chunking and queue dispatch remain later stages. Local MongoDB
-verification passed 141 tests with one paid provider smoke test skipped. Live
-cloud parsing was not run because no API key was configured. See the
-[extraction guide](backend/services/document_processor/README.md) for configuration,
-status transitions, recovery, source coordinates and opt-in live verification.
-
-### Markdown-aware chunking (Prompt 7)
-
-LangChain header-aware and recursive splitters now create bounded research
-chunks with heading paths, stable IDs, explicit page evidence spans and source
-references. Configure `CHUNK_SIZE=1200` and `CHUNK_OVERLAP=150` (character counts,
-not tokens). Overlap must be nonnegative and smaller than the chunk size.
-Unrelated sections remain separate; section continuation may span PDF pages.
-
-Chunk storage now keeps immutable generations and publishes only complete sets.
-Changing configuration preserves older output. Metadata includes chunking_status
-and chunked_at. The original unique chunk index can be upgraded automatically
-only while its collection is empty; populated legacy data requires review.
-
-Run chunking after the document has a published parse:
+**Frontend testing**
 
 ```bash
-python -m backend.services.document_processor.chunk_cli DOCUMENT_ID
-curl http://localhost:8000/api/v1/documents/DOCUMENT_ID/chunks
+cd frontend
+npm run typecheck
+npm run test
+npm run build
 ```
 
-This stage is local and needs no provider keys. The read endpoint returns only
-complete chunks for the current parsed version. Local MongoDB verification
-passed 178 tests with one paid parser test skipped. See the
-[chunking guide](docs/markdown-chunking.md) for page/source mapping, settings,
-versioned storage, index compatibility and recovery. Embeddings are Prompt 8.
-
-### Voyage embeddings (Prompt 8)
-
-The Voyage adapter distinguishes document and query inputs, disables silent
-truncation, validates dimensions/finite nonzero vectors, and applies bounded
-batching/retry guards. Existing voyage-3/1024 configuration is preserved;
-voyage-4 and its supported dimensions are explicit configuration choices.
-
-Embed a previously parsed and chunked PDF explicitly (may consume Voyage credits):
+**Browser testing**
 
 ```bash
-python -m backend.services.document_processor.embed_cli DOCUMENT_ID
+cd frontend
+npm run test:e2e
 ```
 
-Completed content/profile vectors are reused across retries and documents. Embedding
-completion leaves the document `PENDING` for the later summary stage. The original
-chunks and their page/source metadata are preserved in searchable snapshots.
+Testing covers document validation, storage behavior, retrieval contracts, source citation handling, background processing, frontend interactions, and responsive navigation.
 
-### Configured AI providers
+GitHub Actions automates selected backend, frontend, and Docker smoke checks without requiring paid AI provider execution during standard CI runs.
 
-The local environment and template use OpenRouter for future completion calls,
-Voyage `voyage-4-lite` with 1024 dimensions, and LlamaParse `agentic` parsing.
-The primary, inexpensive and vision model roles, environment variable aliases,
-and remaining integration work are described in the
-[provider configuration guide](docs/provider-configuration.md).
+The [Final QA Report](docs/final-qa.md) documents test coverage, live integration checks, and outstanding limitations.
 
-### Structured summaries (Prompt 9)
+---
 
-Summary output contracts and the OpenRouter completion adapter now enforce
-explicit missing information and source references. See the
-[summary guide](docs/structured-summary.md) for configuration and current scope.
+## Engineering Decisions
 
-The summary LangGraph now extracts bounded research windows, validates evidence,
-repairs invalid output at most twice, and combines long-paper notes without
-silently dropping chunks. Versioned persistence and the frontend summary connection are implemented.
+| Decision | Rationale |
+|---|---|
+| Hybrid RAG instead of semantic-only retrieval | Improve coverage of both conceptual and exact technical queries |
+| MongoDB GridFS | Store original PDF files alongside document metadata |
+| MongoDB Atlas Vector Search | Integrate semantic retrieval with existing document storage |
+| LangGraph for summarization | Coordinate stateful processing and controlled validation |
+| RabbitMQ background workers | Separate long-running AI operations from HTTP requests |
+| Versioned processing artifacts | Support reproducibility and reuse of completed work |
+| Document-scoped retrieval | Restrict retrieved evidence to the selected research paper |
+| Source citation validation | Reduce unsupported source references |
+| Offline Ragas evaluation | Measure retrieval and generation quality without increasing normal chat latency |
 
-Generate a parsed/chunked document summary with
-`python -m backend.services.summary_service.main DOCUMENT_ID`. Retrieve the saved
-result through `GET /api/v1/documents/{id}/summary`; this read never calls the LLM.
+These decisions prioritize maintainability, traceability, reliability, and the ability to evaluate system behavior.
 
-The five summary cards now read saved results with loading, waiting and error
-states, and display source pages/quotes. The real OpenRouter summary smoke test
-passed on synthetic input. See the [summary guide](docs/structured-summary.md)
-for commands, test scope and remaining work.
+---
 
-After upload, View summary opens the read-only summary panel even while the
-document is waiting for embeddings. Generation remains an explicit CLI job
-until background orchestration is implemented.
+## Current Limitations
 
-Embedding storage is now available through the explicit embedding command above.
-Successful cached batches survive retries; current summaries and embeddings can
-finish in either order. Atlas index/search verification remains separate.
+ResearchAI is an actively developed engineering project. Its architecture and workflows have been exercised through automated tests and selected live provider integrations, but additional validation is required before public production deployment.
 
-### Hybrid RAG (Prompt 10)
+Current areas for improvement include:
 
-The document-scoped Atlas vector/BM25 retriever and Python rank fusion are
-implemented. See [hybrid RAG setup](docs/hybrid-rag.md) for explicit index creation,
-settings and verification limits. Atlas connectivity and the vector/BM25 indexes have now been verified live;
-see the verification report below for the exact scope.
+- Strengthening the completeness and factual consistency of generated summaries
+- Improving citation support and reducing unsupported research answers
+- Expanding benchmarks across different document formats and research domains
+- Completing provider-specific compatibility and live end-to-end checks
+- Addressing remaining deployment hardening and dependency advisories
 
-The LangChain answer chain now validates claim-level source quotes and abstains
-when evidence is insufficient. Internal typed traces support later offline Ragas
-evaluation; no evaluation runs during ordinary chat requests.
+Provider limitations, unsupported document content, and model failures may prevent successful summary generation. The system does not guarantee that every answer or citation is correct; users should verify important research claims against the original paper.
 
-The chatbot API now supports document-scoped conversations and saved history:
-`POST /api/v1/documents/{id}/chat` and
-`GET /api/v1/documents/{id}/chat/{conversation_id}`. Successful turns are saved
-atomically; private retrieval traces are excluded from public responses.
+See [Latest Live QA](docs/live-e2e-qa-2026-11-14.md) for verified results and outstanding issues.
 
-The React chatbot now sends real questions, recovers saved conversations and
-shows source quotes and unavailable/unsupported states. A live OpenRouter answer
-check passed on synthetic text. The separate live Atlas hybrid-retrieval check also passed on synthetic input.
-See [the RAG guide](docs/hybrid-rag.md) for setup and opt-in checks.
+---
 
-New to Atlas? Follow the [project setup guide](docs/atlas-setup.md), then keep your
-connection string only in the ignored local `.env`.
+## Future Improvements
 
+Planned enhancements include:
 
-Atlas verification (2026-11-11): the real Voyage → Atlas vector/BM25 → OpenRouter
-integration test **passed** with verified document-scoped citations. Both
-application search indexes are queryable. Backend regression checks: **303 passed,
-4 optional live tests skipped**; the live Atlas check was enabled and run separately.
-See [the verification report](docs/atlas-verification.md). This establishes the
-synthetic workflow, not a scientific-summary/RAG accuracy benchmark.
+- Broader research-paper evaluation datasets and automated regression benchmarks
+- Improved retrieval reranking and evidence selection
+- Stronger summary validation and recovery strategies
+- Expanded multi-document research and cross-paper comparison
+- Authentication, access-control hardening, and production observability
 
-### PDF citations (Prompt 11)
+---
 
-Citations now preserve source geometry and generation metadata. A deterministic
-resolver checks their document, page, quote and active source version before
-navigation. Chat citation buttons now jump to the uploaded PDF in React-PDF,
-with text highlights, confirmed region highlights or an explicit page-only fallback.
-Page navigation, zoom and mobile source switching are available. See [PDF citations](docs/pdf-citations.md) for the contract and scope.
+## Documentation
 
+- [System Architecture](docs/architecture.md)
+- [Deployment and Configuration](docs/deployment.md)
+- [MongoDB Atlas Setup](docs/atlas-setup.md)
+- [Hybrid RAG Implementation](docs/hybrid-rag.md)
+- [Structured Summarization](docs/structured-summary.md)
+- [PDF Citation System](docs/pdf-citations.md)
+- [Background Processing](docs/background-jobs.md)
+- [Ragas Evaluation](evaluation/README.md)
+- [Interview Demo Guide](docs/demo-guide.md)
+- [Final Quality Assurance](docs/final-qa.md)
 
-Prompt 11 verification: **325 backend tests passed, 4 optional live checks skipped**;
-**69 frontend tests passed** in an isolated commit copy, plus production build.
-Browser QA confirmed two-line PDF highlights, zoom, repeated source navigation,
-page-only fallback and mobile navigation on a synthetic PDF with simulated
-provider responses. See the [citation demo and scope](docs/pdf-citations.md#try-it-locally).
+---
 
+## Author
 
-### Background processing (Prompt 12)
+**Aravinthan Arrathikasarma**
 
-Uploads now save durable processing jobs. RabbitMQ workers automatically run PDF
-parsing, Markdown chunking, embeddings and the five-section summary. The upload
-screen shows progress and retry states, then enables opening the ready workspace.
+AI Undergraduate — University of Moratuwa, Sri Lanka
 
-From the project root with the backend environment activated:
+- GitHub: [@arrathikan](https://github.com/arrathikan)
+- LinkedIn: [Aravinthan Arrathikasarma](https://www.linkedin.com/in/aravinthan-arrathikasarma/)
 
-```bash
-docker compose up -d rabbitmq
-python -m backend.services.jobs.main run
-```
+---
 
-Run these workers independently of the gateway. See [background jobs](docs/background-jobs.md)
-for configuration, the processing status/retry API, dead letters and reviewed
-interrupted-job recovery. Existing completed artifacts are reused. Unrequested
-legacy documents are not automatically processed.
-
-Real RabbitMQ/disposable MongoDB verification: **366 backend tests passed,
-4 optional live provider checks skipped**. Paid providers were simulated for the
-job integration checks; no Ragas accuracy scores are claimed here.
-
-Isolated frontend verification: **75 tests passed** and production build passed.
-
-
-Prompt 13 implements [offline Ragas evaluation](evaluation/README.md), with a
-20-case source-grounded dataset, paired hybrid/semantic collection, five metrics,
-validated JSON/Markdown reports and result-bound manual reviews. At the user's
-request, source and generated-answer checks were performed by Codex and are
-explicitly recorded as assistant reviews.
-
-The [first measured baseline](evaluation/reports/2026-11-12/README.md) covers all
-20 questions with both strategies. It records real generation failures, false
-abstentions and incorrect answers; metric coverage and limitations remain visible.
-The evaluation workflow is implemented; the baseline exposes RAG quality issues
-that still need improvement. Final backend checks: **410 passed, 4 optional live
-checks skipped**. Evaluation never runs during ordinary chat requests.
-
-
-### Upload interface
-
-The Upload page opens a native dialog for PDF selection, validation, upload and
-compact processing feedback. Done closes it after storage; the paper immediately
-appears in the session library and continues processing independently. Closing an
-active upload keeps its request alive while navigating within the app. Real status
-polling, safe retries and SHA-256 duplicate handling remain; no percentages or
-internal IDs are shown.
-
-Dashboard paper menus provide Workspace, original PDF and a confirmed Delete Paper
-action. `DELETE /api/v1/documents/{document_id}` removes owned files and scoped
-research data with a worker deletion barrier and retryable partial cleanup.
-Restart all workers with this version before using Delete. See [behavior, cleanup
-contract, verification and limits](docs/document-actions-upload-dialog.md).
-
-
-### Responsive page layout
-
-Dashboard, Upload and Workspace now share a centered 1440px outer boundary,
-including both existing navigation components. Gutters are 16px on mobile, 24px
-on tablet and 32px on desktop. Upload headings, selection and status cards share
-one focused 1024px column; summary/chat retain their readable 1200px boundary.
-Dashboard uses its existing responsive statistics and auto-fit document grids,
-so unused document columns collapse without adding metrics or changing data.
-
-The app shell uses the available container width and dynamic viewport height.
-Dashboard/Upload have one page scroll owner; Workspace keeps independent summary/
-chat and PDF scrolling. An open PDF uses a 55/45 split from 768px and a full-screen
-viewer on smaller displays. Shared minimum-width/height rules and wrapping prevent
-page-level horizontal overflow. This refinement changes layout only. See
-[application layout verification](docs/application-layout.md).
-
-
-### Chat answer presentation
-
-Answers use safe Markdown headings, lists, emphasis, code and comparison tables.
-Verified inline citations open the existing PDF viewer. Supporting passages stay
-inside one collapsed Sources section per answer. The PDF viewer keeps exact text
-and verified-region highlighting, while page-only fallback is quiet and uses a
-compact source toolbar. No raw retrieved chunks or internal retrieval metadata
-are shown in normal chat.
-
-
-Chat now routes factual, topical, analytical, comparison, follow-up and whole-paper
-questions through the existing pipeline. Complete current summaries can be reused;
-otherwise bounded section samples support a qualified overview. Explicit general
-knowledge is labeled separately and carries no paper citations. Source-generation,
-embedding-profile and exact-quote validation remain mandatory. See
-[the architecture notes](docs/architecture.md#intent-sensitive-research-chat).
-
-The measured nine-question research-assistant check is available in
-[the intent evaluation report](evaluation/reports/2026-11-12-assistant/README.md).
-The final run generated all 18 paired responses and all 60 applicable Ragas
-values; assistant review still found five answers with incomplete citation
-support. These results do not establish overall scientific-answer accuracy.
-
-
-### Optional PDF workspace
-
-The PDF is closed by default. Read the five-part summary or chat in a centered
-column, then choose **View Original PDF** or click a source to open the existing
-viewer. **Close PDF** restores the full-width workspace. Desktop/tablet use a
-55/45 split; mobile opens a full-screen PDF with focus handling and Escape to
-close. Page and zoom survive closing/reopening within the current document
-session. Chat messages, drafts and summary content stay mounted.
-
-Summary source buttons now use the same canonical citation resolver as chat.
-Supporting passages are optional; missing exact highlights fall back quietly to
-the cited page. See [workspace behavior and verification](docs/optional-pdf-workspace.md).
-
-
-Workspace summary cards and the closed-PDF toolbar now share a centered 1200px
-content limit. Summary paragraphs keep a 100ch line limit; chat bubbles have
-separate readable limits while the conversation and input use the wider content
-area. Desktop gutters are 32px. The optional PDF layout and state behavior are
-preserved. See [measured layout verification](docs/optional-pdf-workspace.md).
-
-
-### Refined research experience
-
-ResearchAI now opens the existing Dashboard with an honest empty library. Upload
-one real PDF to explore its saved summary or start a sourced conversation. The
-shared warm brand/neutral controls, accessible document articles, keyboard tabs and
-compact chat suggestions are consistent across pages. The optional PDF code loads
-only when requested and retains its viewer state while hidden.
-
-The library currently lasts for the App session; this frontend refinement adds no
-listing API or cross-reload persistence. See [frontend guidance, changed files,
-verification and limits](docs/frontend-experience.md).
-
-### Final QA: summary recovery
-
-The versioned summary workflow now requests short contiguous source quotes and
-preserves strict quote validation. A live failed summary recovered through the
-supported job retry without reparsing or re-embedding the paper. See the
-[verified correction](docs/structured-summary.md#final-qa-quote-correction-2026-11-13).
-
-### Browser verification
-
-The approved Playwright development suite now checks real browser interactions,
-PDF rendering and six responsive widths without paid API calls. Run
-`npm run test:e2e` and `npm run typecheck` in `frontend`; see
-[browser QA](docs/browser-qa.md) for installation, private screenshots and the
-separate opt-in real-provider check.
-
-### Final QA and interview demo (Prompt 15)
-
-Use the [demo guide](docs/demo-guide.md) for setup, a six-minute walkthrough,
-source questions and recovery. The [final QA report](docs/final-qa.md) records
-474 backend tests, 140 proposed-frontend tests, 14 deterministic browser checks,
-one live browser check and Docker smoke verification. The
-[latest Ragas follow-up](evaluation/reports/2026-11-13-final-qa/README.md) contains
-18 real responses and assistant source reviews, with 58 measured values and two
-explicit metric errors. Citation quality, dependency advisories and public
-production requirements remain documented follow-ups.
-
-### Warm branding and reading workspace
-
-The frontend now uses the supplied transparent logo, **#C6360A** brand accents,
-compact paper-library rows and a continuous five-section reading layout. Upload,
-chat and the optional PDF viewer keep their existing integration and state.
-See [design changes and verification](docs/frontend-brand-redesign.md) for page
-updates, logo provenance, responsive behavior and test scope.
-
-### Reference dashboard and complete interaction theme
-
-The Paper Library now has responsive sidebar navigation, four real metadata
-statistics, filename search, status filtering and date/name sorting. The paper,
-processing and ready illustrations come from the user's references; the selected
-book-logo PNG is retained. Shared orange tokens cover primary/pressed buttons,
-active tabs, citations and input focus while cards and secondary controls stay
-neutral. Summary/Chat shortcuts respect data readiness. See the
-[dashboard implementation and browser audit](docs/dashboard-reference-theme.md).
-
-## Latest live QA — 13–14 November 2026
-
-The [live QA report](docs/live-e2e-qa-2026-11-14.md) distinguishes real integration results from deterministic tests. It records refresh/session fixes, native publication evidence in chunks, truthful summary errors, measured Ragas failures and blocked OpenRouter retests. The paid account used for that QA run was exhausted. A replacement key was later configured; full post-fix paid-model verification remains incomplete. No all-green release claim is made.
-
-## Free-model development follow-up
-
-A replacement free key and compatible response schemas were tested, but full-paper summaries still failed strict source-quote checks. The optional reasoning setting and exact results are recorded in [the free-model setup report](docs/free-model-development.md). No claim of complete free-model or interview readiness is made.
+**ResearchAI — Turning complex research papers into structured knowledge with verifiable AI assistance.**
