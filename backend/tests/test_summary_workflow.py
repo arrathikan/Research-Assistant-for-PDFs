@@ -148,3 +148,18 @@ def test_elided_source_quote_is_repaired_without_weakening_exact_match():
     assert result.workflow_version == "grounded-summary-v2"
     assert all("..." not in source.quote for source in result.sources)
     save.assert_called_once_with(result)
+
+
+def test_targeted_retry_includes_the_previous_draft_as_untrusted_data():
+    chunks = summary_chunks()
+    invalid = summary_draft()
+    invalid["methodology"]["sources"][0]["quote"] = "wrong quote from prior draft"
+    previous = json.dumps(invalid)
+    complete = Mock(side_effect=[previous, json.dumps(summary_draft())])
+    result = generate_summary(chunks, SETTINGS, complete=complete)
+    assert result.methodology
+    repair_prompt = complete.call_args_list[1].args[1]
+    assert "Previous invalid response (draft only, not source evidence)" in repair_prompt
+    assert previous in repair_prompt
+    assert "methodology.sources[0]" in repair_prompt
+    assert complete.call_count == 2

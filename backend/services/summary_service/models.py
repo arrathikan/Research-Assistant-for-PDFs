@@ -100,14 +100,16 @@ def summary_profile_id(settings: Settings) -> str:
         "temperature": None
         if settings.primary_reasoning_model.startswith("openai/gpt-5")
         else settings.llm_temperature,
-        "reasoning_effort": "low"
-        if settings.primary_reasoning_model.startswith("openai/gpt-5")
-        else None,
+        "reasoning_effort": (
+            settings.reasoning_for_model(settings.primary_reasoning_model) or {}
+        ).get("effort"),
         "output_tokens": settings.llm_max_output_tokens,
         "context_bytes": settings.summary_context_bytes,
         "max_windows": settings.summary_max_windows,
         "validation_retries": settings.summary_validation_retries,
     }
+    if settings.llm_reasoning_enabled is not None:
+        definition["reasoning_enabled"] = settings.llm_reasoning_enabled
     return sha256(
         json.dumps(definition, sort_keys=True, separators=(",", ":")).encode()
     ).hexdigest()
@@ -121,19 +123,23 @@ def validate_draft(raw: str, chunks: list[DocumentChunk]) -> SummaryDraft:
         paths = sorted({".".join(map(str, item["loc"])) or "response" for item in error.errors()})
         raise SummaryValidationError("Correct schema fields: " + ", ".join(paths)) from None
     by_id = {chunk.id: chunk for chunk in chunks}
+    invalid = []
     for field in (*TEXT_FIELDS, "authors"):
-        for source in getattr(draft, field).sources:
+        for index, source in enumerate(getattr(draft, field).sources):
             chunk = by_id.get(source.chunk_id)
             quote = " ".join(source.quote.split())
             if chunk is None or not any(
                 span.page_number == source.page_number and quote in " ".join(span.text.split())
                 for span in chunk.page_spans
             ):
-                raise SummaryValidationError(
-                    f"Correct {field}.sources: use a supplied chunk ID, its page and an exact source quote. "
-                    "Copy a short contiguous passage; do not insert ellipses, paraphrase, "
-                    "or remove Markdown. Shorten the quote instead of abbreviating it."
-                )
+                invalid.append(f"{field}.sources[{index}]")
+    if invalid:
+        raise SummaryValidationError(
+            "Correct source references: " + ", ".join(invalid) + ". "
+            "For each, use the matching supplied chunk ID and page. Copy one short contiguous "
+            "passage with its original capitalization and Markdown; do not insert ellipses, "
+            "paraphrase, or copy text from another chunk. Shorten the quote instead of abbreviating it."
+        )
     return draft
 
 

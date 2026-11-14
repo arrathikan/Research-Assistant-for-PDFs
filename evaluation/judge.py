@@ -122,9 +122,10 @@ def build_evaluator(
                     "max_completion_tokens": config.max_output_tokens,
                     "stream": False,
                 }
-                if config.judge_model.startswith("openai/gpt-5"):
-                    body["reasoning"] = {"effort": "low"}
-                else:
+                reasoning = settings.reasoning_for_model(config.judge_model)
+                if reasoning is not None:
+                    body["reasoning"] = reasoning
+                if not config.judge_model.startswith("openai/gpt-5"):
                     body["temperature"] = config.temperature
                 try:
                     response = self.client.post(COMPLETIONS_URL, json=body)

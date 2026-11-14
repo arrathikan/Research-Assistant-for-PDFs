@@ -332,6 +332,10 @@ def answer_with_trace(
             "temperature": None
             if settings.primary_reasoning_model.startswith("openai/gpt-5")
             else settings.llm_temperature,
+            "reasoning_effort": (
+                settings.reasoning_for_model(settings.primary_reasoning_model) or {}
+            ).get("effort"),
+            "reasoning_enabled": settings.llm_reasoning_enabled,
             "chunk_size": first.chunk_size if first else None,
             "chunk_overlap": first.chunk_overlap if first else None,
         },

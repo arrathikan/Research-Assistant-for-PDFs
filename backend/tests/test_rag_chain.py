@@ -119,3 +119,13 @@ def test_wrong_document_context_stops_before_model_request():
 def test_invalid_question_is_rejected(message):
     with pytest.raises(ValidationError):
         ChatRequest(message=message)
+
+
+def test_trace_records_explicit_reasoning_policy():
+    settings = SETTINGS.model_copy(update={"llm_reasoning_enabled": False})
+    output = answer_with_trace(
+        "What was the result?", SCOPE, [RetrievalHit(chunk=CHUNKS[0])], settings,
+        "b" * 32, "c" * 32, complete=Mock(return_value=json.dumps(raw_answer())),
+    )
+    assert output.trace.configuration["reasoning_enabled"] is False
+    assert output.trace.configuration["reasoning_effort"] is None

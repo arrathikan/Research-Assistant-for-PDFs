@@ -76,3 +76,31 @@ def test_invalid_source_references_are_rejected(mutation):
         source["quote"] = "a quote that does not exist"
     with pytest.raises(SummaryValidationError, match="methodology.sources"):
         validate_draft(json.dumps(data), summary_chunks())
+
+
+def test_feedback_identifies_all_invalid_quotes_without_exposing_source_text():
+    data = summary_draft()
+    data["methodology"]["sources"][0]["quote"] = "private wrong method quote"
+    data["key_results"]["sources"][0]["page_number"] = 99
+    with pytest.raises(SummaryValidationError) as failure:
+        validate_draft(json.dumps(data), summary_chunks())
+    message = str(failure.value)
+    assert "methodology.sources[0]" in message
+    assert "key_results.sources[0]" in message
+    assert "private wrong method quote" not in message
+
+
+@pytest.mark.parametrize(
+    ("model", "legacy_profile"),
+    [
+        ("openai/gpt-5.6-luna", "7d4a3b207c4ca46f3dd4fbb13a7c59e63062bb0c633be5f47296c8a0c2c040a0"),
+        ("nvidia/nemotron-3.5-super-vl:free", "319b051ba92be8cc60976bb6e5ccc88f07d97f985cb9a9f2e29d4ea6d058b26c"),
+    ],
+)
+def test_reasoning_override_changes_profile_without_invalidating_unset_legacy(model, legacy_profile):
+    from backend.services.summary_service.models import summary_profile_id
+
+    original = Settings(_env_file=None, primary_reasoning_model=model)
+    assert summary_profile_id(original) == legacy_profile
+    disabled = original.model_copy(update={"llm_reasoning_enabled": False})
+    assert summary_profile_id(disabled) != legacy_profile
