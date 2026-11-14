@@ -129,3 +129,16 @@ test('shared orange controls work throughout upload, summary, chat, citations an
   await expect(page.getByText('The first finding is supported here', { exact: false })).toBeVisible();
   await expectNoOverflow(page); expect(errors).toEqual([]);
 });
+
+
+test('refresh restores the actual selected paper and tab from backend metadata', async ({ page }) => {
+  await mockPaperApi(page);
+  await openWorkspace(page);
+  await page.getByRole('tab', { name: 'AI Chatbot' }).click();
+  await page.reload();
+  await expect(page.getByRole('tab', { name: 'AI Chatbot' })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByTestId('pdf-viewer-panel')).toHaveCount(0);
+  await navigation(page).getByRole('button', { name: 'Dashboard', exact: true }).click();
+  await expect(page.getByTestId('document-card')).toHaveCount(1);
+  await expect(page.getByTestId('document-card')).toContainText('paper.pdf');
+});

@@ -11,16 +11,17 @@ import { DocumentStatusBadge } from '../common/DocumentStatusBadge';
 
 const PdfViewerPanel = lazy(() => import('../pdf/PdfViewerPanel').then(module => ({ default: module.PdfViewerPanel })));
 
-interface Props { document: DocumentMetadata; initialTab?: WorkspaceTab; }
+interface Props { document: DocumentMetadata; initialTab?: WorkspaceTab; onTabChange?: (tab: 'summary' | 'chat') => void; }
 
 export function DocumentWorkspace(props: Props) {
   // Document switches reset navigation synchronously; toggling the PDF never remounts this session.
   return <WorkspaceSession key={props.document.id ?? props.document.sha256} {...props} />;
 }
 
-function WorkspaceSession({ document: paper, initialTab = 'summary' }: Props) {
+function WorkspaceSession({ document: paper, initialTab = 'summary', onTabChange }: Props) {
   const panelId = useId();
-  const [tab, setTab] = useState(initialTab === 'chat' ? 'chat' : 'summary');
+  const [tab, setTab] = useState<'summary' | 'chat'>(initialTab === 'chat' ? 'chat' : 'summary');
+  useEffect(() => { onTabChange?.(tab); }, [tab, onTabChange]);
   const [pdfOpen, setPdfOpen] = useState(false);
   const [pdfLoaded, setPdfLoaded] = useState(false);
   const [citation, setCitation] = useState<ChatCitation | null>(null);

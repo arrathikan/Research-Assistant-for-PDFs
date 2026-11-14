@@ -59,6 +59,9 @@ export function DocumentSummaryPanel({ documentId, filename, documentStatus, onC
           if (documentStatus === 'FAILED') {
             setWaiting(false);
             setError('Analysis did not finish. Your original PDF is still available. Check the paper’s processing status to continue.');
+          } else if (documentStatus === 'READY') {
+            setWaiting(false);
+            setError('Your paper finished processing, but its saved summary is unavailable. Check again or review the paper’s processing status.');
           } else {
             setWaiting(true);
             timer = setTimeout(load, 5000);
