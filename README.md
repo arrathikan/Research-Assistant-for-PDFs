@@ -1,3 +1,4 @@
+
 # ResearchAI — AI-Powered Research Paper Assistant
 
 **Understand research papers faster. Ask questions with confidence. Verify every answer against its source.**
@@ -201,79 +202,294 @@ Detailed component responsibilities and system data flows are available in [Arch
 
 ## Getting Started
 
+All commands below are intended to run **from the repository root** unless a step explicitly changes directory. Use **one** application startup method at a time: Docker Compose *or* local development. Running both simultaneously can cause port conflicts.
+
 ### Prerequisites
 
-- Python 3.11+
-- Node.js 22+
-- Docker Desktop with Docker Compose
-- MongoDB Atlas connection
-- API credentials for the configured LlamaParse, Voyage AI, and OpenRouter providers
+- Git
+- **Docker Desktop** with the Docker Compose V2 plugin (for containerized setup)
+- **Python 3.11+** (for local backend development; Docker uses Python 3.12)
+- **Node.js 22+** and npm (for local frontend development)
+- **MongoDB Atlas** database (recommended for full vector and keyword search)
+- Working API credentials for **LlamaParse**, **Voyage AI**, and **OpenRouter**
 
-External providers may require a paid account or available usage credits.
+> External AI services may incur charges or require remaining API credits. A successful health check does not verify provider credentials, Atlas search indexes, or AI-generated output.
 
-### 1. Clone the Repository
+### Step 1 — Clone the Repository
 
 ```bash
 git clone https://github.com/arrathikan/Research-Assistant-for-PDFs.git
 cd Research-Assistant-for-PDFs
 ```
 
-### 2. Configure Environment Variables
+If you already cloned the repository, open a terminal in its **root directory** (the folder containing `docker-compose.yml`).
+
+### Step 2 — Configure Environment Variables
 
 ```bash
 cp .env.example .env
 ```
 
-Update `.env` with the MongoDB connection string and the API credentials required by your selected providers.
+Open `.env` in an editor and replace placeholders with your own values. At minimum, review:
 
-Refer to [Provider Configuration](docs/provider-configuration.md) for supported settings and model compatibility.
+```dotenv
+# Use your real MongoDB Atlas connection string (not localhost in Docker).
+MONGODB_URI=mongodb+srv://YOUR_USER:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/?retryWrites=true&w=majority
+MONGODB_DB_NAME=research_assistant
 
-**Security:** Never commit `.env`, API keys, database passwords, or provider credentials to version control.
+LLAMA_CLOUD_API_KEY=YOUR_LLAMA_CLOUD_KEY
+VOYAGE_API_KEY=YOUR_VOYAGE_KEY
+OPENROUTER_API_KEY=YOUR_OPENROUTER_KEY
 
-### 3. Run with Docker
+# Set this to a model ID actually supported by your OpenRouter account.
+PRIMARY_REASONING_MODEL=YOUR_SUPPORTED_OPENROUTER_MODEL_ID
+
+# Application metadata
+OPENROUTER_APP_NAME=ResearchAI
+OPENROUTER_APP_URL=http://localhost:3000
+```
+
+These are **example settings**: keep other values from `.env.example` and replace the placeholders; do not publish actual credentials. The model must be available on your selected provider and within your budget.
+
+If MongoDB credentials include reserved URL characters, URL-encode them.
+
+Configure Atlas Network Access and create the matching vector and keyword indexes before relying on hybrid retrieval.
+
+The default index names are `chunk_embeddings_v1` and `chunk_keywords_v1` (see [MongoDB Atlas Setup](docs/atlas-setup.md)).
+
+**Important database distinction:** The default Compose stack does **not** start a MongoDB server; it uses the URI in `.env`.
+
+The optional Compose `mongodb` service is a separate local-development profile, and standalone local MongoDB does not provide Atlas Vector Search features required by the complete RAG flow.
+
+**Security:** `.env` and `frontend/.env.local` must remain untracked. Never commit API tokens, passwords, connection strings, or provider credentials.
+
+### Option A — Run the Full Application with Docker (Recommended)
+
+Start Docker Desktop first.
+
+From the repository root:
+
+```bash
+# Validate Docker Compose configuration
+docker compose config -q
+
+# Build images and start all application services
+docker compose up -d --build --wait
+
+# Check running services and health status
+docker compose ps
+
+# Inspect backend and worker logs
+docker compose logs --tail=100 gateway workers
+```
+
+#### Application URLs
+
+| Service | Address |
+|---|---|
+| ResearchAI web application | http://localhost:3000 |
+| FastAPI interactive documentation | http://localhost:8000/docs |
+| Gateway health endpoint | http://localhost:8000/health |
+| RabbitMQ management interface | http://localhost:15672 |
+
+The RabbitMQ management account uses `RABBITMQ_DEFAULT_USER` and `RABBITMQ_DEFAULT_PASS` from `.env`.
+
+The example defaults are `guest` / `guest` for local development only.
+
+#### Verify Backend Health
+
+```bash
+curl -f http://localhost:8000/health
+```
+
+#### View Application Logs
+
+```bash
+# Backend logs
+docker compose logs -f gateway
+
+# Background worker logs
+docker compose logs -f workers
+
+# RabbitMQ logs
+docker compose logs -f rabbitmq
+```
+
+Press `Ctrl+C` to stop following logs.
+
+#### Stop the Application
+
+```bash
+docker compose down
+```
+
+This removes the running Compose containers and network but preserves named volumes.
+
+#### Restart the Application
+
+```bash
+docker compose up -d --wait
+```
+
+#### Rebuild After Code Changes
 
 ```bash
 docker compose up -d --build --wait
 ```
 
-Open the application at:
+#### Optional Local MongoDB
 
-**http://localhost:3000**
+To run the optional local MongoDB service:
 
-Docker Compose starts the configured application components, including the frontend, API gateway, RabbitMQ, and processing workers.
+```bash
+MONGODB_URI=mongodb://mongodb:27017 docker compose --profile local up -d --build --wait
+```
 
-For deployment configuration and troubleshooting, see [Deployment Guide](docs/deployment.md).
+**Note:** The local MongoDB setup is intended for infrastructure testing. It is not a substitute for MongoDB Atlas when testing Atlas Vector Search and the full hybrid RAG workflow.
 
-### Alternative: Local Development
+See the [Deployment Guide](docs/deployment.md) for additional configuration.
 
-Start RabbitMQ:
+---
+
+### Option B — Run Locally for Development (macOS / Linux)
+
+Use this option when developing or debugging the backend and frontend without containerizing the entire application.
+
+Keep **MongoDB Atlas** configured in the root `.env`.
+
+Start each process in a separate terminal.
+
+Do not run the full Docker Compose application simultaneously because both configurations may use the same ports.
+
+#### Terminal 1 — Start RabbitMQ
+
+From the repository root:
 
 ```bash
 docker compose up -d rabbitmq
 ```
 
-Install backend dependencies and start the gateway:
+The example configuration uses:
+
+```dotenv
+RABBITMQ_URL=amqp://guest:guest@localhost:5672/
+```
+
+If you changed the RabbitMQ credentials, update the connection URL accordingly.
+
+#### Terminal 2 — Start FastAPI Backend
+
+From the repository root:
 
 ```bash
-pip install -r backend/requirements.txt
+# Create Python virtual environment
+python3 -m venv .venv
+
+# Activate virtual environment
+source .venv/bin/activate
+
+# Upgrade pip
+python -m pip install --upgrade pip
+
+# Install backend dependencies
+python -m pip install -r backend/requirements.txt
+
+# Start FastAPI development server
 python -m uvicorn backend.gateway.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-Run the background worker in a separate terminal:
+The backend is available at:
+
+- API: http://localhost:8000
+- Swagger documentation: http://localhost:8000/docs
+- Health endpoint: http://localhost:8000/health
+
+#### Terminal 3 — Start Background Worker
+
+Open another terminal in the repository root:
 
 ```bash
+# Activate existing virtual environment
+source .venv/bin/activate
+
+# Start document-processing worker
 python -m backend.services.jobs.main run
 ```
 
-Start the frontend in another terminal:
+The worker processes background jobs, including document extraction, embedding generation, and summarization.
+
+#### Terminal 4 — Start React Frontend
+
+Open another terminal in the repository root:
 
 ```bash
+# Enter frontend directory
 cd frontend
-npm install
+
+# Configure local API URL
+printf 'VITE_API_BASE_URL=http://localhost:8000/api/v1\n' > .env.local
+
+# Install exact dependencies from package-lock.json
+npm ci
+
+# Start Vite development server
 npm run dev
 ```
 
-The native development setup uses the configured MongoDB Atlas deployment.
+Open:
+
+**http://localhost:5173**
+
+The frontend communicates with the FastAPI backend at `http://localhost:8000/api/v1`.
+
+The root `.env` is used for backend configuration, while `frontend/.env.local` configures the local frontend.
+
+**Security:** Never expose provider API keys in variables beginning with `VITE_`, because these values become visible in the browser bundle.
+
+#### Stop Local Development
+
+Press `Ctrl+C` in the FastAPI, worker, and frontend terminals.
+
+Then, from the repository root:
+
+```bash
+docker compose stop rabbitmq
+```
+
+---
+
+### Troubleshooting
+
+| Problem | Recommended Solution |
+|---|---|
+| `backend/requirements.txt` not found | Run the command from the repository root, not the `frontend/` directory. |
+| Port 8000 is already in use | Stop the existing backend process before starting another one. |
+| Port 3000 or 5173 is already in use | Stop the conflicting frontend process. |
+| Docker backend cannot connect to MongoDB | Verify the Atlas URI, credentials, and Network Access settings. |
+| Worker is unhealthy | Inspect worker and RabbitMQ logs. |
+| PDF processing remains pending | Check RabbitMQ, worker connectivity, provider credentials, and processing errors. |
+| API health works but RAG fails | Verify Atlas search indexes, embedding configuration, API keys, and provider credits. |
+| Frontend cannot connect to the backend | Check the frontend API URL and confirm FastAPI is running. |
+| Docker Compose fails to start | Run `docker compose config -q`, `docker compose ps`, and inspect logs. |
+
+Useful troubleshooting commands:
+
+```bash
+# View running containers
+docker compose ps
+
+# View recent logs
+docker compose logs --tail=100
+
+# View gateway logs
+docker compose logs --tail=100 gateway
+
+# View worker logs
+docker compose logs --tail=100 workers
+
+# Check FastAPI health
+curl http://localhost:8000/health
+```
 
 ---
 
@@ -320,7 +536,9 @@ The benchmark includes answerable and unanswerable questions and supports compar
 
 Evaluation executes separately from normal chat requests to avoid unnecessary cost and latency.
 
-**Evaluation transparency:** Benchmark reports document observed answer-quality limitations, incomplete citation support, and metric execution errors. Successful integration tests do not imply that scientific-answer accuracy has been fully established.
+**Evaluation transparency:** Benchmark reports document observed answer-quality limitations, incomplete citation support, and metric execution errors.
+
+Successful integration tests do not imply that scientific-answer accuracy has been fully established.
 
 See [Evaluation Methodology](evaluation/README.md) and [Latest QA Evaluation Report](evaluation/reports/2026-11-13-final-qa/README.md).
 
@@ -330,27 +548,49 @@ See [Evaluation Methodology](evaluation/README.md) and [Latest QA Evaluation Rep
 
 The project uses multiple testing levels to check component behavior and integration.
 
-**Backend testing**
+### Backend Testing
+
+From the repository root, with the Python virtual environment activated:
 
 ```bash
 PYTHONPATH=. python -m pytest backend/tests/ -q
 ```
 
-**Frontend testing**
+### Frontend Testing
+
+From the repository root:
 
 ```bash
 cd frontend
+
+# Install dependencies
+npm ci
+
+# TypeScript checks
 npm run typecheck
+
+# Unit tests
 npm run test
+
+# Production build verification
 npm run build
 ```
 
-**Browser testing**
+### Browser Testing
+
+From the repository root:
 
 ```bash
 cd frontend
+
+# Install required Playwright browsers
+npx playwright install
+
+# Run end-to-end tests
 npm run test:e2e
 ```
+
+Browser tests may require the application or test server to be running, depending on the Playwright configuration.
 
 Testing covers document validation, storage behavior, retrieval contracts, source citation handling, background processing, frontend interactions, and responsive navigation.
 
@@ -380,7 +620,9 @@ These decisions prioritize maintainability, traceability, reliability, and the a
 
 ## Current Limitations
 
-ResearchAI is an actively developed engineering project. Its architecture and workflows have been exercised through automated tests and selected live provider integrations, but additional validation is required before public production deployment.
+ResearchAI is an actively developed engineering project.
+
+Its architecture and workflows have been exercised through automated tests and selected live provider integrations, but additional validation is required before public production deployment.
 
 Current areas for improvement include:
 
@@ -390,7 +632,9 @@ Current areas for improvement include:
 - Completing provider-specific compatibility and live end-to-end checks
 - Addressing remaining deployment hardening and dependency advisories
 
-Provider limitations, unsupported document content, and model failures may prevent successful summary generation. The system does not guarantee that every answer or citation is correct; users should verify important research claims against the original paper.
+Provider limitations, unsupported document content, and model failures may prevent successful summary generation.
+
+The system does not guarantee that every answer or citation is correct; users should verify important research claims against the original paper.
 
 See [Latest Live QA](docs/live-e2e-qa-2026-11-14.md) for verified results and outstanding issues.
 
