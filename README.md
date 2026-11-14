@@ -234,7 +234,7 @@ Open `.env` in an editor and replace placeholders with your own values. At minim
 
 ```dotenv
 # Use your real MongoDB Atlas connection string (not localhost in Docker).
-MONGODB_URI=mongodb+srv://YOUR_USER:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/?retryWrites=true&w=majority
+MONGODB_URI=your_atlas_connection_string
 MONGODB_DB_NAME=research_assistant
 
 LLAMA_CLOUD_API_KEY=YOUR_LLAMA_CLOUD_KEY
