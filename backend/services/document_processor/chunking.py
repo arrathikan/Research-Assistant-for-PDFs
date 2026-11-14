@@ -20,7 +20,7 @@ from backend.services.document_processor.parsed_models import (
 )
 from langchain_text_splitters import MarkdownHeaderTextSplitter, RecursiveCharacterTextSplitter
 
-ALGORITHM_VERSION = "markdown-pages-v1"
+ALGORITHM_VERSION = "markdown-pages-v2"
 HEADERS = [("#" * level, f"h{level}") for level in range(1, 7)]
 
 
@@ -140,6 +140,29 @@ def _sources(page: ParsedPage, fragment: str, start: int, end: int) -> list[Sour
     return matched
 
 
+def _include_page_margins(parsed: ParsedDocument) -> ParsedDocument:
+    """Keep extracted publication details that the provider omits from Markdown.
+
+    Only native header/footer elements are added, with their original page and
+    coordinates. The saved extraction remains immutable and text is not inferred.
+    """
+    pages = []
+    for page in parsed.pages:
+        markdown = page.markdown
+        for element in page.elements:
+            if element.kind not in {"header", "footer"}:
+                continue
+            if element.document_id != page.document_id or element.page_number != page.page_number:
+                raise ChunkingError("Source element attribution does not match its page")
+            text = (element.markdown or element.text).strip()
+            normalized, _ = _normalized(text)
+            existing, _ = _normalized(markdown)
+            if normalized and not normalized.isdecimal() and normalized not in existing:
+                markdown += "\n\n" + text
+        pages.append(page.model_copy(update={"markdown": markdown}))
+    return parsed.model_copy(update={"pages": pages})
+
+
 def chunk_document(
     parsed: ParsedDocument, parse_run_id: str, config: ChunkingConfig | None = None
 ) -> list[DocumentChunk]:
@@ -151,6 +174,7 @@ def chunk_document(
     """
     config = config or ChunkingConfig()
     identifier = chunk_set_id(parsed, parse_run_id, config)
+    parsed = _include_page_margins(parsed)
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=config.chunk_size,
         chunk_overlap=config.chunk_overlap,

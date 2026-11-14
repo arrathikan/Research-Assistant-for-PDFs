@@ -90,3 +90,16 @@ it('shows a failed selected paper without endlessly polling or suggesting a new 
   expect(get).toHaveBeenCalledTimes(1);
   expect(screen.queryByText(/Upload a PDF/)).not.toBeInTheDocument();
 });
+
+
+it('does not claim ongoing analysis when READY metadata has no readable summary', async () => {
+  vi.useFakeTimers();
+  const get = vi.spyOn(api, 'getDocumentSummary').mockRejectedValueOnce(new ApiError(409, 'profile changed')).mockResolvedValueOnce(RESULT);
+  await act(async () => { render(<DocumentSummaryPanel documentId={ID} filename="finished.pdf" documentStatus="READY" />); });
+  expect(screen.getByRole('alert')).toHaveTextContent('finished processing');
+  expect(screen.queryByText('Your paper is being analyzed. The summary will appear here when it is ready.')).not.toBeInTheDocument();
+  await act(async () => { await vi.advanceTimersByTimeAsync(15000); });
+  expect(get).toHaveBeenCalledTimes(1);
+  await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Check again' })); });
+  expect(screen.getByText('Synthetic method.')).toBeInTheDocument();
+});

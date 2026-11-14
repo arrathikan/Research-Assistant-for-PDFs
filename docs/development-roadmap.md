@@ -624,3 +624,31 @@ quality and public deployment follow-ups remain documented separately.
   synthetic API fixtures. Inspect before/after screenshots and computed styles.
 
 See [scope, source audit and limitations](dashboard-reference-theme.md).
+
+### Follow-up live QA — 13–14 November 2026
+
+- [x] Exercise real public-paper upload, parsing, embeddings, summary, chat, citations, controlled retry and isolated deletion.
+- [x] Fix library restoration, missing native publication evidence, incidental general-intent routing and misleading READY/summary waiting; add bounded targeted repair feedback.
+- [x] Verify 479 backend, 163 working-checkout frontend and 21 deterministic browser tests, strict types, build and Ruff.
+- [x] Retain measured paired Ragas artifacts and eight result-bound assistant reviews; clean only disposable QA resources.
+- [ ] Finish full-paper post-fix summary/chat/Ragas retests: OpenRouter HTTP 402 / exhausted balance.
+- [ ] Investigate immediate tab-switch/refresh timing; verify real different-page citation clicks and supported live exact highlighting.
+- [ ] Obtain independent human review and resolve remaining factual/citation failures before a release-readiness claim.
+
+See [live findings and evidence](live-e2e-qa-2026-11-14.md). This follow-up is published for feature-branch review with incomplete live verification explicitly retained.
+
+### Free-model recovery follow-up
+
+- [x] Replace the exhausted key in ignored local configuration and verify both response schemas.
+- [x] Add optional reasoning control with backward-compatible default profiles; verify 486 backend tests and Ruff.
+- [ ] Complete full-paper summary and chat verification: actual free-model summaries failed strict quote checks.
+- [ ] Run a new evaluation only after the chosen model passes the workflow.
+
+See [verified results and limitations](free-model-development.md). No free-model accuracy improvement is claimed.
+
+### Publication verification — 14 November 2026
+
+- [x] Verify exact proposed source excluding credentials and 13 unrelated local files: 486 backend tests, 159 frontend tests, 21 Chromium scenarios, strict types/build and Ruff.
+- [x] Validate both saved eight-row evaluation reports and retain their real errors/failures.
+- [x] Publish separate conventional backend, frontend and documentation commits to the feature branch for review.
+- [ ] Complete paid-model live retests and resolve the documented rapid-refresh/source-quality failures before release approval.

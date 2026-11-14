@@ -1,0 +1,24 @@
+{
+  "search_indexes": [
+    {
+      "name": "chunk_keywords_v1",
+      "status": "READY",
+      "queryable": true
+    },
+    {
+      "name": "chunk_embeddings_v1",
+      "status": "READY",
+      "queryable": true
+    }
+  ],
+  "benchmark": {
+    "status": "READY",
+    "parsing_status": "COMPLETED",
+    "chunking_status": "COMPLETED",
+    "embedding_status": "COMPLETED",
+    "summary_status": "COMPLETED",
+    "current_summary_profile_matches": true,
+    "summary_http_status": 200,
+    "summary_title": "Lost in the Middle: How Language Models Use Long Contexts"
+  }
+}

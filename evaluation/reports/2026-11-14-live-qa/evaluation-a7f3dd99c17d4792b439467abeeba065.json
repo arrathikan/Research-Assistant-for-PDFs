@@ -1,0 +1,704 @@
+{
+  "schema_version": 1,
+  "evaluation_id": "a7f3dd99c17d4792b439467abeeba065",
+  "created_at": "2026-11-13T15:04:37.033970Z",
+  "collection": {
+    "schema_version": 1,
+    "run_id": "e51d1b1e716b4c4e9e07fdc03f17b81a",
+    "created_at": "2026-11-13T15:04:36.203158Z",
+    "dataset_id": "lost-in-middle-20",
+    "dataset_version": "1.0.0",
+    "dataset_size": 20,
+    "dataset_sha256": "4330654b6d080f06e39354ffbc5c2d39db522a8f82c7519a867964c6870044dc",
+    "git_commit": "529c3947d74d5ff54879d9b6c50bbe8980f28475",
+    "source_scopes": {
+      "lost-in-middle-tacl-2024": {
+        "document_id": "6af71e91bd87d548bb785fce",
+        "chunk_set_id": "ac7e54c45e24a4ae1f42742b2c97543eac599cad29a8b3ca173e52bcdbef09c1",
+        "parse_run_id": "99b55162a04e4096a709fc09e5736c44",
+        "embedding_profile_id": "cd617356fdb2672b5289bb19ebd45e5243a43fe93766c1675a284871f9635536"
+      }
+    },
+    "records": [
+      {
+        "case": {
+          "sample_id": "lim_02",
+          "document_key": "lost-in-middle-tacl-2024",
+          "category": "authors",
+          "user_question": "Who are the authors of the paper?",
+          "reference_answer": "Nelson F. Liu, Kevin Lin, John Hewitt, Ashwin Paranjape, Michele Bevilacqua, Fabio Petroni, and Percy Liang.",
+          "is_answerable": true,
+          "expected_page_numbers": [
+            1
+          ],
+          "source_evidence": [
+            {
+              "page_number": 1,
+              "section": "Author block",
+              "quote": "Nelson F. Liu"
+            }
+          ],
+          "review_note": "Check the complete referenced passage, including qualifiers; short anchors locate evidence and are not a full support proof."
+        },
+        "strategy": "hybrid",
+        "review": {
+          "sample_id": "lim_02",
+          "case_sha256": "4dbb052d158c10f80f3b4adef0766b83c39b03b0bb8bcaaf11aa6a78a48bb403",
+          "review_kind": "assistant",
+          "reviewer": "Codex",
+          "reviewed_at": "2026-11-12T06:23:32.134696Z",
+          "decision": "approved",
+          "notes": "All seven authors checked against the title-page author block; affiliations excluded."
+        },
+        "output": null,
+        "error_code": "generation_failed",
+        "shared_retrieval_ms": 1484.4384999996691
+      },
+      {
+        "case": {
+          "sample_id": "lim_02",
+          "document_key": "lost-in-middle-tacl-2024",
+          "category": "authors",
+          "user_question": "Who are the authors of the paper?",
+          "reference_answer": "Nelson F. Liu, Kevin Lin, John Hewitt, Ashwin Paranjape, Michele Bevilacqua, Fabio Petroni, and Percy Liang.",
+          "is_answerable": true,
+          "expected_page_numbers": [
+            1
+          ],
+          "source_evidence": [
+            {
+              "page_number": 1,
+              "section": "Author block",
+              "quote": "Nelson F. Liu"
+            }
+          ],
+          "review_note": "Check the complete referenced passage, including qualifiers; short anchors locate evidence and are not a full support proof."
+        },
+        "strategy": "semantic",
+        "review": {
+          "sample_id": "lim_02",
+          "case_sha256": "4dbb052d158c10f80f3b4adef0766b83c39b03b0bb8bcaaf11aa6a78a48bb403",
+          "review_kind": "assistant",
+          "reviewer": "Codex",
+          "reviewed_at": "2026-11-12T06:23:32.134696Z",
+          "decision": "approved",
+          "notes": "All seven authors checked against the title-page author block; affiliations excluded."
+        },
+        "output": null,
+        "error_code": "generation_failed",
+        "shared_retrieval_ms": 1484.4384999996691
+      },
+      {
+        "case": {
+          "sample_id": "lim_05",
+          "document_key": "lost-in-middle-tacl-2024",
+          "category": "results",
+          "user_question": "Where in a long context is relevant information generally used best and worst?",
+          "reference_answer": "Performance is generally best near the beginning or end and worse in the middle.",
+          "is_answerable": true,
+          "expected_page_numbers": [
+            2
+          ],
+          "source_evidence": [
+            {
+              "page_number": 2,
+              "section": "Figure 1",
+              "quote": "U-shaped performance curve"
+            }
+          ],
+          "review_note": "Check the complete referenced passage, including qualifiers; short anchors locate evidence and are not a full support proof."
+        },
+        "strategy": "hybrid",
+        "review": {
+          "sample_id": "lim_05",
+          "case_sha256": "6fd966d12c445440548cf7fbf5319f65250a3356f93296ec0548601b294f27f6",
+          "review_kind": "assistant",
+          "reviewer": "Codex",
+          "reviewed_at": "2026-11-12T06:23:32.134725Z",
+          "decision": "approved",
+          "notes": "Figure 1 caption checked for primacy/recency and middle degradation; reference keeps the generally/often qualifier."
+        },
+        "output": null,
+        "error_code": "generation_failed",
+        "shared_retrieval_ms": 545.3076249978039
+      },
+      {
+        "case": {
+          "sample_id": "lim_05",
+          "document_key": "lost-in-middle-tacl-2024",
+          "category": "results",
+          "user_question": "Where in a long context is relevant information generally used best and worst?",
+          "reference_answer": "Performance is generally best near the beginning or end and worse in the middle.",
+          "is_answerable": true,
+          "expected_page_numbers": [
+            2
+          ],
+          "source_evidence": [
+            {
+              "page_number": 2,
+              "section": "Figure 1",
+              "quote": "U-shaped performance curve"
+            }
+          ],
+          "review_note": "Check the complete referenced passage, including qualifiers; short anchors locate evidence and are not a full support proof."
+        },
+        "strategy": "semantic",
+        "review": {
+          "sample_id": "lim_05",
+          "case_sha256": "6fd966d12c445440548cf7fbf5319f65250a3356f93296ec0548601b294f27f6",
+          "review_kind": "assistant",
+          "reviewer": "Codex",
+          "reviewed_at": "2026-11-12T06:23:32.134725Z",
+          "decision": "approved",
+          "notes": "Figure 1 caption checked for primacy/recency and middle degradation; reference keeps the generally/often qualifier."
+        },
+        "output": null,
+        "error_code": "generation_failed",
+        "shared_retrieval_ms": 545.3076249978039
+      },
+      {
+        "case": {
+          "sample_id": "lim_07",
+          "document_key": "lost-in-middle-tacl-2024",
+          "category": "dataset_size",
+          "user_question": "How many queries are selected for the controlled multi-document QA experiments?",
+          "reference_answer": "2,655 queries whose annotated long answer is a paragraph.",
+          "is_answerable": true,
+          "expected_page_numbers": [
+            3
+          ],
+          "source_evidence": [
+            {
+              "page_number": 3,
+              "section": "Section 2.1",
+              "quote": "2655 queries"
+            }
+          ],
+          "review_note": "Check the complete referenced passage, including qualifiers; short anchors locate evidence and are not a full support proof."
+        },
+        "strategy": "hybrid",
+        "review": {
+          "sample_id": "lim_07",
+          "case_sha256": "709cd996013e0fa92f36fde8c301ce860df063e8baa8b1601994893577f27410",
+          "review_kind": "assistant",
+          "reviewer": "Codex",
+          "reviewed_at": "2026-11-12T06:23:32.134738Z",
+          "decision": "approved",
+          "notes": "Section 2.1 explicitly selects 2655 queries; reference uses the same count."
+        },
+        "output": null,
+        "error_code": "generation_failed",
+        "shared_retrieval_ms": 872.2446669999044
+      },
+      {
+        "case": {
+          "sample_id": "lim_07",
+          "document_key": "lost-in-middle-tacl-2024",
+          "category": "dataset_size",
+          "user_question": "How many queries are selected for the controlled multi-document QA experiments?",
+          "reference_answer": "2,655 queries whose annotated long answer is a paragraph.",
+          "is_answerable": true,
+          "expected_page_numbers": [
+            3
+          ],
+          "source_evidence": [
+            {
+              "page_number": 3,
+              "section": "Section 2.1",
+              "quote": "2655 queries"
+            }
+          ],
+          "review_note": "Check the complete referenced passage, including qualifiers; short anchors locate evidence and are not a full support proof."
+        },
+        "strategy": "semantic",
+        "review": {
+          "sample_id": "lim_07",
+          "case_sha256": "709cd996013e0fa92f36fde8c301ce860df063e8baa8b1601994893577f27410",
+          "review_kind": "assistant",
+          "reviewer": "Codex",
+          "reviewed_at": "2026-11-12T06:23:32.134738Z",
+          "decision": "approved",
+          "notes": "Section 2.1 explicitly selects 2655 queries; reference uses the same count."
+        },
+        "output": null,
+        "error_code": "generation_failed",
+        "shared_retrieval_ms": 872.2446669999044
+      },
+      {
+        "case": {
+          "sample_id": "lim_19",
+          "document_key": "lost-in-middle-tacl-2024",
+          "category": "unanswerable",
+          "user_question": "What vision-backbone training schedule does this paper prescribe?",
+          "reference_answer": null,
+          "is_answerable": false,
+          "expected_page_numbers": [],
+          "source_evidence": [],
+          "review_note": "Check the full paper scope; no such experimental specification or measurement is established."
+        },
+        "strategy": "hybrid",
+        "review": {
+          "sample_id": "lim_19",
+          "case_sha256": "ab1371b71d8840fe0fa0c06b48600acb3d2cc6c3db86232e806df9c74314074c",
+          "review_kind": "assistant",
+          "reviewer": "Codex",
+          "reviewed_at": "2026-11-12T06:23:32.134813Z",
+          "decision": "approved",
+          "notes": "Full-paper topic/scope checked: no vision-backbone training schedule is prescribed; expected behavior is abstention."
+        },
+        "output": null,
+        "error_code": "generation_failed",
+        "shared_retrieval_ms": 425.08749999979045
+      },
+      {
+        "case": {
+          "sample_id": "lim_19",
+          "document_key": "lost-in-middle-tacl-2024",
+          "category": "unanswerable",
+          "user_question": "What vision-backbone training schedule does this paper prescribe?",
+          "reference_answer": null,
+          "is_answerable": false,
+          "expected_page_numbers": [],
+          "source_evidence": [],
+          "review_note": "Check the full paper scope; no such experimental specification or measurement is established."
+        },
+        "strategy": "semantic",
+        "review": {
+          "sample_id": "lim_19",
+          "case_sha256": "ab1371b71d8840fe0fa0c06b48600acb3d2cc6c3db86232e806df9c74314074c",
+          "review_kind": "assistant",
+          "reviewer": "Codex",
+          "reviewed_at": "2026-11-12T06:23:32.134813Z",
+          "decision": "approved",
+          "notes": "Full-paper topic/scope checked: no vision-backbone training schedule is prescribed; expected behavior is abstention."
+        },
+        "output": null,
+        "error_code": "generation_failed",
+        "shared_retrieval_ms": 425.08749999979045
+      }
+    ]
+  },
+  "evaluator": {
+    "judge_model": "meta-llama/llama-3.3-70b-instruct",
+    "temperature": 0.1,
+    "timeout_seconds": 60,
+    "metric_timeout_seconds": 180,
+    "max_output_tokens": 2048,
+    "max_workers": 1,
+    "max_llm_requests": 160,
+    "max_embedding_inputs": 60,
+    "relevancy_questions": 3,
+    "max_samples": 4,
+    "ragas_version": "0.2.15",
+    "completion_gateway": "OpenRouter",
+    "temperature_effective": 0.1,
+    "relevancy_embeddings": "Voyage query embeddings"
+  },
+  "request_usage": {
+    "llm_requests": 0,
+    "embedding_inputs": 0
+  },
+  "status": "partial",
+  "rows": [
+    {
+      "sample_id": "lim_02",
+      "strategy": "hybrid",
+      "metrics": {
+        "faithfulness": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        },
+        "answer_relevancy": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        },
+        "context_precision": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        },
+        "context_recall": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        },
+        "factual_correctness": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        }
+      },
+      "checks": {
+        "answerability_correct": null,
+        "citations_present_when_answered": null,
+        "citation_identity_and_scope": null,
+        "quote_in_context": null,
+        "expected_page_coverage": null
+      },
+      "manual": null
+    },
+    {
+      "sample_id": "lim_02",
+      "strategy": "semantic",
+      "metrics": {
+        "faithfulness": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        },
+        "answer_relevancy": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        },
+        "context_precision": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        },
+        "context_recall": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        },
+        "factual_correctness": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        }
+      },
+      "checks": {
+        "answerability_correct": null,
+        "citations_present_when_answered": null,
+        "citation_identity_and_scope": null,
+        "quote_in_context": null,
+        "expected_page_coverage": null
+      },
+      "manual": null
+    },
+    {
+      "sample_id": "lim_05",
+      "strategy": "hybrid",
+      "metrics": {
+        "faithfulness": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        },
+        "answer_relevancy": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        },
+        "context_precision": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        },
+        "context_recall": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        },
+        "factual_correctness": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        }
+      },
+      "checks": {
+        "answerability_correct": null,
+        "citations_present_when_answered": null,
+        "citation_identity_and_scope": null,
+        "quote_in_context": null,
+        "expected_page_coverage": null
+      },
+      "manual": null
+    },
+    {
+      "sample_id": "lim_05",
+      "strategy": "semantic",
+      "metrics": {
+        "faithfulness": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        },
+        "answer_relevancy": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        },
+        "context_precision": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        },
+        "context_recall": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        },
+        "factual_correctness": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        }
+      },
+      "checks": {
+        "answerability_correct": null,
+        "citations_present_when_answered": null,
+        "citation_identity_and_scope": null,
+        "quote_in_context": null,
+        "expected_page_coverage": null
+      },
+      "manual": null
+    },
+    {
+      "sample_id": "lim_07",
+      "strategy": "hybrid",
+      "metrics": {
+        "faithfulness": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        },
+        "answer_relevancy": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        },
+        "context_precision": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        },
+        "context_recall": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        },
+        "factual_correctness": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        }
+      },
+      "checks": {
+        "answerability_correct": null,
+        "citations_present_when_answered": null,
+        "citation_identity_and_scope": null,
+        "quote_in_context": null,
+        "expected_page_coverage": null
+      },
+      "manual": null
+    },
+    {
+      "sample_id": "lim_07",
+      "strategy": "semantic",
+      "metrics": {
+        "faithfulness": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        },
+        "answer_relevancy": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        },
+        "context_precision": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        },
+        "context_recall": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        },
+        "factual_correctness": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        }
+      },
+      "checks": {
+        "answerability_correct": null,
+        "citations_present_when_answered": null,
+        "citation_identity_and_scope": null,
+        "quote_in_context": null,
+        "expected_page_coverage": null
+      },
+      "manual": null
+    },
+    {
+      "sample_id": "lim_19",
+      "strategy": "hybrid",
+      "metrics": {
+        "faithfulness": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        },
+        "answer_relevancy": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        },
+        "context_precision": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        },
+        "context_recall": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        },
+        "factual_correctness": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        }
+      },
+      "checks": {
+        "answerability_correct": null,
+        "citations_present_when_answered": null,
+        "citation_identity_and_scope": null,
+        "quote_in_context": null,
+        "expected_page_coverage": null
+      },
+      "manual": null
+    },
+    {
+      "sample_id": "lim_19",
+      "strategy": "semantic",
+      "metrics": {
+        "faithfulness": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        },
+        "answer_relevancy": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        },
+        "context_precision": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        },
+        "context_recall": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        },
+        "factual_correctness": {
+          "status": "error",
+          "value": null,
+          "reason": "generation_failed"
+        }
+      },
+      "checks": {
+        "answerability_correct": null,
+        "citations_present_when_answered": null,
+        "citation_identity_and_scope": null,
+        "quote_in_context": null,
+        "expected_page_coverage": null
+      },
+      "manual": null
+    }
+  ],
+  "metric_summary": {
+    "hybrid": {
+      "faithfulness": {
+        "mean": null,
+        "scored": 0,
+        "skipped": 0,
+        "errors": 4
+      },
+      "answer_relevancy": {
+        "mean": null,
+        "scored": 0,
+        "skipped": 0,
+        "errors": 4
+      },
+      "context_precision": {
+        "mean": null,
+        "scored": 0,
+        "skipped": 0,
+        "errors": 4
+      },
+      "context_recall": {
+        "mean": null,
+        "scored": 0,
+        "skipped": 0,
+        "errors": 4
+      },
+      "factual_correctness": {
+        "mean": null,
+        "scored": 0,
+        "skipped": 0,
+        "errors": 4
+      }
+    },
+    "semantic": {
+      "faithfulness": {
+        "mean": null,
+        "scored": 0,
+        "skipped": 0,
+        "errors": 4
+      },
+      "answer_relevancy": {
+        "mean": null,
+        "scored": 0,
+        "skipped": 0,
+        "errors": 4
+      },
+      "context_precision": {
+        "mean": null,
+        "scored": 0,
+        "skipped": 0,
+        "errors": 4
+      },
+      "context_recall": {
+        "mean": null,
+        "scored": 0,
+        "skipped": 0,
+        "errors": 4
+      },
+      "factual_correctness": {
+        "mean": null,
+        "scored": 0,
+        "skipped": 0,
+        "errors": 4
+      }
+    }
+  },
+  "paired_summary": {
+    "faithfulness": {
+      "paired_samples": 0,
+      "mean_hybrid_minus_semantic": null
+    },
+    "answer_relevancy": {
+      "paired_samples": 0,
+      "mean_hybrid_minus_semantic": null
+    },
+    "context_precision": {
+      "paired_samples": 0,
+      "mean_hybrid_minus_semantic": null
+    },
+    "context_recall": {
+      "paired_samples": 0,
+      "mean_hybrid_minus_semantic": null
+    },
+    "factual_correctness": {
+      "paired_samples": 0,
+      "mean_hybrid_minus_semantic": null
+    }
+  }
+}

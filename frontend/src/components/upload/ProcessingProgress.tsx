@@ -109,6 +109,8 @@ function DocumentProcessing({ document: initialDocument, onOpen, onUpdate, showD
     description = job?.requires_review
       ? 'Processing was interrupted and needs review before it can continue. Your PDF is saved.'
       : 'We couldn’t finish analyzing this paper. Your original PDF is saved.';
+  } else if (document.status === 'READY' && completed && !summaryAvailable) {
+    description = 'Your PDF is saved, but its summary is unavailable. Check again or open the paper from your library.';
   } else if (job?.status === 'NOT_SCHEDULED') {
     description = 'Your PDF is saved. Start analysis to prepare your summary and chat.';
   } else if (job?.status === 'QUEUED' && job.stage !== 'summary') {

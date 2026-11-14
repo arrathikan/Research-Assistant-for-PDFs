@@ -105,3 +105,33 @@ def test_incomplete_or_invalid_response_is_not_published(result):
             with pytest.raises(SummaryError, match="incomplete or invalid"):
                 gateway.complete("system", "prompt", {})
         constructor.return_value.close.assert_called_once()
+
+
+@pytest.mark.parametrize("enabled", [False, True])
+def test_explicit_reasoning_setting_preserves_schema_and_output_budget(enabled):
+    settings = Settings(
+        _env_file=None,
+        openrouter_api_key="synthetic-secret",
+        primary_reasoning_model="nvidia/nemotron-3.5-super-vl:free",
+        llm_reasoning_enabled=enabled,
+    )
+    with patch("backend.shared.openrouter.httpx.Client") as constructor:
+        constructor.return_value.post.return_value = response()
+        with OpenRouterClient(settings) as gateway:
+            gateway.complete("system", "evidence", SummaryDraft.model_json_schema())
+        body = constructor.return_value.post.call_args.kwargs["json"]
+        assert body["reasoning"] == {"enabled": enabled}
+        assert body["response_format"]["json_schema"]["strict"] is True
+        assert body["max_completion_tokens"] == 4096
+        assert body["temperature"] == 0.1
+
+
+def test_unset_reasoning_preserves_non_openai_provider_default():
+    settings = SETTINGS.model_copy(update={"primary_reasoning_model": "provider/synthetic"})
+    with patch("backend.shared.openrouter.httpx.Client") as constructor:
+        constructor.return_value.post.return_value = response()
+        with OpenRouterClient(settings) as gateway:
+            gateway.complete("system", "evidence", {})
+        body = constructor.return_value.post.call_args.kwargs["json"]
+        assert "reasoning" not in body
+        assert body["temperature"] == 0.1

@@ -185,3 +185,15 @@ it('keeps a completed job processing until document readiness is confirmed', asy
   expect(screen.queryByText('Ready')).not.toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'View Summary' })).toBeDisabled();
 });
+
+
+it('does not claim active analysis when a completed document has an unreadable summary', async () => {
+  vi.mocked(api.getProcessingStatus).mockResolvedValue({ ...QUEUED, status: 'COMPLETED' });
+  vi.mocked(api.getDocument).mockResolvedValue(READY);
+  vi.mocked(api.getDocumentSummary).mockRejectedValue(new ApiError(409, 'profile mismatch'));
+  render(<ProcessingProgress document={READY} onOpen={vi.fn()} />);
+  await tick();
+  expect(screen.getByRole('status')).toHaveTextContent('summary is unavailable');
+  expect(screen.queryByText('Processing', { exact: true })).not.toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'View Summary' })).toBeDisabled();
+});

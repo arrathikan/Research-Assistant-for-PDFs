@@ -50,9 +50,10 @@ class OpenRouterClient:
             "max_completion_tokens": settings.llm_max_output_tokens,
             "stream": False,
         }
-        if settings.primary_reasoning_model.startswith("openai/gpt-5"):
-            body["reasoning"] = {"effort": "low"}
-        else:
+        reasoning = settings.reasoning_for_model(settings.primary_reasoning_model)
+        if reasoning is not None:
+            body["reasoning"] = reasoning
+        if not settings.primary_reasoning_model.startswith("openai/gpt-5"):
             body["temperature"] = settings.llm_temperature
         for attempt in range(settings.llm_max_retries + 1):
             try:

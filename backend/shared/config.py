@@ -126,9 +126,20 @@ class Settings(BaseSettings):
     llm_temperature: float = 0.1
     llm_timeout_seconds: float = Field(default=60, gt=0, le=180)
     llm_max_output_tokens: int = Field(default=4096, ge=512, le=8192)
+    llm_reasoning_enabled: bool | None = None
     summary_context_bytes: int = Field(default=48000, ge=8000, le=128000)
     summary_max_windows: int = Field(default=64, ge=1, le=128)
     summary_validation_retries: int = Field(default=2, ge=0, le=2)
+
+    def reasoning_for_model(self, model: str) -> dict[str, bool | str] | None:
+        """Keep provider defaults unless reasoning is explicitly disabled or enabled."""
+        if self.llm_reasoning_enabled is False:
+            return {"enabled": False}
+        if model.startswith("openai/gpt-5"):
+            return {"effort": "low"}
+        if self.llm_reasoning_enabled is True:
+            return {"enabled": True}
+        return None
 
     @property
     def llm_model(self) -> str:

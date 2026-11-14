@@ -1,0 +1,59 @@
+{
+  "checks": [
+    {
+      "name": "Saved real five-turn chat restores and survives refresh without generation",
+      "status": "PASS",
+      "detail": {
+        "turns": 5
+      }
+    },
+    {
+      "name": "Actual citation opens correct PDF; page, zoom, draft and history survive toggles",
+      "status": "PASS",
+      "detail": {
+        "highlight_rectangles": 0,
+        "additional_pdf_requests": 0
+      }
+    },
+    {
+      "name": "Saved summary recovers with normal API profile, stays through tab changes and refresh",
+      "status": "FAIL",
+      "reason": "expect(locator).toBeVisible() failed\n\nLocator: getByRole('heading', { name: 'Lost in the Middle: How Language Models Use Long Contexts', exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" getByRole('heading', { name: 'Lost in the Middle: How Language Models Use Long Contexts', exact: true }) with timeout 5000ms\n  - waiting for getByRole('heading', { name: 'Lost in the Middle: How Language Models Use Long Contexts', exact: true })\n"
+    },
+    {
+      "name": "Real PDF full-document page controls 1, 2, 7, 17 and zoom controls",
+      "status": "PASS"
+    },
+    {
+      "name": "Invalid page and foreign-document citations are rejected by real API",
+      "status": "PASS",
+      "detail": {
+        "invalid": 422,
+        "foreign": 422
+      }
+    },
+    {
+      "name": "Injected upload network error recovers with actual deduplicated upload",
+      "status": "PASS",
+      "detail": {
+        "http_status": 200,
+        "same_document_id": true
+      }
+    },
+    {
+      "name": "No paid chat requests and no uncaught browser errors",
+      "status": "PASS"
+    },
+    {
+      "name": "Deletion network error preserves record, then real UI deletion removes all three test papers",
+      "status": "PASS",
+      "detail": {
+        "deleted_test_documents": 3
+      }
+    }
+  ],
+  "errors": [],
+  "blocked_chat_requests": [],
+  "pdf_requests": 2,
+  "highlights": 0
+}

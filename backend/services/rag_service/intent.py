@@ -33,7 +33,7 @@ def plan_question(
     paper = bool(re.search(r"\b(paper|article|study|authors?|document|researchers?)\b", lower))
     explicit_general = bool(
         re.search(
-            r"\b(in general|generally|general (?:background|knowledge|explanation))\b|beyond (?:this|the) paper",
+            r"\b(in general|general (?:background|knowledge|explanation))\b|^\s*generally\b|beyond (?:this|the) paper",
             lower,
         )
     )

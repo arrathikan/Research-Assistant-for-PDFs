@@ -1,7 +1,7 @@
 # ResearchAI demo and interview guide
 
-Use the [final QA report](final-qa.md) to distinguish working flows, measured
-quality and remaining release work. This is a local/demo application.
+Use the [latest live QA report](live-e2e-qa-2026-11-14.md) to distinguish working flows,
+measured quality and remaining failures. This is a local/demo application.
 
 ## Prepare
 
@@ -20,11 +20,12 @@ quality and remaining release work. This is a local/demo application.
    parsing/model latency and provider retries. Keep a previously verified result
    available for a dependable demo; explain that it is cached.
 
-The Dashboard library currently lasts for the browser's app session. After a full
-reload, select/upload the same PDF again: SHA-256 deduplication reuses its stored
-record and matching completed outputs. Chat history is document-scoped; the
-conversation pointer is kept in session storage. Do not present this as account
-sync or a persistent cross-device document library.
+The Dashboard retains document references and selected navigation in session
+storage. Refresh refetches actual backend metadata, drops deleted references and
+offers retry on temporary errors. Chat history is document-scoped, with its
+conversation pointer also in session storage. This is not account sync or a
+cross-device library. A rapid tab-click/immediate-refresh observation remains
+open in the latest QA report; verify the exact demonstration sequence beforehand.
 
 ## Suggested six-minute walkthrough
 
@@ -92,9 +93,11 @@ Ragas runs offline and compares hybrid with semantic retrieval on shared cases.
   Short contiguous-quote guidance fixed the verified case while strict validation
   remained. The prompt version changes the summary profile hash.
 - **How is accuracy checked?** Five appropriate Ragas metrics plus separate
-  answer/source reviews. The latest 18-response run has 58 measured values,
-  30 appropriate skips and two explicit metric errors. There is no universal
-  accuracy percentage, and assistant review is not independent human approval.
+  answer/source reviews. The latest published four-case paired baseline has
+  20 numeric metric values and 20 skips across eight responses, with explicit
+  answer/source failures in assistant review. Its post-change retest failed
+  generation and has no numeric scores. Earlier runs remain available separately.
+  There is no universal accuracy percentage or independent human approval claim.
 - **What remains?** More complete claim-to-citation support, broader reviewed
   datasets, resolution of metric errors, dependency upgrades and production
   authentication/authorization/TLS. A passing browser suite is not scientific
@@ -113,5 +116,5 @@ Ragas runs offline and compares hybrid with semantic retrieval on shared cases.
 
 See [browser QA](browser-qa.md) for reproducible checks and private screenshot
 capture, [background jobs](background-jobs.md) for recovery, and
-[the measured evaluation](../evaluation/reports/2026-11-13-final-qa/README.md) for
+[the latest measured evaluation](../evaluation/reports/2026-11-14-live-qa/README.md) for
 actual answers, sources, scores and failures.

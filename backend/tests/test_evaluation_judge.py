@@ -48,3 +48,28 @@ def test_budgets_are_checked_before_provider_calls():
     budget.consume("embedding")
     with pytest.raises(JudgeError):
         budget.consume("embedding")
+
+
+def test_offline_judge_honors_reasoning_disable_without_running_metrics():
+    pytest.importorskip("ragas")
+    config = EvaluationSettings(_env_file=None, judge_model="nvidia/nemotron-3.5-super-vl:free")
+    budget = RequestBudget(config)
+
+    def respond(request):
+        body = json.loads(request.content)
+        assert body["reasoning"] == {"enabled": False}
+        assert body["response_format"] == {"type": "json_object"}
+        return httpx.Response(200, json={"choices": [
+            {"finish_reason": "stop", "message": {"content": '{"statements":[]}'}}
+        ]})
+
+    llm, _ = build_evaluator(
+        Settings(_env_file=None, openrouter_api_key="synthetic-key", llm_reasoning_enabled=False),
+        config, budget, httpx.MockTransport(respond),
+    )
+    try:
+        output = llm.generate_text(StringPromptValue(text="Synthetic evaluation prompt"))
+        assert len(output.generations[0]) == 1
+        assert budget.snapshot()["llm_requests"] == 1
+    finally:
+        llm.close()

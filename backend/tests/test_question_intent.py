@@ -233,3 +233,11 @@ def test_summary_can_correct_an_unnecessary_global_abstention_once():
     )
     assert output.response.citations and model.call_count == 2
     assert "qualified overview" in json.loads(model.call_args.args[1])["correction"]
+
+
+def test_generally_inside_a_paper_question_does_not_request_general_background():
+    question = "Where in a long context is relevant information generally used best and worst?"
+    plan = plan_question(question)
+    assert plan.intent != "general"
+    assert not plan.allow_general
+    assert plan_question("Generally, what is retrieval-augmented generation?").allow_general

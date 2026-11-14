@@ -148,3 +148,84 @@ def test_empty_markdown_and_foreign_pages_are_rejected():
     document.pages[0].document_id = "507f1f77bcf86cd799439012"
     with pytest.raises(ChunkingError):
         chunk_document(document, "parse-a")
+
+
+def test_native_footer_metadata_is_chunked_without_mutating_the_parse():
+    from backend.services.document_processor.parsed_models import (
+        BoundingBox,
+        ParsedDocument,
+        ParsedPage,
+        SourceElement,
+    )
+
+    identifier = "a" * 24
+    footer = "Published 2024. Research Journal. https://doi.org/10.1234/example"
+    element = SourceElement(
+        element_id="footer-1",
+        document_id=identifier,
+        page_number=1,
+        element_index=0,
+        kind="footer",
+        markdown=footer,
+        source="items",
+        bbox=BoundingBox(x=10, y=700, width=300, height=20, coordinate_system="points"),
+    )
+    parsed = ParsedDocument(
+        document_id=identifier,
+        pages=[
+            ParsedPage(
+                document_id=identifier,
+                page_number=1,
+                markdown="# Paper\n\nAcademic text.",
+                width=600,
+                height=800,
+                elements=[element],
+            )
+        ],
+    )
+    before = parsed.model_dump()
+    chunks = chunk_document(parsed, "parse-footer")
+    matching = [chunk for chunk in chunks if footer in chunk.content]
+    assert matching
+    assert matching[0].algorithm_version == "markdown-pages-v2"
+    assert matching[0].page_numbers == [1]
+    sources = [source for span in matching[0].page_spans for source in span.source_elements]
+    assert any(
+        source.element_id == element.element_id and source.bbox == element.bbox
+        for source in sources
+    )
+    assert parsed.model_dump() == before
+    assert chunk_document(parsed, "parse-footer")[0].chunk_set_id == chunks[0].chunk_set_id
+
+
+def test_footer_already_in_markdown_is_not_duplicated():
+    from backend.services.document_processor.parsed_models import (
+        ParsedDocument,
+        ParsedPage,
+        SourceElement,
+    )
+
+    identifier = "a" * 24
+    footer = "Published 2024 in Research Journal."
+    parsed = ParsedDocument(
+        document_id=identifier,
+        pages=[
+            ParsedPage(
+                document_id=identifier,
+                page_number=1,
+                markdown="# Paper\n\n" + footer,
+                elements=[
+                    SourceElement(
+                        element_id="footer-1",
+                        document_id=identifier,
+                        page_number=1,
+                        element_index=0,
+                        kind="footer",
+                        markdown=footer,
+                        source="items",
+                    )
+                ],
+            )
+        ],
+    )
+    assert sum(chunk.content.count(footer) for chunk in chunk_document(parsed, "parse-footer")) == 1

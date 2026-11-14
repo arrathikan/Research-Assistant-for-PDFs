@@ -139,7 +139,15 @@ def build_summary_graph(
     def generate(state: SummaryState) -> dict[str, Any]:
         prompt = state["contexts"][state["position"]].payload
         if state["feedback"]:
-            prompt += "\nTargeted correction for the previous attempt: " + state["feedback"]
+            previous = state.get("candidate", "").encode()[: settings.summary_context_bytes]
+            prompt += (
+                "\nPrevious invalid response (draft only, not source evidence): "
+                + previous.decode("utf-8", errors="ignore")
+                + "\nTargeted correction for the previous attempt: "
+                + state["feedback"]
+                + " Keep already valid fields and source references unchanged. "
+                "Use the original research_sections as the only factual evidence."
+            )
         return {
             "candidate": complete(SYSTEM_PROMPT, prompt, SummaryDraft.model_json_schema()),
             "attempts": state["attempts"] + 1,

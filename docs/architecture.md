@@ -716,3 +716,11 @@ uses an icon viewport plus one readable wordmark, and remains the favicon.
 Mobile PDF presentation makes both the header and sidebar inert, restoring their
 previous state on close. Citation resolution, chat history and PDF loading are
 unchanged. See [dashboard theme audit](dashboard-reference-theme.md).
+
+### Live QA corrections — November 2026
+
+The frontend now retains document references and selected navigation in sessionStorage, refetching backend metadata on refresh rather than caching processing state. READY with an unreadable saved summary displays an availability error. `markdown-pages-v2` includes native extracted header/footer evidence with original pages without mutating stored parsing; old records require explicit reprocessing. Intent routing no longer treats an incidental “generally” as explicit general background. Summary repair retains strict source validation and adds bounded draft/all-path feedback without changing the existing workflow profile version. Live verification boundaries and open failures are in the [latest QA report](live-e2e-qa-2026-11-14.md).
+
+### Optional model reasoning policy
+
+`LLM_REASONING_ENABLED` controls the existing OpenRouter completion client and offline evaluator. An omitted value preserves existing defaults/profile hashes; an explicit policy enters saved-summary identity and chat traces. Validation and retrieval are unchanged. See [the scoped free-model results](free-model-development.md).
