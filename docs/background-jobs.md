@@ -1,135 +1,374 @@
-# Background processing (Prompt 12)
 
-## Queue contracts
+# ResearchAI — Background Processing Architecture
 
-RabbitMQ carries versioned identity-only messages (job/document IDs, generation,
-stage and attempt). Strict validation rejects extra fields and mismatched IDs.
-PDF content, source text and provider credentials stay out of queue payloads.
-Ingestion, summary and dead-letter queues are durable. Producers use persistent
-messages, mandatory routing and publisher confirms. Connection/blocked timeouts
-are bounded, and exception responses exclude broker credentials.
+ResearchAI uses **RabbitMQ, MongoDB, and Python background workers** to process uploaded research papers asynchronously.
 
-Retries are scheduled from a persisted MongoDB job/outbox record. Consumers
-acknowledge only after the result or next action is durable. Duplicate
-messages are expected with at-least-once delivery; processing must check the
-current job identity and reuse existing completed pipeline outputs.
+The background processing system handles computationally expensive operations such as PDF extraction, Markdown chunking, embedding generation, and structured summarization without blocking the FastAPI request lifecycle.
 
-The configured consumer acknowledgement timeout covers long jobs; heartbeats
-require processing provider work separately from the RabbitMQ I/O thread.
-Queue arguments must match between processes; changing queue arguments requires
-a reviewed queue migration instead of deleting existing queues.
+Its primary objectives are **reliability, fault tolerance, recoverability, and efficient reuse of completed processing artifacts**.
 
-References: [RabbitMQ confirms](https://www.rabbitmq.com/docs/confirms),
-[RabbitMQ reliability](https://www.rabbitmq.com/docs/reliability),
-[Pika threaded consumer example](https://github.com/pika/pika/blob/1.3.2/examples/basic_consumer_threaded.py).
+## 1. System Overview
 
+When a user uploads a PDF, ResearchAI validates and stores the document before creating a durable processing job.
 
-## Upload scheduling and status
+RabbitMQ coordinates the delivery of processing tasks, while independent Python workers execute the document-processing pipeline.
 
-A successful upload saves a deterministic `processing_jobs` record in MongoDB
-before returning. Duplicate uploads reuse the job. Already-ready PDFs do not
-start paid work again. The HTTP request does not connect to RabbitMQ or invoke
-providers. If saving the job fails after the PDF was stored, the request fails
-safely and retrying the same upload repairs scheduling without duplicating PDF
-storage. A reconciliation pass repairs explicitly requested pending uploads;
-unrequested legacy files are left alone.
+The system uses MongoDB to maintain persistent job state, enabling supported retries and recovery when a worker or message broker fails.
 
-The dispatcher publishes due outbox actions with confirms and then conditionally
-marks that exact generation/stage/attempt as sent. A failed/uncertain publish
-leaves the action pending. Duplicate delivery is expected. A fast consumer cannot
-have its next action overwritten by a delayed publication update.
+### Architecture
 
-- GET `/api/v1/documents/{id}/processing` returns safe job status, stage, attempt,
-  next retry time and a bounded error code; worker tokens stay private.
-- POST `/api/v1/documents/{id}/processing/retry` explicitly restarts a terminal
-  failure with a new generation. Old messages cannot identify the new attempt.
-  Interrupted work requires operator review and is not reset by this endpoint.
-- Retry delays and terminal dead-letter actions are persisted in MongoDB, so no
-  RabbitMQ TTL plugin is required and a broker outage cannot erase the schedule.
+```mermaid
+flowchart TD
+    A["PDF Upload"] --> B["FastAPI Gateway"]
+    B --> C["MongoDB GridFS"]
+    B --> D["Persistent Processing Job"]
 
-Increment 12.2 verification: **353 backend tests passed, 4 optional live checks
-skipped** with disposable local MongoDB. Provider/publication boundaries were
-mocked; worker execution and real-broker checks follow next.
+    D --> E["Outbox Dispatcher"]
+    E --> F["RabbitMQ"]
 
+    F --> G["Ingestion Worker"]
+    G --> H["LlamaParse Extraction"]
+    H --> I["Markdown Chunking"]
+    I --> J["Voyage AI Embeddings"]
 
-## Workers and failure handling
+    J --> K["MongoDB Processing State"]
+    K --> L["Summary Job"]
 
-`python -m backend.services.jobs.main run` starts the dispatcher and separate
-consumers for ingestion and summary. Each consumer uses prefetch 1, manual
-acknowledgements and a separate provider-work thread so RabbitMQ I/O continues
-while parsing or summarizing. Acknowledgement follows saved job completion,
-next-stage scheduling, retry scheduling or terminal failure. Persistence failures
-leave the delivery unacknowledged. Shutdown waits for in-flight work.
+    L --> F
+    F --> M["Summary Worker"]
+    M --> N["LangGraph Summarization"]
+    N --> O["Versioned Summary Storage"]
+    O --> P["Document READY"]
 
-The ingestion worker reuses `parse_pdf`, Markdown chunking and Voyage embedding
-storage, then schedules summary. The summary worker validates the same parse,
-chunk and embedding generation, reuses the existing LangGraph service and marks
-the job complete only with a ready document. Duplicate, early and stale messages
-do not invoke providers. Job failures use bounded exponential backoff, then a
-durable dead-letter action; raw provider errors never enter the public status.
+    G --> Q["Retry / Dead-Letter Handling"]
+    M --> Q
+    Q --> K
+```
 
-A MongoDB lease/heartbeat prevents concurrent job owners from advancing the same
-job. An expired lease is marked `WORKER_INTERRUPTED` and sent to the dead-letter
-queue for review. Existing service claims deliberately do not expire silently:
-a hard-killed parser/model request may still be running remotely. This system
-provides at-least-once delivery and output reuse, not exactly-once provider billing.
+The API gateway, dispatcher, and background workers operate as separate execution components.
 
-After confirming the old workers have stopped and inspecting the interrupted job,
-an operator may run:
+---
+
+## 2. Queue Architecture
+
+ResearchAI uses durable RabbitMQ queues for different processing responsibilities.
+
+| Queue | Responsibility |
+|---|---|
+| Ingestion Queue | Execute document extraction, chunking, and embeddings |
+| Summary Queue | Execute LangGraph summary generation |
+| Dead-Letter Queue | Preserve failed processing actions for inspection |
+
+RabbitMQ messages contain only the information required to identify a processing task.
+
+### Message Contract
+
+A processing message contains versioned identifiers such as:
+
+- Job ID
+- Document ID
+- Job generation
+- Processing stage
+- Attempt number
+
+**PDF content, extracted research text, and API credentials are never included in queue messages.**
+
+Message schemas reject unexpected fields and mismatched identifiers.
+
+### Delivery Reliability
+
+The queue integration uses:
+
+- Durable queues
+- Persistent messages
+- Publisher confirmations
+- Mandatory routing
+- Manual consumer acknowledgments
+- Bounded connection timeouts
+- Explicit message validation
+
+RabbitMQ provides **at-least-once delivery**, meaning duplicate messages are possible.
+
+The application therefore validates job identities and uses idempotent processing mechanisms instead of assuming every message will be delivered exactly once.
+
+---
+
+## 3. Durable Job Scheduling
+
+ResearchAI uses a MongoDB-backed job and outbox mechanism to ensure that processing requests survive temporary broker outages.
+
+### Scheduling Workflow
+
+1. FastAPI validates and stores the uploaded PDF.
+2. A persistent processing job is created in MongoDB.
+3. The outbox dispatcher identifies pending actions.
+4. The dispatcher publishes messages to RabbitMQ.
+5. RabbitMQ confirms message publication.
+6. The corresponding job action is conditionally marked as published.
+
+The upload request does not directly invoke external AI providers or establish a RabbitMQ publishing connection.
+
+### Duplicate Upload Handling
+
+ResearchAI uses SHA-256-based duplicate detection.
+
+When an identical PDF already exists, the application can reuse the stored document and its existing processing job.
+
+A document that has already completed processing does not automatically repeat paid operations.
+
+If job scheduling fails after document storage, retrying the upload can repair the scheduling state without storing another copy of the same PDF.
+
+---
+
+## 4. Worker Execution
+
+ResearchAI separates document ingestion and summarization into independent processing responsibilities.
+
+### Ingestion Worker
+
+The ingestion worker performs:
+
+1. PDF extraction using LlamaParse
+2. Markdown-aware document chunking
+3. Voyage AI embedding generation
+4. Persistence of completed processing artifacts
+5. Scheduling of the summary stage
+
+The worker reuses previously completed artifacts when their source and configuration remain compatible.
+
+### Summary Worker
+
+The summary worker:
+
+1. Validates the current document-processing generation.
+2. Loads the processed document chunks.
+3. Executes the existing LangGraph summarization workflow.
+4. Validates generated summary evidence.
+5. Persists the completed summary.
+6. Marks the document ready when all required artifacts are available.
+
+The workers execute provider operations separately from the RabbitMQ I/O thread to maintain connection heartbeats during long-running tasks.
+
+Each consumer uses controlled message prefetch and manual acknowledgments.
+
+---
+
+## 5. Message Acknowledgment Strategy
+
+ResearchAI acknowledges RabbitMQ messages only after the corresponding processing result or next action has been durably persisted.
+
+### Successful Execution
+
+```mermaid
+sequenceDiagram
+    participant Q as RabbitMQ
+    participant W as Worker
+    participant D as MongoDB
+
+    Q->>W: Deliver job message
+    W->>D: Validate and claim job
+    W->>W: Execute processing
+    W->>D: Persist result and next action
+    D-->>W: Persistence confirmed
+    W->>Q: Acknowledge message
+```
+
+### Processing Failure
+
+When a processing operation fails, the worker records the failure and its next action in MongoDB.
+
+Supported transient failures are retried using bounded exponential backoff.
+
+If the retry limit is reached, the job transitions to a terminal failure state and a durable dead-letter action is scheduled.
+
+If persistence fails, the worker does not acknowledge the message as successfully completed.
+
+This approach reduces the risk of losing job state during worker or broker interruptions.
+
+---
+
+## 6. Retry and Failure Handling
+
+ResearchAI uses persistent retry scheduling rather than relying entirely on RabbitMQ message expiration.
+
+### Retry Mechanisms
+
+| Mechanism | Purpose |
+|---|---|
+| Exponential Backoff | Delay repeated transient failures |
+| Maximum Attempts | Prevent unlimited retries |
+| Durable Retry Records | Preserve schedules during broker downtime |
+| Dead-Letter Handling | Retain terminal failures for inspection |
+| Idempotency Checks | Avoid unnecessary duplicate processing |
+| Artifact Reuse | Skip previously completed processing stages |
+| Job Generation Validation | Reject outdated or duplicate task messages |
+
+Failed jobs expose safe error information through the API.
+
+Raw provider exceptions and credentials are not returned to users.
+
+### At-Least-Once Processing
+
+A worker may receive a duplicate message if a previous delivery was not acknowledged.
+
+Before performing paid provider operations, the application checks the current job identity, processing generation, and existing completed artifacts.
+
+This reduces duplicate execution, but it does not guarantee exactly-once billing by external providers.
+
+---
+
+## 7. Worker Recovery
+
+ResearchAI uses MongoDB ownership claims, leases, and heartbeats to coordinate worker execution.
+
+These mechanisms help prevent multiple workers from advancing the same job simultaneously.
+
+When a worker is interrupted, the system can mark the job with a `WORKER_INTERRUPTED` state for operator review.
+
+### Manual Recovery
+
+After confirming that the original workers have stopped, an operator can run:
 
 ```bash
 python -m backend.services.jobs.main recover DOCUMENT_ID --confirm-workers-stopped
 ```
 
-Recovery conditionally clears only the interrupted document's still-running
-claims with the matching ownership token. Completed parses, chunks, vectors and
-summaries remain stored. A new job generation resumes ingestion and reuses these
-outputs. `SOURCE_BUSY` from unrelated/manual processing requires separate review
-and is never reset automatically. Normal terminal failures can use the explicit
-HTTP retry endpoint; it also starts ingestion with output reuse.
+Replace `DOCUMENT_ID` with the affected document identifier.
 
-Increment 12.3 verification: **363 backend tests passed, 4 optional live checks
-skipped** with disposable MongoDB. Full processing used simulated providers.
-Atomic claims, duplicate/early deliveries, bounded retries, changed generations,
-reviewed interrupted recovery and acknowledgement-after-persistence passed.
+The recovery process conditionally clears the matching interrupted processing claims and creates a new job generation.
 
+Previously completed extraction, chunking, embedding, and summary artifacts remain available for reuse.
 
-## Run locally
+**Important:** Do not execute manual recovery against active workers. A hard-killed process may have initiated an external provider request that is still running.
 
-From the repository root, activate the backend environment, install the declared
-backend requirements, and populate the ignored `.env`. Keep MongoDB pointed at
-Atlas when you need Atlas vector/BM25 retrieval; the local Compose MongoDB service
-does not provide Atlas search.
+Normal terminal failures can use the supported retry API instead.
+
+---
+
+## 8. Processing API
+
+The FastAPI gateway exposes endpoints for monitoring and retrying background jobs.
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| `GET` | `/api/v1/documents/{id}/processing` | Retrieve processing status |
+| `POST` | `/api/v1/documents/{id}/processing/retry` | Retry a terminal failure |
+
+### Processing Status
+
+The status endpoint provides information such as:
+
+- Current processing stage
+- Job status
+- Attempt number
+- Next scheduled retry
+- Safe error code
+
+Internal worker ownership tokens remain private.
+
+### Retry Endpoint
+
+The retry endpoint creates a new processing generation for an eligible terminal failure.
+
+Messages associated with earlier generations cannot advance the new processing attempt.
+
+Interrupted work requiring operator review is not automatically reset by the normal retry endpoint.
+
+---
+
+## 9. Frontend Integration
+
+The React upload interface communicates with the processing API to display document status.
+
+The frontend supports:
+
+- Upload confirmation
+- Processing progress
+- Current processing stage
+- Automatic retry states
+- Failed-job notifications
+- Manual retry actions
+- Confirmed document readiness
+
+The **Open Workspace** action becomes available only when the required document-processing artifacts are ready.
+
+Temporary status failures do not cause the frontend to display fabricated success or discard the original uploaded PDF.
+
+---
+
+## 10. Running Background Workers
+
+### Prerequisites
+
+Ensure that:
+
+- MongoDB is configured.
+- RabbitMQ is available.
+- Backend dependencies are installed.
+- Required provider API keys are configured.
+- The Python environment is activated.
+
+### Start RabbitMQ
+
+From the repository root:
 
 ```bash
 docker compose up -d rabbitmq
+```
+
+### Start Background Processing
+
+```bash
 python -m backend.services.jobs.main run
 ```
 
-Keep the gateway and Vite running in their separate terminals. `run` starts three
-threads with independent broker connections: dispatcher, ingestion consumer and
-summary consumer. For separate deployments, use `dispatch`, `work ingestion` and
-`work summary` instead. Stop with Ctrl+C/SIGTERM; shutdown drains in-flight work.
-Broker connection failures retry at the configured poll interval and leave
-pending jobs saved. Do not run the operator recovery command against live workers.
+This starts the dispatcher and consumers for ingestion and summarization.
 
-The RabbitMQ AMQP and management ports are bound to loopback. Broker queue names,
-acknowledgement timeout and credentials must match between processes. Queue
-arguments are immutable: inspect an incompatible pre-existing queue and plan a
-migration; do not delete it automatically. Changing settings while a job is in
-flight can invalidate its source/profile checks; retry explicitly afterward.
+Keep the FastAPI gateway and React frontend running in separate terminals.
 
-The upload screen polls processing and document status, shows the current step
-or automatic retry, and enables **Open workspace** only after readiness is
-confirmed. A failed job has an explicit retry button; interrupted work asks for
-review. A temporary status error preserves the original PDF and does not invent
-success. Reconciliation marks repaired scheduling requests so existing jobs cannot
-occupy every reconciliation batch indefinitely.
+### Run Components Independently
 
-## Deterministic real-broker verification
+For more granular process management:
 
-Use an isolated local MongoDB and disposable RabbitMQ queues, never a production
-broker/database, then run:
+**Dispatcher**
+
+```bash
+python -m backend.services.jobs.main dispatch
+```
+
+**Ingestion Worker**
+
+```bash
+python -m backend.services.jobs.main work ingestion
+```
+
+**Summary Worker**
+
+```bash
+python -m backend.services.jobs.main work summary
+```
+
+The combined `run` command is convenient for local development, while separate processes allow more flexible worker deployment.
+
+Stop workers gracefully using `Ctrl+C` or `SIGTERM`.
+
+### Infrastructure Notes
+
+RabbitMQ connection settings and queue arguments must remain consistent across producers and consumers.
+
+Incompatible queue configuration changes require a reviewed migration rather than automatic deletion of existing queues.
+
+MongoDB Atlas is required for the full vector and BM25 retrieval workflow. Standalone local MongoDB is sufficient for supported storage and job-processing tests but does not replace Atlas Search.
+
+---
+
+## 11. Testing and Verification
+
+ResearchAI includes deterministic unit tests and real-broker integration tests for background processing.
+
+### Real-Broker Integration Test
+
+Run against disposable local test infrastructure:
 
 ```bash
 RESEARCHAI_TEST_MONGODB_URI='mongodb://127.0.0.1:27017' \
@@ -137,35 +376,89 @@ RESEARCHAI_TEST_RABBITMQ_URL='amqp://guest:guest@127.0.0.1:5672/' \
 python -m pytest backend/tests/test_job_broker_integration.py -q
 ```
 
-Tests create random queue/database names and remove only their own resources.
-Real HTTP upload, MongoDB/GridFS, RabbitMQ confirms, consumers, retry scheduling,
-summary publication and readiness are exercised. Paid provider boundaries are
-simulated. Checks cover a transient embedding failure, cache reuse, duplicate
-messages, sanitized poison messages, terminal dead-letter publication and an
-explicit retry that resumes completed stages.
+The integration test uses isolated MongoDB databases and RabbitMQ queues.
 
-Final backend verification with real RabbitMQ and disposable MongoDB: **366 tests
-passed, 4 optional live provider checks skipped**. Frontend checks include progress,
-automatic retry, reviewed interruption, request failures and confirmed workspace
-readiness. Production build passed with the existing PDF.js eval/bundle warnings.
-No Ragas scores were produced or claimed by this stage.
+### Test Coverage
 
-Isolated staged-copy verification: **75 frontend tests passed** and production
-build passed. The local dashboard redesign remains outside this feature commit.
+The tests verify:
 
+- Durable job creation and scheduling
+- RabbitMQ publisher confirmations
+- Message consumption and acknowledgment
+- Duplicate and outdated message handling
+- Transient processing failures
+- Retry scheduling and exponential backoff
+- Terminal dead-letter publication
+- Recovery from interrupted processing
+- Completed artifact reuse
+- Document readiness transitions
 
-## Local runtime check — 2026-11-12
+Paid parsing, embedding, and LLM provider operations are simulated during deterministic broker tests.
 
-After verification, the project's persistent Compose RabbitMQ service was started
-and the gateway was reloaded. The ingestion and summary queues each had one
-connected consumer, with zero ready/unacknowledged messages. Both broker ports
-were confirmed bound to `127.0.0.1`. The configured Atlas connection and an
-existing document metadata HTTP read succeeded. The new processing/status retry
-routes were present in the running API. The frontend remained available on its
-existing development port.
+### Verified Results
 
-The background supervisor was left running for new uploads. Existing unrequested
-legacy documents were not scheduled, and no live paid end-to-end provider check
-was performed in this stage. Real queue processing was verified by the isolated
-integration tests described above. Provider keys and local runtime logs remain
-outside version control.
+The documented real-broker verification completed successfully with:
+
+| Test Area | Result |
+|---|---|
+| Backend test suite | 366 passed |
+| Optional live provider checks | 4 skipped |
+| Frontend tests | 75 passed |
+| Frontend production build | Passed |
+
+These results verify the tested background-processing behavior and integration contracts.
+
+They do not establish external provider reliability under production traffic or measure RAG answer accuracy.
+
+For broader project verification, see [Final QA Report](final-qa.md).
+
+---
+
+## 12. Engineering Decisions
+
+| Decision | Rationale |
+|---|---|
+| RabbitMQ | Separate long-running processing from HTTP requests |
+| MongoDB Job Outbox | Preserve scheduling during broker outages |
+| Identity-Only Messages | Avoid transferring document content through queues |
+| At-Least-Once Delivery | Support reliable message redelivery |
+| Manual Acknowledgments | Acknowledge only after durable processing results |
+| Idempotent Job Execution | Reduce duplicate processing and provider requests |
+| Versioned Job Generations | Reject stale processing messages |
+| Persistent Retry Scheduling | Preserve retry state independently of RabbitMQ |
+| Dead-Letter Queue | Support inspection of terminal failures |
+| Manual Recovery | Avoid unsafe automatic retries of uncertain provider calls |
+| Artifact Reuse | Reduce repeated processing cost |
+
+---
+
+## 13. Limitations and Future Improvements
+
+The background processing architecture has several known limitations:
+
+- At-least-once message delivery can produce duplicate messages.
+- External provider operations are not guaranteed to execute exactly once.
+- Interrupted jobs may require manual operator recovery.
+- RabbitMQ and MongoDB add infrastructure and operational complexity.
+- Processing duration depends on PDF size and external provider performance.
+- Provider rate limits and credit availability can delay or prevent job completion.
+- The current design requires further production load testing and operational monitoring.
+
+Future improvements include enhanced worker observability, autoscaling, structured operational dashboards, and broader concurrent-processing benchmarks.
+
+---
+
+## 14. References
+
+- [RabbitMQ Publisher Confirms](https://www.rabbitmq.com/docs/confirms)
+- [RabbitMQ Reliability Guide](https://www.rabbitmq.com/docs/reliability)
+- [Pika Threaded Consumer Example](https://github.com/pika/pika/blob/1.3.2/examples/basic_consumer_threaded.py)
+- [System Architecture](architecture.md)
+- [Structured Summarization](structured-summary.md)
+- [Hybrid RAG Pipeline](hybrid-rag.md)
+- [Deployment Guide](deployment.md)
+- [Final QA Report](final-qa.md)
+
+---
+
+**ResearchAI Background Processing — Reliable asynchronous document ingestion, summarization, and recovery.**
