@@ -212,11 +212,6 @@ GitHub Actions runs automated checks; paid provider workflows are not part of or
 | Citation validation | Reduce unsupported source references |
 | Offline Ragas evaluation | Measure quality without increasing live chat latency |
 
-## Current Limitations and Next Steps
-
-ResearchAI is an **engineering project, not a production-certified research system**. Current areas for improvement include summary consistency across LLM providers, citation completeness, broader benchmarks, and production security/observability. Some free-model configurations have failed strict source-quote validation; users should confirm provider compatibility before running a demo. Critical research claims should still be checked against the original PDF.
-
-Future work includes stronger retrieval reranking, more diverse document evaluations, cross-paper comparison, and production-grade authentication and monitoring. See the [Latest Live QA](docs/live-e2e-qa-2026-11-14.md) for specific verified limitations.
 
 ## Documentation
 
