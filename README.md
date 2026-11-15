@@ -215,8 +215,7 @@ GitHub Actions runs automated checks; paid provider workflows are not part of or
 
 ## Documentation
 
-[Architecture](docs/architecture.md) · [Atlas Setup](docs/atlas-setup.md) · [Hybrid RAG](docs/hybrid-rag.md) · [Summarization](docs/structured-summary.md) · [PDF Citations](docs/pdf-citations.md) · [Background Jobs](docs/background-jobs.md) · [Evaluation](evaluation/README.md) · [Demo Guide](docs/demo-guide.md)
-
+[Architecture](docs/architecture.md) · [Atlas Setup](docs/atlas-setup.md) · [Hybrid RAG](docs/hybrid-rag.md) · [Summarization](docs/structured-summary.md) · [PDF Citations](docs/pdf-citations.md) · [Background Jobs](docs/background-jobs.md) · [Evaluation](evaluation/README.md) 
 ## Author
 
 **Aravinthan Arrathikasarma**  
