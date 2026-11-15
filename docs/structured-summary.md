@@ -1,157 +1,364 @@
-# Structured research summaries (Prompt 9)
 
-The summary format is Title/Authors/Abstract, Problem Statement, Methodology,
-Key Results and Conclusion. The internal `SummaryDraft` schema requires explicit
-source quotes for populated fields. Missing information is represented as null
-(or an empty author list), then displayed as "Not stated in the document."
+# ResearchAI — Structured Research Summarization
 
-The OpenRouter client calls only `https://openrouter.ai/api/v1/chat/completions`.
-It uses the configured primary model, application attribution, a strict JSON
-schema and provider routing that requires the requested parameters. It does not
-follow redirects or automatically change models. GPT-5 models use low reasoning
-effort and omit temperature; other models use `LLM_TEMPERATURE`.
+ResearchAI uses **LangGraph, LangChain, OpenRouter, and MongoDB** to generate structured, source-grounded summaries of academic PDF documents.
 
-Transport retries (`LLM_MAX_RETRIES`, 0–5) cover timeouts, connection failures,
-408, 429 and selected 5xx responses. Authentication, credit, invalid request and
-unsupported-model errors stop immediately with safe messages. Incomplete/truncated
-outputs are rejected. Raw provider responses and private paper text are not logged.
+The summarization system transforms extracted research content into five predefined sections while preserving source references and validating supporting quotations.
 
-Additional settings in `.env.example`:
+Its primary objective is to make complex research papers easier to understand without presenting unsupported information as verified findings.
 
-| Setting | Default | Meaning |
-| --- | --- | --- |
-| `LLM_TIMEOUT_SECONDS` | 60 | Timeout for a completion request |
-| `LLM_MAX_OUTPUT_TOKENS` | 4096 | Completion budget, including model reasoning |
-| `SUMMARY_CONTEXT_BYTES` | 48000 | UTF-8 guard for one source/notes context; not tokens |
-| `SUMMARY_MAX_WINDOWS` | 64 | Maximum extraction windows before rejecting oversized input |
-| `SUMMARY_VALIDATION_RETRIES` | 2 | Maximum targeted repairs per model output |
+## 1. Overview
 
-Evidence validation checks that each cited chunk is in the supplied input, that
-its page is correct, and that the quote exists in that page's chunk span (allowing
-whitespace normalization). This establishes source identity and quote presence;
-it does not prove that a generated claim follows from the quote. Manually review
-scientific claims and use the later evaluation stage for quality measurement.
+ResearchAI generates research summaries using a consistent five-section format.
 
-## LangGraph workflow
+| Section | Description |
+|---|---|
+| Title, Authors & Abstract | Identifies the paper, its authors, and research overview |
+| Problem Statement | Explains the problem addressed and its motivation |
+| Methodology | Describes the proposed methods, algorithms, and architecture |
+| Key Results | Presents experimental findings and reported performance |
+| Conclusion | Summarizes contributions, limitations, and future directions |
 
-`identify -> generate -> validate -> advance -> save`, with conditional edges
-back to `generate` for at most two targeted repairs. Long papers run extraction
-over all page-attributed chunks in bounded, heading-labelled windows, then combine
-validated notes through a reduction tree. Original source references are retained
-and checked at every level. No input text is silently truncated. A preflight
-checks all window/record limits before the first paid request. Reduction must
-make progress and is capped at eight rounds.
+Missing information is explicitly represented as `null` or an empty author list and displayed as **"Not stated in the document."**
 
-The graph has no agents, tools, persistent checkpoints or hidden model fallback.
-Transport failures do not consume the schema-repair budget; each transport request
-has its own bounded retry budget. Failed jobs currently restart extraction on
-retry, so they may repeat successful paid calls. Save callbacks run only after
-successful validation. MongoDB publication is implemented below; React integration is described below.
+Every populated summary field requires supporting evidence from the processed research paper.
 
-## Generate and retrieve
+## 2. System Architecture
 
-Run from the project root with the backend dependencies installed and MongoDB
-running. Use the real document ID returned by upload:
+```mermaid
+flowchart TD
+    A["Processed PDF Chunks"] --> B["LangGraph Workflow"]
+    B --> C["Source Identification"]
+    C --> D["Evidence-Based Generation"]
+    D --> E["Schema and Citation Validation"]
+    E --> F{"Valid Output?"}
+
+    F -->|Yes| G["Versioned MongoDB Persistence"]
+    F -->|No| H["Targeted Correction"]
+    H --> E
+    H -.->|Retry Limit Reached| I["Generation Failure"]
+
+    G --> J["FastAPI Summary Endpoint"]
+    J --> K["React Summary Workspace"]
+```
+
+The workflow operates on previously extracted and chunked document content. It does not require a new PDF parsing operation for every summary request.
+
+Completed summaries can be reused when their source generation and configuration remain compatible.
+
+## 3. LangGraph Summarization Workflow
+
+ResearchAI uses a stateful LangGraph workflow to coordinate summary generation, evidence validation, and persistence.
+
+The primary workflow is:
+
+`identify → generate → validate → advance → save`
+
+### Source Identification
+
+The workflow identifies relevant document sections and supporting chunks for each summary field.
+
+For longer research papers, all page-attributed chunks are processed through bounded, heading-aware extraction windows.
+
+### Summary Generation
+
+The configured OpenRouter model generates structured content using the selected source evidence.
+
+A strict Pydantic `SummaryDraft` schema defines the expected summary structure and citation requirements.
+
+### Evidence Validation
+
+Every populated field must include valid source references.
+
+The validator verifies:
+
+- The referenced chunk exists in the supplied input.
+- The cited page belongs to that chunk's source span.
+- The quotation appears in the referenced source text.
+- The generated output follows the required schema.
+
+### Targeted Correction
+
+Invalid output can trigger up to two targeted correction attempts.
+
+The workflow requests corrections without weakening source validation requirements.
+
+If the output remains invalid, generation fails rather than publishing an unsupported summary.
+
+### Long-Document Processing
+
+Long research papers are processed using bounded extraction windows and hierarchical reduction.
+
+The reduction process preserves source references and validates consolidated information.
+
+Input text is not silently truncated. Oversized processing requests are rejected before paid model execution when they exceed configured limits.
+
+**Architecture note:** LangGraph is used as a controlled workflow engine. This summarization pipeline does not use autonomous agents, tool-calling loops, or persistent LangGraph checkpoints.
+
+## 4. OpenRouter LLM Integration
+
+ResearchAI uses OpenRouter as the configured gateway for structured summary generation.
+
+The client sends completion requests through:
+
+`https://openrouter.ai/api/v1/chat/completions`
+
+The integration supports:
+
+- Configurable primary language model
+- Structured JSON responses
+- Strict output schema validation
+- Configurable timeout and output limits
+- Bounded retries for transient failures
+- Safe handling of provider errors
+- Protection of API credentials and private document content
+
+The client does not automatically switch models or follow redirects.
+
+Authentication failures, exhausted credits, invalid requests, and unsupported-model errors are returned without repeated requests.
+
+Incomplete or truncated outputs are rejected.
+
+### Configuration
+
+| Environment Variable | Default | Description |
+|---|---|---|
+| `LLM_TIMEOUT_SECONDS` | `60` | Completion request timeout |
+| `LLM_MAX_OUTPUT_TOKENS` | `4096` | Maximum completion output budget |
+| `SUMMARY_CONTEXT_BYTES` | `48000` | Maximum UTF-8 context size |
+| `SUMMARY_MAX_WINDOWS` | `64` | Maximum document extraction windows |
+| `SUMMARY_VALIDATION_RETRIES` | `2` | Maximum targeted output corrections |
+| `LLM_MAX_RETRIES` | Configurable, 0–5 | Maximum transport retries |
+
+These settings are defined in the application's environment configuration.
+
+The context limit is measured in UTF-8 bytes rather than model tokens.
+
+## 5. Source-Grounded Summary Validation
+
+ResearchAI uses explicit source references to reduce unsupported information in generated summaries.
+
+Each populated summary field must reference the original document through validated chunk and page information.
+
+The workflow rejects invalid quotations, incorrect page references, unknown source chunks, and unsupported output structures.
+
+### Example Validation Scenario
+
+**Problem:** A model generates a quotation containing inserted ellipses rather than an exact source passage.
+
+**Validation:** The quotation is rejected because it does not match a contiguous passage from the referenced document.
+
+**Recovery:** The workflow requests a shorter, verbatim source quotation and revalidates the corrected output.
+
+This ensures that published source quotations correspond to actual document passages.
+
+**Important limitation:** Verified quotation identity establishes that supporting text exists. It does not independently prove that every scientific interpretation is factually correct.
+
+## 6. MongoDB Persistence and Versioning
+
+Generated summaries are persisted in MongoDB using versioned records.
+
+The `summary_runs` collection stores completed summary artifacts associated with:
+
+- Document identity
+- Active chunk set
+- Parsing generation
+- Summary model
+- Output schema
+- Workflow version
+- Relevant configuration
+
+The document record retains a reference to its active summary.
+
+### Consistency and Recovery
+
+The persistence layer verifies that the source document and processing generation have not changed before publishing a summary.
+
+Only the owning processing job can publish a result against the expected source generation.
+
+Previously completed summaries can be reused when their configuration and source references remain compatible.
+
+Older summary versions are preserved rather than silently overwritten.
+
+Read operations revalidate saved source references to avoid returning stale or incompatible results.
+
+## 7. Running Structured Summarization
+
+Run the commands from the repository root with backend dependencies installed and MongoDB configured.
+
+### Step 1 — Extract PDF Content
 
 ```bash
 python -m backend.services.document_processor.main DOCUMENT_ID
+```
+
+### Step 2 — Generate Document Chunks
+
+```bash
 python -m backend.services.document_processor.chunk_cli DOCUMENT_ID
+```
+
+### Step 3 — Generate the Summary
+
+```bash
 python -m backend.services.summary_service.main DOCUMENT_ID
+```
+
+### Step 4 — Retrieve the Saved Summary
+
+```bash
 curl http://localhost:8000/api/v1/documents/DOCUMENT_ID/summary
 ```
 
-The parsing and summary commands can consume credits. Repeating an unchanged
-completed summary reuses the stored result. A missing model key does not prevent
-reading/reusing an existing valid summary. The RabbitMQ summary worker runs generation after ingestion; the GET endpoint
-never starts processing. Failed terminal jobs can use the supported processing
-retry endpoint; unchanged parsed chunks and embeddings are reused.
+Replace `DOCUMENT_ID` with the identifier returned by the document upload endpoint.
 
-`summary_runs` holds immutable results keyed by document, active chunk set and
-summary profile (model, schema, workflow and relevant limits). The document stores
-an active-summary pointer, parse/chunk generation, summary status and ownership
-token. Only the owning job can publish against an unchanged source generation.
-A saved result left by a publication failure can be reused on retry. Older results
-remain stored; switching models/configuration requires a matching result. Reads
-revalidate references against current chunk/page text and refuse stale results.
+Parsing and summary generation may consume provider credits.
 
-The endpoint returns 404 for an unknown document, 409 for a missing/stale/in-progress
-summary and 503 for failed generation or unavailable/invalid storage. Responses
-include the five sections, verified source quotes, unavailable field names, model,
-profile and chunk-set identifiers.
+The configured RabbitMQ workers can also perform these processing stages automatically after document upload.
 
-A completed summary sets the document to READY only when current configured
-embeddings for those chunks are also complete; otherwise it remains PENDING.
-Atlas index availability is a separate readiness check and is not established by
-summary completion. Failed jobs retain a safe failure status. A process crash may
-leave a RUNNING claim: inspect that job before manually recovering ownership;
-there is no automatic stale-claim takeover in this stage.
+The summary retrieval endpoint is read-only and does not initiate paid generation.
 
+## 8. Summary API
 
-## Frontend and verification
+ResearchAI exposes the following endpoint:
 
-The five responsive summary cards fetch the saved summary. Loading, in-progress,
-not-found and failure states are explicit; 409 responses are checked again every
-five seconds while the panel is mounted. A Check again button repeats the read
-without triggering paid generation. Switching documents discards late responses,
-and responses for a different document are rejected. Each section shows its
-saved source pages and quotes. Click-to-highlight behavior remains Prompt 11.
-Sample documents without real storage IDs show a prompt to upload a PDF rather
-than invented paper-specific summary content.
+`GET /api/v1/documents/{id}/summary`
 
-Run deterministic checks from the project root:
+The endpoint retrieves a previously generated summary.
+
+Responses contain the five summary sections, supporting source references, unavailable fields, and relevant generation metadata.
+
+### Error Handling
+
+| HTTP Status | Meaning |
+|---|---|
+| `404` | Document does not exist |
+| `409` | Summary unavailable, in progress, or incompatible with current sources |
+| `503` | Summary generation failed or required storage is unavailable |
+
+The endpoint does not automatically regenerate failed summaries.
+
+Failed processing jobs can use the supported job-retry workflow.
+
+## 9. Frontend Integration
+
+The React workspace presents generated summaries through five structured sections.
+
+The interface supports:
+
+- Loading and processing states
+- Saved summary retrieval
+- Explicit unavailable-information indicators
+- Source page and quotation display
+- Error handling and manual refresh
+- Citation-based navigation to the original PDF
+
+The frontend retrieves completed summaries without starting new model requests.
+
+When processing is incomplete, the interface can check for updated results.
+
+Switching between documents invalidates outdated requests to prevent displaying information from the wrong research paper.
+
+The PDF citation viewer provides source navigation and highlighting when supporting location information is available.
+
+## 10. Document Readiness
+
+Summary completion is one part of the overall document-processing lifecycle.
+
+A document reaches `READY` only when the required summary and embedding artifacts are complete and compatible with the active processing generation.
+
+A completed summary may be available before the entire research workspace becomes ready.
+
+MongoDB Atlas search-index readiness is checked separately and is not established by summary completion alone.
+
+Failed or interrupted jobs retain their processing status and may require supported retry or manual recovery procedures.
+
+## 11. Testing and Verification
+
+ResearchAI includes automated tests for summary generation, validation, persistence, and API behavior.
+
+### Backend Tests
+
+Run from the repository root:
 
 ```bash
 python -m pytest backend/tests -q
+```
+
+### Frontend Tests
+
+```bash
 cd frontend
 npm run build
 npm test
 ```
 
-MongoDB integration tests need `RESEARCHAI_TEST_MONGODB_URI` pointing to a disposable
-local test server. Fixtures create and remove uniquely named databases. Normal
-tests mock completions and skip the two explicitly paid parser/summary checks.
-To opt into the summary smoke test with only synthetic research text:
+### Optional Live Model Verification
+
+The live test uses synthetic research content and requires a configured OpenRouter account.
 
 ```bash
-RESEARCHAI_RUN_SUMMARY_LIVE=1 python -m pytest backend/tests/test_summary_live.py -q
+RESEARCHAI_RUN_SUMMARY_LIVE=1 \
+python -m pytest backend/tests/test_summary_live.py -q
 ```
 
-Verification on 2026-11-11: current working copy **264 backend tests passed, 2
-skipped** with disposable MongoDB; frontend build and **30 tests passed**, including
-the existing local workspace tests. The separately enabled real-model summary
-test **passed** using `openai/gpt-5.6-luna`. It verified schema/source checks and
-the synthetic result stated in the input. This is a connectivity/workflow smoke
-test, not a scientific-summary accuracy benchmark or a fabricated Ragas score.
+Normal automated tests use deterministic provider substitutes to avoid unnecessary API costs.
 
-The existing local workspace redesign is preserved and connected locally. The
-committed App layout receives the same summary panel independently, so no
-unrelated local dashboard/chat/PDF-viewer changes are included in this stage.
-Prompt 8 Atlas search remains unfinished and is not required by summarization.
+MongoDB integration tests require an isolated test database.
 
+### Verified Summary Recovery
 
-The upload result now offers View summary for a stored document that has not yet
-reached READY. This opens the read-only summary panel on the upload page and does
-not open a pending chatbot/workspace or start a paid job. This allows summary
-review while current embeddings remain pending.
+During the documented November 13, 2026 QA run, a real research paper repeatedly failed summary generation because the model produced non-verbatim source quotations.
 
-Independent PR verification used a credential-free export of the staged files:
-**254 backend tests passed, 2 skipped**, frontend production build and **26 tests
-passed**. The smaller counts exclude the preserved, uncommitted Prompt 8 storage
-and workspace tests. The local working copy passed 264 backend tests and 30
-frontend tests. No scientific accuracy claim is inferred from these test counts.
+The `grounded-summary-v2` workflow improved quotation instructions and bounded correction feedback while preserving strict validation.
 
-## Final QA quote correction (2026-11-13)
+Following the correction:
 
-A real public benchmark reached summary generation but repeatedly failed exact
-quote validation: the model inserted ellipses into a source quote. Workflow
-`grounded-summary-v2` explicitly requests short contiguous quotes, preserves
-Markdown and gives actionable bounded repair feedback. Validation remains strict;
-no fabricated or abbreviated quote is accepted. The workflow version participates
-in the profile hash so older prompts cannot silently reuse a matching summary.
+- The existing public-paper summary completed successfully.
+- The saved output passed source-reference revalidation.
+- Previously generated parsing and embedding artifacts were reused.
+- The focused summary regression suite passed 21 tests.
+- The complete backend QA suite passed 474 tests, with four optional paid checks excluded.
 
-After this correction, the existing public paper's supported retry completed on
-its first job attempt. `read_summary` revalidated the saved result against the
-current source generation. This verifies publication, not scientific correctness
-of every summary claim. The focused models/workflow suite passed 21 tests; the
-complete backend suite passed 474 tests with four paid checks deselected. Existing
-parsed pages and embeddings were reused; a new paid parse was not required.
+This verification demonstrates successful workflow recovery and source-validation behavior, not comprehensive scientific-summary accuracy.
+
+See the [Final QA Report](final-qa.md).
+
+## 12. Engineering Decisions
+
+| Decision | Rationale |
+|---|---|
+| Five-section structure | Provide predictable and readable research summaries |
+| LangGraph orchestration | Coordinate multi-stage generation and validation |
+| Pydantic output schemas | Enforce consistent structured responses |
+| Exact source-quote validation | Reduce fabricated or unsupported citations |
+| Bounded correction attempts | Improve recoverability while controlling API costs |
+| Versioned summary storage | Prevent stale results and support reproducibility |
+| Saved-result reuse | Avoid repeated paid generation for unchanged documents |
+| Read-only summary API | Separate retrieval from expensive background processing |
+
+## 13. Limitations and Future Improvements
+
+The summarization workflow has several limitations:
+
+- Output quality depends on the configured language model.
+- Strict quotation validation may reject otherwise useful summaries.
+- Complex or lengthy documents can require multiple paid model calls.
+- Transport failures and interrupted operations may require additional retries.
+- Citation validation does not guarantee that scientific claims are correctly interpreted.
+- External provider availability and credits affect generation reliability.
+
+Future improvements include stronger evidence selection, improved summary consistency across models, expanded automated evaluation, and more efficient recovery from interrupted generation.
+
+## 14. Related Documentation
+
+- [System Architecture](architecture.md)
+- [Hybrid RAG Implementation](hybrid-rag.md)
+- [Background Processing](background-jobs.md)
+- [PDF Citations](pdf-citations.md)
+- [RAG Evaluation](rag-evaluation.md)
+- [Final QA Report](final-qa.md)
+
+---
+
+**ResearchAI Structured Summarization — Generating consistent research summaries with validated source evidence.**
