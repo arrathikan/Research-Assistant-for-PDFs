@@ -1,8 +1,0 @@
-{
-  "normal_frontend": {
-    "http_status": 200
-  },
-  "normal_api": {
-    "http_status": 200
-  }
-}
