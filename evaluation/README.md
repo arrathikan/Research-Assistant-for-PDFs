@@ -1,155 +1,337 @@
-# Offline RAG evaluation
 
-Prompt 13 builds a reproducible evaluation workflow using the application's real
-RAG retrieval/answer code and Ragas. Normal chat routes do not import evaluation.
+# Offline RAG Evaluation
 
-The active benchmark is `datasets/rag_test_cases.json`: 20 source-grounded cases
-from the CC-BY 4.0 published *Lost in the Middle* paper. It includes two unsupported
-questions. Read [source/review provenance](datasets/README.md) and the
-[source checklist](datasets/MANUAL_REVIEW.md). At the user's request, Codex checked
-the references against the PDF; these are explicitly assistant reviews, not
-human approval. Case hashes invalidate review records when content changes.
+ResearchAI includes a reproducible, offline evaluation framework built with **Ragas** to measure retrieval quality, answer generation, and citation reliability.
 
-The original five-case `benchmark_dataset.json` is an unverified legacy scaffold
-and is not used by the new runner. Real benchmark outputs and verification notes
-are published under [reports](reports/README.md).
+The evaluation framework uses the application's actual Hybrid RAG pipeline, allowing meaningful comparisons between semantic-only and hybrid retrieval strategies.
 
-Use a separate environment to keep optional evaluation dependencies away from
-running gateway/workers:
+Evaluation runs independently of the production chatbot to avoid additional latency and unnecessary API costs during normal user interactions.
+
+## Overview
+
+The evaluation framework focuses on three main objectives:
+
+- **Retrieval Quality:** Determine whether relevant evidence is successfully retrieved from research documents.
+- **Answer Quality:** Evaluate the factual accuracy, relevance, and faithfulness of generated responses.
+- **Source Reliability:** Verify whether generated claims are supported by the original research paper.
+
+The framework combines automated Ragas metrics with source-based manual review.
+
+## Evaluation Architecture
+
+```mermaid
+flowchart TD
+    A["Benchmark Questions"] --> B["Evaluation Collector"]
+    B --> C["ResearchAI RAG Pipeline"]
+
+    C --> D["Semantic Vector Search"]
+    C --> E["Hybrid Search"]
+
+    D --> F["Generated Answers"]
+    E --> F
+
+    F --> G["Ragas Evaluation"]
+    F --> H["Source Review"]
+
+    G --> I["Evaluation Reports"]
+    H --> I
+```
+
+The collector executes the same retrieval and answer-generation components used by the application.
+
+Semantic-only and hybrid retrieval share the same query embedding and source snapshot, helping maintain consistency during comparisons.
+
+Generated answers are evaluated independently and are not inserted into user conversation history.
+
+## Benchmark Dataset
+
+The primary benchmark is located at:
+
+`evaluation/datasets/rag_test_cases.json`
+
+It contains **20 source-grounded questions**, including two unsupported questions, based on the published research paper *Lost in the Middle* (CC BY 4.0).
+
+The benchmark includes:
+
+- Questions answerable from the research paper
+- Questions requiring precise supporting evidence
+- Unsupported questions to test appropriate abstention
+- Reference answers and source information
+- Dataset and review provenance
+
+References were checked against the PDF through assistant-assisted review. These checks are recorded as assistant reviews and should not be interpreted as independent human validation.
+
+The original `benchmark_dataset.json` is a legacy scaffold and is not used by the current evaluation runner.
+
+Additional dataset information is available in [Dataset Documentation](datasets/README.md).
+
+## Evaluation Metrics
+
+ResearchAI uses five Ragas metrics to evaluate retrieval and generation.
+
+| Metric | Purpose |
+|---|---|
+| Faithfulness | Measures whether generated claims are supported by retrieved context |
+| Answer Relevancy | Measures how relevant the generated response is to the question |
+| Context Precision | Evaluates the relevance and ranking of retrieved evidence |
+| Context Recall | Measures whether the retrieved evidence covers the information needed |
+| Factual Correctness (F1) | Compares generated responses with reference answers |
+
+### Evaluation Principles
+
+- Metrics are calculated only when their required inputs are available.
+- Missing or failed measurements are recorded with an explicit reason.
+- Genuine zero scores are preserved rather than treated as errors.
+- Unsupported questions receive separate abstention checks.
+- Results include measurement coverage and applicable limitations.
+- Automated metric scores are supplemented by source-based reviews.
+
+Ragas does not guarantee factual correctness. Evaluation results are interpreted alongside the original research evidence.
+
+## Evaluation Technology
+
+| Component | Technology |
+|---|---|
+| Evaluation Framework | Ragas 0.2.15 |
+| Retrieval Pipeline | MongoDB Atlas Vector Search, BM25, RRF |
+| Embeddings | Voyage AI |
+| Answer Generation | OpenRouter |
+| Evaluation Judges | OpenRouter-compatible LLMs |
+| Data Validation | Python, Pydantic |
+| Reporting | JSON and Markdown |
+| Testing | pytest |
+
+The implementation uses Ragas `EvaluationDataset` and `evaluate()` with explicit provider adapters.
+
+LLM judge requests are routed through OpenRouter, while answer-relevancy embeddings use Voyage AI.
+
+Ragas evaluation is an optional dependency and is not required for serving normal chatbot requests.
+
+## Installation
+
+Run the following commands from the repository root.
+
+Create a separate Python environment for evaluation:
 
 ```bash
 python3 -m venv .venv-evaluation
 source .venv-evaluation/bin/activate
+```
+
+Install the dependencies:
+
+```bash
 pip install -r backend/requirements.txt -r evaluation/requirements.txt
 ```
 
-Ragas 0.2.15 is compatible with this project's LangChain 0.3 stack and supports
-`EvaluationDataset` and `evaluate()`. Metric imports are verified against that
-installed version. [Official API](https://docs.ragas.io/en/v0.2.15/references/evaluate/).
+Configure the necessary API credentials and evaluation settings in `.env`.
 
-Local `results/` artifacts are ignored because they may contain paper/context
-text. Publish only deliberately reviewed shareable reports under `reports/`.
+External AI calls may consume provider credits.
 
+## Running the Evaluation
 
-Collection now uses the actual RAG answer composition and document-scoped Atlas
-query/filter validation. A paired helper shares one query vector and candidate
-snapshot between semantic and hybrid rankings. Semantic ignores keyword results;
-hybrid uses the existing RRF. Retrieval duration is shared and is not a valid
-per-strategy latency comparison. Answers are independent single turns and are
-not inserted into user chat history. Failed retrieval/generation is recorded
-without fabricated contexts or answers. PDF hash/page count and the current
-source generation are checked before paid work and after generation.
+Before starting, ensure that the benchmark PDF has been uploaded and successfully processed by ResearchAI.
 
+Create a local bindings JSON file mapping the benchmark paper identifier `lost-in-middle-tacl-2024` to its actual MongoDB document ID.
 
-The five implemented metrics are faithfulness, answer relevancy, reference-based
-context precision, context recall and factual correctness (F1). Ragas 0.2.15
-uses `EvaluationDataset` / `evaluate()` with explicit provider adapters. All judge
-completions go through OpenRouter; relevancy embeddings use Voyage query vectors
-for both original and generated questions. No default OpenAI provider is used.
-Anonymous Ragas telemetry is disabled in the evaluation process.
+Keep this file outside version control.
 
-`EVAL_*` settings in `.env.example` bound evaluator timeouts, concurrency, output
-size, question count and request/input budgets. Failed/invalid/non-finite scores
-remain null with a reason. Genuine zero scores are retained. Unsupported cases
-use separate abstention/manual checks; reference-dependent metrics are skipped
-when references are absent, and empty-context/abstention cases are explicitly
-marked as inapplicable where necessary. Means must state their sample coverage.
-Ragas is optional and is not installed as a required serving dependency.
-
-
-## Run the workflow
-
-From the repository root, use the separate evaluation environment described above.
-The gateway/workers should first process the exact benchmark PDF. Create a local
-bindings JSON mapping `lost-in-middle-tacl-2024` to its actual document ID.
-Keep that file outside version control.
+### 1. Validate the Benchmark
 
 ```bash
-python -m evaluation.evaluate validate --pdf /absolute/path/to/2024.tacl-1.9.pdf
-python -m evaluation.evaluate collect --bindings /absolute/path/to/bindings.json --limit 20 --live
-python -m evaluation.evaluate score --collection evaluation/results/collection-RUN_ID.json --live
+python -m evaluation.evaluate validate \
+  --pdf /absolute/path/to/2024.tacl-1.9.pdf
 ```
 
-Or collect and score in one invocation:
+This validates the benchmark against the source PDF before running paid evaluation operations.
+
+### 2. Collect RAG Responses
 
 ```bash
-python -m evaluation.evaluate run --bindings /absolute/path/to/bindings.json --limit 20 --live
+python -m evaluation.evaluate collect \
+  --bindings /absolute/path/to/bindings.json \
+  --limit 20 \
+  --live
 ```
 
-Use `--sample-id lim_01` (repeatable), `--limit 2` for a small smoke run, or
-`--strategy hybrid` / `--strategy semantic` to select output variants. Unreviewed
-drafts require `--allow-unreviewed` and retain their missing review provenance.
-The configured `EVAL_MAX_SAMPLES` and evaluator request budgets bound work.
-Collections are saved before judging, so scoring can be retried without rerunning
-paid answer generation. Every scoring run gets a new evaluation ID.
+The collector runs the application retrieval and answer-generation pipeline and stores the resulting evaluation artifacts.
 
-Generate a pending result-review template:
+### 3. Calculate Ragas Metrics
 
 ```bash
-python -m evaluation.evaluate manual-template --collection evaluation/results/collection-RUN_ID.json --output /absolute/path/to/manual-review.json
+python -m evaluation.evaluate score \
+  --collection evaluation/results/collection-RUN_ID.json \
+  --live
 ```
 
-Fill it only after actually reviewing the corresponding answers/evidence. Add
-reviews to an existing scored report without provider calls:
+Replace `RUN_ID` with the actual collection identifier.
+
+The scoring process evaluates the saved responses without repeating answer generation.
+
+### Alternative: Run the Complete Workflow
 
 ```bash
-python -m evaluation.evaluate review --report evaluation/results/evaluation-EVALUATION_ID.json --manual /absolute/path/to/manual-review.json
+python -m evaluation.evaluate run \
+  --bindings /absolute/path/to/bindings.json \
+  --limit 20 \
+  --live
 ```
 
-This creates a new evaluation ID linked to the original report, preserves measured
-scores/request counts, and validates that each review matches the unchanged
-result. Unknown sample/strategy keys are rejected. Alternatively, supply `--manual`
-to `score` when scoring for the first time. To render an existing score artifact
-without paid calls:
+This combines collection and scoring.
+
+### Run a Small Evaluation
+
+For a quick development test:
 
 ```bash
-python -m evaluation.report evaluation/results/evaluation-EVALUATION_ID.json --output /absolute/path/to/new-report.md
+python -m evaluation.evaluate run \
+  --bindings /absolute/path/to/bindings.json \
+  --limit 2 \
+  --live
 ```
 
-Run deterministic evaluation tests separately from paid runs:
+You can also select a specific retrieval strategy using:
+
+- `--strategy hybrid`
+- `--strategy semantic`
+
+Use `--sample-id lim_01` to evaluate a selected benchmark question.
+
+## Manual Source Review
+
+Automated metrics are supplemented by answer-level evidence review.
+
+Generate a review template:
 
 ```bash
-RAGAS_DO_NOT_TRACK=true python -m pytest backend/tests/test_benchmark_dataset.py backend/tests/test_evaluation_collection.py backend/tests/test_evaluation_metrics.py backend/tests/test_evaluation_judge.py backend/tests/test_evaluation_report.py -q
+python -m evaluation.evaluate manual-template \
+  --collection evaluation/results/collection-RUN_ID.json \
+  --output /absolute/path/to/manual-review.json
 ```
 
-The installed-Ragas adapter check uses local HTTP fixtures. All numeric fixture
-scores in unit tests are explicitly test data, never published benchmark results.
-See [the methodology](../docs/rag-evaluation.md) for interpreting real scores.
+After reviewing the generated answers against their supporting evidence, attach the completed review:
 
-## Research-assistant intent checks
+```bash
+python -m evaluation.evaluate review \
+  --report evaluation/results/evaluation-EVALUATION_ID.json \
+  --manual /absolute/path/to/manual-review.json
+```
 
-Use the separate nine-case dataset and curated follow-up seed history:
+The review process preserves existing metric scores and verifies that review records correspond to the original evaluation results.
 
-```sh
-RAGAS_DO_NOT_TRACK=true python -m evaluation.evaluate validate \
-  --dataset evaluation/datasets/intent_test_cases.json --pdf /path/to/published-paper.pdf
-RAGAS_DO_NOT_TRACK=true python -m evaluation.evaluate collect \
+Reviews must identify whether they were completed by a human or an AI assistant. Assistant-generated assessments are not presented as independent human approval.
+
+## Research Assistant Evaluation
+
+In addition to the primary benchmark, ResearchAI includes a separate dataset for evaluating conversational research-assistant behavior.
+
+Dataset:
+
+`evaluation/datasets/intent_test_cases.json`
+
+This dataset includes **nine research-assistant test cases**, covering factual questions, research overviews, follow-up questions, analytical requests, and general-knowledge handling.
+
+Validate the dataset:
+
+```bash
+python -m evaluation.evaluate validate \
+  --dataset evaluation/datasets/intent_test_cases.json \
+  --pdf /absolute/path/to/published-paper.pdf
+```
+
+Collect evaluation responses:
+
+```bash
+python -m evaluation.evaluate collect \
   --dataset evaluation/datasets/intent_test_cases.json \
   --history evaluation/datasets/intent_history.json \
-  --bindings /private/path/to/document-bindings.json --limit 9 --live
+  --bindings /absolute/path/to/bindings.json \
+  --limit 9 \
+  --live
 ```
 
-Then score the saved collection using the existing score command. Both strategies
-share section samples for an overview and no retrieval for general knowledge;
-those rows compare generation behavior, not hybrid versus semantic ranking.
-Facts retain the configured narrow limit; other paper queries use the bounded
-broader context with section diversity for both strategies. Initial and corrected
-runs retain their actual pipeline commit, prompt hash, source identity and
-dataset hash.
+The collected results can then be scored using the standard scoring command.
 
-General-only cases are evaluated for clear labeling and absence of paper
-citations, not paper faithfulness. Mixed cases score paper faithfulness and
-reference correctness on the paper portion and answer relevance on the complete
-response. Ragas receives the literal current question for follow-ups; its
-single-turn relevance metric may underrate context-dependent wording. Review
-follow-ups with their recorded seed history and reference. Results do not
-establish general accuracy, and no human review is implied by assistant checks.
+General-knowledge responses are checked for clear labeling and appropriate separation from document-grounded claims.
 
-## Final QA follow-up (2026-11-13)
+Follow-up questions are reviewed with their recorded conversation context because single-turn relevance metrics may not fully capture conversational intent.
 
-The [latest nine-case paired run](reports/2026-11-13-final-qa/README.md) uses the
-completed v2 saved summary. All 18 responses generated; Ragas recorded 58 real
-metric values, 30 appropriate skips and two overview context-recall errors.
-All outputs have assistant source reviews, including remaining citation and
-attribution failures. This partial run is retained without substituting missing
-values or claiming independent human approval or general hybrid superiority.
+## Evaluation Results
+
+The latest documented evaluation report is available at:
+
+[Final QA Evaluation Report — November 13, 2026](reports/2026-11-13-final-qa/README.md)
+
+The nine-case paired evaluation recorded:
+
+| Measurement | Result |
+|---|---:|
+| Research questions | 9 |
+| Generated responses | 18 |
+| Recorded Ragas metric values | 58 |
+| Applicable metric skips | 30 |
+| Metric execution errors | 2 |
+
+The evaluation also identified remaining issues involving citation support and source attribution.
+
+These results demonstrate that the evaluation workflow can execute and report quality measurements. They do not establish universal answer accuracy or prove that hybrid retrieval is consistently superior.
+
+Detailed scores, source assessments, and limitations are maintained in the published reports.
+
+## Testing
+
+Run the deterministic evaluation tests from the repository root:
+
+```bash
+RAGAS_DO_NOT_TRACK=true python -m pytest \
+  backend/tests/test_benchmark_dataset.py \
+  backend/tests/test_evaluation_collection.py \
+  backend/tests/test_evaluation_metrics.py \
+  backend/tests/test_evaluation_judge.py \
+  backend/tests/test_evaluation_report.py -q
+```
+
+These tests verify dataset validation, collection contracts, evaluation adapters, metric handling, and report generation.
+
+Test fixture scores are not treated as measured benchmark results.
+
+## Reproducibility and Data Handling
+
+The evaluation workflow records relevant configuration and source information to support reproducible comparisons.
+
+Important safeguards include:
+
+- Validating source PDF identity and processing generation
+- Preserving dataset and configuration references
+- Keeping semantic and hybrid comparison inputs consistent
+- Recording failures without fabricating answers or scores
+- Separating local evaluation artifacts from published reports
+- Disabling anonymous Ragas telemetry during evaluation
+
+Local evaluation outputs are stored under `evaluation/results/` and excluded from version control because they may contain document passages or other sensitive research content.
+
+Only deliberately reviewed, shareable reports should be published under `evaluation/reports/`.
+
+## Current Limitations
+
+- Ragas scores depend on evaluator models and benchmark quality.
+- A small benchmark cannot represent all academic research domains.
+- Reference-based metrics require suitable ground-truth answers.
+- Follow-up questions may be underestimated by single-turn relevancy metrics.
+- Strict citation validation may reject otherwise useful answers.
+- Some evaluation results contain metric errors or incomplete citation support.
+- Paid LLM evaluation depends on available API credits and provider reliability.
+
+Future improvements include larger multi-domain benchmarks, retrieval ablation studies, improved citation evaluation, and more extensive independent human review.
+
+## Documentation
+
+- [Evaluation Methodology](../docs/rag-evaluation.md)
+- [Benchmark Dataset](datasets/README.md)
+- [Source Review Checklist](datasets/MANUAL_REVIEW.md)
+- [Evaluation Reports](reports/README.md)
+- [Hybrid RAG Architecture](../docs/hybrid-rag.md)
+
+---
+
+**ResearchAI Evaluation — Measuring retrieval relevance, answer faithfulness, and source reliability through reproducible experiments.**
