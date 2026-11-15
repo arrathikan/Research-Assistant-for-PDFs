@@ -11,7 +11,7 @@ ResearchAI is a full-stack research assistant that converts academic PDFs into s
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/atlas)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 
-[Architecture](docs/architecture.md) · [Demo Guide](docs/demo-guide.md) · [Evaluation](evaluation/README.md) · [Deployment](docs/deployment.md)
+[Architecture](docs/architecture.md) · [Evaluation](evaluation/README.md) · [Deployment](docs/deployment.md)
 
 ## Why ResearchAI?
 
