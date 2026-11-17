@@ -34,7 +34,7 @@ retrieval result was committed. Only the test's freshly generated database was
 removed. Application indexes were created without replacing existing definitions.
 
 Existing local-preview database files remain on disk and were not migrated to
-Atlas. The gateway now reads Atlas through the ignored local environment. New
-uploads need parsing/chunking/embedding before retrieval; automatic background
-orchestration is a later stage. This smoke test does not establish RAG accuracy,
+Atlas. The gateway now reads Atlas through the ignored local environment. At the time of this test, uploads required manual
+parsing/chunking/embedding. The current application runs those steps through
+[background workers](background-jobs.md). This smoke test does not establish RAG accuracy,
 Ragas scores, scientific correctness or the superiority of hybrid retrieval.

@@ -104,8 +104,8 @@ restart a container. Rebuild/recreate the gateway and every worker together afte
 changing persistence/deletion logic.
 
 This is a local/demo deployment. Authentication, authorization, public TLS and
-multi-user operations are not added by Compose. No automatic production deployment,
-image publication or merge is part of Prompt 14.
+multi-user operations are not added by Compose. Compose does not deploy publicly, publish images or merge changes
+automatically.
 
 ## Disposable full-stack smoke check
 
@@ -131,7 +131,7 @@ RAG quality; existing integration tests simulate paid boundaries separately.
 - [Compose startup and health dependencies](https://docs.docker.com/compose/how-tos/startup-order/).
 - [Compose runtime environment files](https://docs.docker.com/reference/compose-file/services/#env_file).
 
-## Prompt 14.1 verification
+## Historical container verification
 
 The clean-copy frontend suite passed **140 tests**. The backend suite passed **473
 tests with 4 paid-provider tests deselected**, using real disposable MongoDB and

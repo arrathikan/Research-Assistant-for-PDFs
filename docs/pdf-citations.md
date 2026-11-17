@@ -1,4 +1,4 @@
-# PDF citations (Prompt 11)
+# PDF citations
 
 ## Verified source contract
 
@@ -106,9 +106,8 @@ bundle optimization were outside this stage.
 
 1. Start the gateway with the project's ignored `.env`, then run `npm run dev`
    from `frontend` so the local PDF assets are prepared.
-2. Upload a PDF. Complete parsing, chunking, embeddings and summary generation with the existing
-   processing commands; open the workspace when the document is ready. Automatic
-   queued processing belongs to Prompt 12.
+2. Run the worker supervisor, upload a PDF and wait for actual processing completion.
+   Open its workspace when the required data is available.
 3. Ask a question that the PDF can answer. Click its `[n]` reference or page
    button. Confirm the quoted source, page number and visible highlight state.
 4. Zoom, navigate away and click the citation again. On a narrow screen, return
@@ -118,6 +117,5 @@ bundle optimization were outside this stage.
    text, missing coordinates or incompatible page geometry use the stated
    page-only fallback. Do not interpret that state as a verified text highlight.
 
-These checks validate navigation and source contracts. Scientific answer quality,
-manual benchmarks and Ragas metrics remain later stages; no evaluation scores
-are claimed here.
+These checks validate navigation and source contracts. Scientific answer quality is assessed separately through
+[offline evaluation](rag-evaluation.md); no quality scores are inferred here.

@@ -129,7 +129,7 @@ successful live saved-summary run. General background is unverified model
 knowledge. These one-paper measurements do not establish broad accuracy or a
 statistically reliable hybrid-search advantage.
 
-## Prompt 15 measured follow-up
+## Final QA measured follow-up
 
 See [the 2026-11-13 report](../evaluation/reports/2026-11-13-final-qa/README.md).
 Saved-summary reuse is now verified live. The same nine paired intent cases

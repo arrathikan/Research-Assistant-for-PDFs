@@ -24,7 +24,7 @@ papers, MongoDB or paid calls are needed. Vitest excludes `e2e/**`; a separate
 TypeScript configuration checks the browser code. CI installs Chromium and runs
 this default suite after unit checks/build, before container verification.
 
-The 14 browser checks cover:
+The current deterministic browser checks cover:
 
 - Upload keyboard dismissal and focus return; drag-and-drop file selection.
 - Queued, running, completed and failed processing, with no premature readiness.

@@ -1,4 +1,4 @@
-# Prompt 15 final QA — 2026-11-13
+# Final QA — 2026-11-13
 
 Final QA and the demo guide are delivered. The verified public-paper flow works;
 measured quality and dependency findings remain release limitations. This report
@@ -86,8 +86,7 @@ upgrade was hidden inside the QA change. Keep development servers local.
 
 Existing deployment also lacks authentication, authorization and public TLS.
 Dashboard documents are held in app-session state; a full reload needs selecting
-or reuploading the same source to rejoin its stored record. The optional Prompt
-3.2 visible connection indicator remains deferred; tested HTTP health is liveness,
+or reuploading the same source to rejoin its stored record. The optional gateway verification visible connection indicator remains deferred; tested HTTP health is liveness,
 not full dependency readiness. A pure sparse-only retrieval benchmark is not
 claimed. These are explicit follow-ups rather than fabricated completion claims.
 

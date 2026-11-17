@@ -1,4 +1,4 @@
-# Markdown-aware chunking — Prompt 7
+# Markdown-aware chunking
 
 ## Run it
 
@@ -107,7 +107,7 @@ python -m backend.services.document_processor.chunk_cli --help
 ```
 
 On 2026-11-11: **178 passed, 1 skipped** with disposable local MongoDB. The skipped
-test is the paid live parser smoke test from Prompt 6; no paid parser was called.
+test is the paid live parser extraction smoke test; no paid parser was called.
 Offline: **160 passed, 19 skipped** (18 database tests plus the paid parser test).
 Tests use real LangChain splitters and synthetic parsed artifacts, and cover
 headings, overlap, page continuation, source boxes, stable IDs, invalid settings,

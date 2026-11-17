@@ -1,4 +1,4 @@
-# Background processing (Prompt 12)
+# Background processing
 
 ## Queue contracts
 

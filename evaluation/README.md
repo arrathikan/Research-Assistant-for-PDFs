@@ -1,6 +1,6 @@
 # Offline RAG evaluation
 
-Prompt 13 builds a reproducible evaluation workflow using the application's real
+This directory provides a reproducible evaluation workflow using the application's real
 RAG retrieval/answer code and Ragas. Normal chat routes do not import evaluation.
 
 The active benchmark is `datasets/rag_test_cases.json`: 20 source-grounded cases

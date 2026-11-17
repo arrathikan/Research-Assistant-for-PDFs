@@ -17,3 +17,4 @@ if (!HTMLDialogElement.prototype.showModal) {
     queueMicrotask(() => { if (!this.open) previousFocus.get(this)?.focus(); });
   };
 }
+

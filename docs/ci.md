@@ -86,7 +86,7 @@ for startup, environment separation, cleanup, health semantics and runtime limit
 ## Review and maintenance
 
 Review all three jobs before merging. Branch protection is a repository-owner decision;
-this increment does not change it. The frontend job also runs 14 deterministic Chromium browser checks without
+this review does not change it. The frontend job also runs the deterministic Chromium browser checks without
 provider calls. Paid live QA and offline Ragas are explicitly excluded; see
 [browser QA](browser-qa.md).
 Update pinned action SHAs deliberately after checking official releases. Rebuild and

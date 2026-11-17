@@ -170,3 +170,4 @@ export const api = {
     return `${API_BASE_URL}/documents/${encodeURIComponent(documentId)}/pdf`;
   },
 };
+

@@ -28,7 +28,7 @@ the heading text. The local workspace's unused icon import was removed.
 
 ## Scope
 
-These results validate Prompt 5 uploads and storage. New documents remain
+These results validate upload uploads and storage. New documents remain
 PENDING; parsing, embeddings, generated summaries, real RAG chat and source
 highlighting are not validated as working backend features yet. Existing sample
 library/workspace content is a frontend demonstration.

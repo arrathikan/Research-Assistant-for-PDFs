@@ -1,726 +1,211 @@
-# ResearchAI System Architecture
+# ResearchAI architecture
 
-This document provides a detailed overview of the system architecture, component boundaries, data flows, and infrastructure design for **ResearchAI — AI Research Paper Assistant**.
+ResearchAI is a React client, a FastAPI HTTP gateway and a background-worker
+runtime sharing one Python codebase. Service directories are module boundaries;
+they are not independently deployed HTTP microservices. MongoDB stores application
+state and GridFS PDFs; RabbitMQ carries job notifications. Ragas runs separately.
 
----
-
-## 1. System Overview
-
-ResearchAI is designed around modular, asynchronous services to ensure responsiveness during heavy PDF parsing, vector indexing, and multi-stage LLM generation tasks.
-
-```mermaid
-graph TD
-    User["User Browser (React + Vite + Tailwind)"] -->|"HTTP / REST / SSE"| API["API Service (FastAPI)"]
-    API -->|"Store Raw PDF"| GridFS[("MongoDB GridFS")]
-    API -->|"Store Document Metadata"| MongoDB[("MongoDB Atlas")]
-    API -->|"Publish Ingestion Task"| RabbitMQ{{"RabbitMQ Job Queue"}}
-
-    RabbitMQ -->|"Consume Ingestion Job"| Worker["Worker Service (Python)"]
-    Worker -->|"Extract Markdown & Pages"| LlamaParse["LlamaParse API"]
-    Worker -->|"Markdown Chunking"| Splitter["LangChain Markdown Splitter"]
-    Worker -->|"Generate Embeddings"| VoyageAI["Voyage AI API"]
-    Worker -->|"Store Chunks & Vectors"| MongoDB
-
-    Worker -->|"Trigger Summary Workflow"| LangGraph["LangGraph Summary Engine"]
-    LangGraph -->|"Generate 5 Sections"| LLM["Configurable LLM"]
-    LangGraph -->|"Save Summary"| MongoDB
-
-    User -->|"Query Chatbot"| API
-    API -->|"Hybrid Search (Vector + BM25 + RRF)"| RAG["Hybrid RAG Pipeline"]
-    RAG -->|"Semantic Vector Search"| MongoDB
-    RAG -->|"BM25 Keyword Search"| BM25Index["BM25 In-Memory / Atlas Index"]
-    RAG -->|"Context + Citation Prompt"| LLM
-    LLM -->|"Answer with Source Citations"| API
-    API -->|"Response + Page Citations"| User
-    User -->|"Jump to Citation & Highlight"| PDFViewer["React-PDF / PDF.js Viewer"]
-```
-
----
-
-## 2. Core Components & Boundaries
-
-### 2.1. Frontend Application
-- **Stack:** React 18+, TypeScript, Vite, Tailwind CSS.
-- **Responsibilities:**
-  - Single-document upload interface with drag-and-drop and progress tracking.
-  - Workspace with an optional PDF preview: summary/chat use a centered column by default; opening a source or the PDF button enables a 55/45 split (full-screen PDF on mobile).
-  - Interactive PDF viewing via `react-pdf` / `pdf.js`, supporting page navigation, zooming, text selection, and programmatically jumping to and highlighting citations.
-  - Markdown rendering for structured summaries and chat messages with clickable citation badges (e.g., `[Page 3, Section 2.1]`).
-
-### 2.2. Core API Service (FastAPI)
-- **Stack:** Python 3.11+, FastAPI, Pydantic v2, Uvicorn.
-- **Responsibilities:**
-  - **Upload Endpoint (`POST /api/v1/documents/upload`):** Validates PDF file type, computes SHA-256 hash, checks for duplicates, stores raw PDF into GridFS, creates document metadata record, and publishes an ingestion job to RabbitMQ.
-  - **Document Status Endpoint (`GET /api/v1/documents/{id}/status`):** Real-time status reporting (`PENDING`, `PARSING`, `EMBEDDING`, `SUMMARIZING`, `READY`, `FAILED`).
-  - **Document Retrieval Endpoint (`GET /api/v1/documents/{id}`):** Returns document metadata and raw PDF stream for the viewer.
-  - **Summary Endpoint (`GET /api/v1/documents/{id}/summary`):** Fetches the completed 5-section structured summary.
-  - **Chat / Query Endpoint (`POST /api/v1/documents/{id}/chat`):** Handles conversational queries against the document using the Hybrid RAG engine with citation generation.
-
-### 2.3. Asynchronous Worker Service & RabbitMQ
-- **Stack:** Python 3.11+, Pika / Aio-pika, RabbitMQ.
-- **Queues:**
-  - `document_ingestion_queue`: Triggers document parsing, chunking, and embedding.
-  - `document_summary_queue`: Triggers the LangGraph summarization workflow.
-  - `document_dlq`: Dead-letter queue for failed tasks with retry backoff.
-- **Responsibilities:**
-  - Decouples long-running LLM and parser calls from HTTP request lifecycles.
-  - Ensures reliable delivery and idempotent job execution.
-
-### 2.4. Document Ingestion & Chunking Pipeline
-- **Extraction:** **LlamaParse** converts academic PDFs (including complex two-column formats, formulas, and tables) into clean Markdown while preserving page tags (`--- Page X ---`).
-- **Deduplication:** **SHA-256** checksum calculated directly from uploaded file bytes. If the hash already exists in MongoDB, the upload endpoint returns the existing document record immediately.
-- **Chunking:** **LangChain MarkdownHeaderTextSplitter** combined with `RecursiveCharacterTextSplitter`. Chunks respect structural headings (`#`, `##`, `###`) and retain metadata:
-  - `document_id`: Parent document reference.
-  - `page_number`: Extracted page number.
-  - `section_title`: Current markdown header level.
-  - `chunk_index`: Ordered sequence index.
-
-### 2.5. Vector Embeddings & Hybrid Search
-- **Embeddings:** **Voyage AI** (`voyage-3` or `voyage-large-2-instruct`), generating dense vectors optimized for technical and academic retrieval.
-- **Vector Storage:** **MongoDB Atlas Vector Search** storing chunks and embedding vectors with HNSW indexing.
-- **Keyword Search:** **BM25** index over chunk text to catch exact terminology, acronyms, author names, and formula references.
-- **Hybrid Fusion:** **Reciprocal Rank Fusion (RRF)**:
-  $$\text{RRF\_Score}(d) = \sum_{m \in M} \frac{1}{k + r_m(d)}$$
-  Combines dense vector rank and sparse BM25 rank to ensure high recall and precision.
-
-### 2.6. Summary Workflow Engine (LangGraph)
-- **Engine:** **LangGraph** orchestrating a deterministic state graph:
-  - **Node 1: Extract Metadata & Abstract:** Parses Title, Authors, and Abstract from initial chunks.
-  - **Node 2: Extract Problem Statement:** Analyzes introduction and motivation sections.
-  - **Node 3: Extract Methodology:** Analyzes architecture, algorithm, and experimental design sections.
-  - **Node 4: Extract Key Results:** Synthesizes experimental outcomes, tables, and metric comparisons.
-  - **Node 5: Extract Conclusion:** Synthesizes final conclusions, limitations, and future work.
-  - **Node 6: Consolidate & Validate:** Validates schema conformity before persisting in MongoDB.
+## Runtime and data flow
 
 ```mermaid
-stateDiagram-v2
-    [*] --> ExtractMeta: Receive Ingestion Chunks
-    ExtractMeta --> ExtractProblem: Title, Authors, Abstract
-    ExtractProblem --> ExtractMethodology: Problem Statement
-    ExtractMethodology --> ExtractResults: Methods & Setup
-    ExtractResults --> ExtractConclusion: Findings & Metrics
-    ExtractConclusion --> ValidateSchema: Summary Sections
-    ValidateSchema --> PersistSummary: Valid Pydantic Schema
-    PersistSummary --> [*]: Mark Document READY
+flowchart LR
+    Browser[React client] --> Gateway[FastAPI gateway]
+    Gateway --> Mongo[MongoDB metadata / GridFS originals]
+    Gateway --> Outbox[MongoDB processing_jobs]
+    Outbox --> Dispatcher[Outbox dispatcher]
+    Dispatcher --> Broker[RabbitMQ durable queues]
+    Broker --> Ingestion[Ingestion consumer]
+    Ingestion --> Parse[LlamaParse]
+    Parse --> Chunk[Markdown chunking]
+    Chunk --> Embed[Voyage embeddings]
+    Embed --> Search[Atlas vector + keyword indexes]
+    Ingestion --> Outbox
+    Broker --> Summary[Summary consumer / LangGraph]
+    Summary --> LLM[OpenRouter]
+    Summary --> Mongo
+    Gateway --> RAG[Chat / LangChain]
+    RAG --> Search
+    RAG --> LLM
+    RAG --> Mongo
+    Browser --> Viewer[Optional React-PDF viewer]
+    Viewer --> Gateway
 ```
 
-### 2.7. Conversational Hybrid RAG & Citation Engine
-- **Engine:** LangChain with configurable LLM (e.g., Claude 3.5 Sonnet, GPT-4o, or Gemini 1.5 Pro).
-- **Prompt Strategy:** System prompt instructs the model to only answer using provided context chunks and to cite sources using format `[Source: Page P, Chunk C]`.
-- **Citation Metadata:** Every citation includes:
-  - `page_number`: Exact PDF page number.
-  - `quote_snippet`: Text snippet from the chunk used as evidence.
-  - `chunk_id`: Unique chunk identifier in MongoDB.
-- **Out-of-Scope Handling:** If question cannot be answered using the provided document, the agent responds clearly that the paper does not contain this information.
-
-### 2.8. Ragas-Based RAG Evaluation Subsystem
-- **Framework:** Ragas (modern collections-based API) paired with systematic manual cross-verification.
-- **Architectural Boundary:** Strictly decoupled from live user-facing chatbot requests; executed via offline benchmarks or on-demand evaluation CLI.
-- **Evaluation Trace Schema:** Every run captures:
-  - `user_question`: Input query.
-  - `retrieved_contexts`: List of chunk texts passed to the LLM.
-  - `generated_answer`: Chatbot response.
-  - `reference_answer`: Ground truth when available in curated benchmark datasets.
-  - `retrieved_chunk_ids`: MongoDB chunk IDs.
-  - `source_page_numbers`: Referenced PDF pages.
-  - `model_configuration`: Temperature, retriever $k$, and fusion weights.
-- **Component Decoupling:**
-  - *Retrieval Metrics:* Context Precision, Context Recall.
-  - *Generation Metrics:* Faithfulness, Answer Relevancy, Factual Correctness.
-- **Comparative Benchmarking:** Quantitative comparison between Hybrid Retrieval (Vector + BM25 + RRF) and pure Semantic Vector Search on answerable and unanswerable test suites.
-
----
-
-## 3. Data Schema & Models (MongoDB)
-
-### 3.1. `documents` Collection
-```json
-{
-  "_id": "ObjectId(...)",
-  "sha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
-  "filename": "attention_is_all_you_need.pdf",
-  "file_size_bytes": 2215200,
-  "gridfs_file_id": "ObjectId(...)",
-  "page_count": 15,
-  "status": "READY", // PENDING | PARSING | EMBEDDING | SUMMARIZING | READY | FAILED
-  "error_message": null,
-  "created_at": "2026-11-10T11:42:00Z",
-  "updated_at": "2026-11-10T11:45:00Z"
-}
-```
-
-### 3.2. `chunks` Collection
-```json
-{
-  "_id": "ObjectId(...)",
-  "document_id": "ObjectId(...)",
-  "chunk_index": 12,
-  "page_number": 3,
-  "section_title": "3.1 Scaled Dot-Product Attention",
-  "content": "The two most commonly used attention functions are...",
-  "embedding": [0.0123, -0.0456, "... (Voyage AI vector) ..."],
-  "token_count": 340,
-  "created_at": "2026-11-10T11:43:10Z"
-}
-```
-
-### 3.3. `summaries` Collection
-```json
-{
-  "_id": "ObjectId(...)",
-  "document_id": "ObjectId(...)",
-  "title": "Attention Is All You Need",
-  "authors": ["Ashish Vaswani", "Noam Shazeer", "Niki Parmar", "..."],
-  "abstract": "The dominant sequence transduction models are based on...",
-  "problem_statement": "Recurrent neural networks factor computation along symbol positions...",
-  "methodology": "The Transformer replaces recurrent layers with multi-head self-attention...",
-  "key_results": "On the WMT 2014 English-to-German translation task, the Transformer achieves 28.4 BLEU...",
-  "conclusion": "The Transformer is the first sequence transduction model based entirely on attention...",
-  "generated_at": "2026-11-10T11:44:30Z"
-}
-```
-
----
-
-## 4. Security, Secrets & Environment Strategy
-
-1. **Zero Secret Hardcoding:** All credentials (API keys, connection URIs) are loaded through Pydantic `BaseSettings` reading from `.env`.
-2. **File Size & Type Guard:** Upload endpoint strictly accepts `application/pdf` with a maximum configurable size (default: 25 MB).
-3. **CORS Policy:** Strict origin checks configured for local development and production environments.
-4. **Isolated Worker Processes:** Background workers operate independently from the user-facing web server to prevent compute starvation.
-
----
-
-## 5. Known Limitations & Future Considerations
-
-- **Single Document Active Session:** The system processes one document at a time per session, optimized for in-depth per-paper exploration. Multi-document cross-comparison is reserved for future extensions.
-- **External Dependency Limits:** Dependent on Voyage AI and LlamaParse rate limits and quota; handled with exponential backoff and queuing via RabbitMQ.
-
-
-## Gateway implementation status
-
-The gateway now separates liveness routing and public response schemas from app
-configuration. Central handlers return string `detail` errors; middleware adds
-request IDs and structured duration/status logs without logging request content.
-CORS is configured from environment settings. External dependencies are not yet
-connected, so health responses report gateway liveness only.
-
-## MongoDB storage foundation (Prompt 4)
-
-PyMongo connections have bounded selection/connect/socket timeouts and explicit
-cleanup. Index initialization materializes the six domain collections. Document
-`_id` is a MongoDB ObjectId, serialized as a string at Python model boundaries;
-related records use string `document_id` fields. `documents.sha256` is unique.
-The API does not establish database connections at import time or during liveness
-checks. GridFS persistence is implemented separately from HTTP upload routing.
-
-### Original PDF persistence
-
-`store_pdf` computes SHA-256, uploads to a unique GridFS file ID, and inserts a
-validated document record. The unique hash index arbitrates races; duplicate
-losers delete their own files and return the winner. Files carry document ID
-and SHA-256 metadata for reconciliation. `read_pdf` resolves by document ID and
-GridFS ID rather than filename. GridFS is outside metadata transactions: crashes
-can leave orphan files, and uncertain inserts retain files for operator review.
-No HTTP upload, parser, embeddings, or job processing is added by Prompt 4.
-
-## Upload validation boundary (Prompt 5)
-
-Validation reads at most the configured file limit plus one byte, strips directory
-components from filenames, and verifies PDF structure/page references with pypdf.
-This runs before database writes and does not extract paper text or invoke AI.
-The original accepted bytes, rather than a rewritten PDF, are used for SHA-256.
-
-### Upload API orchestration
-
-An ASGI body counter bounds multipart requests even without Content-Length;
-the parser accepts one file and no fields. The domain validator runs before
-database access. A thread-pool task ensures indexes and stores the original
-bytes with validated page count; concurrent duplicates use the storage layer's
-unique index and loser cleanup. Responses preserve actual lifecycle status.
-Metadata/status/original-PDF reads use explicit database lifecycle helpers.
-No AI or message broker is invoked in this stage.
-
-## Extraction contracts (Prompt 6)
-
-Normalized output preserves one-based PDF page numbers, per-page Markdown and
-individual source elements. Complete page coverage is checked against the
-original PDF page count; ambiguous or partial output is rejected. Markdown
-headings/tables remain intact and combined output has explicit page separators.
-Item coordinates retain provider-defined units. Layout boxes use the provider's
-documented normalized convention; unrelated layout boxes are never attached to
-text. Missing or invalid coordinates fall back to page-level attribution.
-
-The supported v2 SDK adapter converts explicitly numbered Markdown/items pages
-to the internal page contract. Current item boxes are in page points, with all
-boxes retained and parent/child relationships preserved. The standalone adapter
-uses bounded HTTP/polling timeouts and avoids automatic paid POST retries.
-
-### Extraction lifecycle and publication
-
-A worker atomically claims only pending/failed documents that are neither running
-nor already parsed. The original GridFS bytes are revalidated before a paid
-provider call. Per-run `parsed_pages` and `source_elements` records are immutable.
-Only after every write succeeds does one conditional metadata update publish
-`active_parse_run_id`. Readers filter by that pointer; partial runs are invisible.
-
-During extraction the document is PARSING with parsing_status RUNNING. Success
-sets parsing_status COMPLETED and the overall status PENDING for the next stage.
-It never marks the document READY before chunking/embedding/summary. Failures set
-FAILED with a safe error message. Completed extraction is reused without paying
-for another call. Interrupted RUNNING claims need operator review; no automatic
-lease expiration can launch a duplicate paid job. Partial runs are retained for
-manual reconciliation without removing previous successful output.
-
-### Extraction entry points
-
-A one-document CLI performs provider work in a separate process; the gateway's
-`GET /documents/{id}/parsed` exposes only committed structured output. No cloud
-request is performed in the read route or on upload. RabbitMQ dispatch remains
-a later stage. Local database integration tests use mocked provider output;
-paid-provider verification is a separate opt-in test.
-
-## Markdown chunking (Prompt 7)
-
-MarkdownHeaderTextSplitter retains the six-level heading hierarchy and avoids
-interpreting fenced-code headings as research sections. Explicit inserted page
-markers carry page attribution through whitespace normalization and are removed
-from saved content. RecursiveCharacterTextSplitter enforces character limits
-within each section. Cross-page chunks have separate page evidence spans with
-exact offsets into the resulting chunk, not guessed PDF offsets.
-
-Source elements/coordinates attach only where supporting text is uniquely mapped
-on its source page; ambiguous text falls back to page attribution. The splitter
-normalizes whitespace, so original PDF bytes and parsed Markdown remain the
-authoritative artifacts. IDs include parsing provenance, configuration, actual
-splitter version and algorithm version. No embeddings are created in this stage.
-
-### Chunk-set publication
-
-Chunks are upserted by stable ID with set-on-insert semantics. A unique
-(document_id, chunk_set_id, chunk_index) index permits immutable generations.
-Only an ownership- and parse-version-checked metadata update publishes the
-active_chunk_set_id after every write. Readers filter by the active set and
-verify its count, order and parsing provenance. Prior generations remain intact;
-failed or interrupted attempts cannot expose partially written new output.
-
-A running claim prevents concurrent chunk writers. Repeating an active parse
-and configuration reuses the same set. Changing configuration creates a new set
-without overwriting prior output. Completed chunking still leaves the document
-PENDING for embeddings and summary generation; it never marks chat READY.
-
-The legacy (document_id, chunk_index) index is removed automatically only from
-an empty chunks collection. Populated legacy data is preserved and requires an
-operator-reviewed index migration. No chunk records are deleted automatically.
-
-### Chunking entry points
-
-A dedicated chunk_cli command works from published parsed pages without provider
-keys. The read-only GET /documents/{id}/chunks exposes only the complete active
-set. Downstream retrieval must filter both document_id and the active chunk_set_id
-to avoid using older immutable generations. No vectors, embedding calls, queue
-dispatch or RAG generation are added by Prompt 7.
-
-## Voyage embedding boundary (Prompt 8)
-
-Documents and questions use distinct Voyage input_type values with a common
-model/dimension profile. All vectors must have the configured dimensions and
-finite numeric values and must be nonzero for cosine search. Batch size and
-conservative UTF-8 byte guards bound requests; they are not token counts.
-Provider truncation is disabled. Retries are bounded for transient errors;
-authentication/input failures are not silently retried or logged with secrets.
-
-Prompt 8 embedding persistence uses two additional collections. `embedding_vectors`
-contains content-SHA-256/profile keyed vectors without source text; `chunk_embeddings`
-contains immutable searchable snapshots, vectors and complete chunk/page/source
-metadata scoped by document, chunk set and embedding profile. Source `chunks`
-remain unchanged. A conditional document claim prevents concurrent processing of
-one document; publication requires complete snapshot coverage and unchanged source
-generation. Failed jobs retain successful cache batches for retry. Concurrent jobs
-for different documents may still pay for the same first uncached content.
-
-### Configured provider gateways
-
-OpenRouter is the single configured gateway for future summary/chat completion
-calls. Primary, inexpensive and vision model roles are explicit settings; direct
-OpenAI/Anthropic/Google completion credentials are no longer settings. Voyage
-embeddings use the direct API, with `voyage-4-lite` selected in the environment
-template and an independent embedding profile. `rerank-2.5` is configured for the
-later retrieval stage. LlamaParse remains direct and uses `agentic` extraction.
-See [provider configuration](provider-configuration.md) for exact names and scope.
-
-### Summary completion boundary (Prompt 9.1)
-
-The summary service uses strict Pydantic draft models and a single OpenRouter
-completion adapter. Populated fields require verified chunk/page/quote references;
-missing fields remain explicit. Provider retries are bounded, redirects disabled,
-and raw request/response details excluded from safe errors. See
-[structured summaries](structured-summary.md) for limitations.
-
-Prompt 9.2 uses one controlled LangGraph with source-identification, generation,
-validation/targeted retry, reduction and save nodes. All source chunks are
-processed. Long-paper reduction retains original references and has bounded
-rounds, windows and payload sizes; no persistent checkpoint store is introduced.
-
-Prompt 9.3 persists immutable `summary_runs` with an active pointer and ownership
-token on `documents`. Publication checks the current parse and chunk set; a
-completed run can be reused without repeating LLM calls. Reads revalidate source
-references. Summary completion alone leaves PENDING until current embeddings
-are complete. `GET /api/v1/documents/{id}/summary` is read-only.
-
-Prompt 9.4 connects the React summary panel to the saved-summary endpoint. It
-checks pending results, handles unavailable/failed jobs, preserves explicit
-missing information and discards stale document responses. Source pages and
-quotes are shown; interactive PDF highlighting remains Prompt 11.
-
-The upload result can open the read-only summary panel before document READY,
-without opening a pending chatbot or starting generation. This separates summary
-availability from completion of the embedding stage.
-
-Embedding publication recognizes a completed summary for the same parse, chunk
-set and summary profile. Current embeddings and summary are both required for
-READY, regardless of which finishes first. Search indexes are independent.
-
-Prompt 10 retrieval runs Atlas Vector Search and MongoDB Search BM25 over the same
-immutable `chunk_embeddings` snapshots. Both branches pre-filter document, chunk
-set and embedding profile. Results resolve to canonical current chunks and content
-hashes. LangChain RunnableParallel executes branches, then Python RRF deduplicates
-and combines ranks. Index definition compatibility/readiness is checked before a
-paid query embedding. No local pseudo-vector fallback is used.
-
-Prompt 10.2 uses an ordinary LangChain composition for bounded context, OpenRouter
-completion and deterministic claim/source validation. Answers reference only
-retrieved current chunks. The internal PipelineOutput contains response and
-EvaluationTrace separately; public routes must return only the response. Empty
-retrieval causes a deterministic abstention without an LLM request.
-
-Prompt 10.3 stores `chat_conversations` with source-generation identity and a
-per-conversation ownership token. `chat_turns` stores complete user/assistant
-pairs, sequence numbers and internal evaluation traces in one atomic insert.
-Public chat/history routes return response data only. Generation changes, failed
-models and concurrent turns are handled without mixing documents or partial turns.
-
-Prompt 10.4 connects React chat/history to the real API, stores only per-document
-conversation IDs in sessionStorage and discards late replies after document
-switches. Deterministic tests cover request/history/source/failure contracts;
-opt-in tests cover an actual model answer and a disposable Atlas integration.
-The model-answer check and the isolated live Atlas integration check have both
-passed. Application vector/BM25 indexes are compatible and queryable; scientific
-quality evaluation remains a later stage.
-
-Prompt 11.1 enriches citations with source generation and retained geometry.
-A read-only citation resolver rebuilds anchors from canonical current chunks and
-rechecks generation; it does not trust client coordinates or call providers.
-Only documented, unrotated and in-bounds source regions are eligible for overlays.
-
-
-Prompt 11.2–11.3 uses one responsive React-PDF viewer, with a same-version local
-worker/CMaps/fonts. The browser resolves selected citations before navigating.
-Native rendered-text Range rectangles take precedence over conservative,
-frame-checked source-region overlays. Unmatched/ambiguous text and incompatible
-geometry keep an honest page/quote fallback. Inline chat references and page
-buttons trigger the same navigation; late results and old-page overlays are
-suppressed. Citation checks remain separate from offline Ragas evaluation.
-
-
-Prompt 12.2 adds a MongoDB outbox in `processing_jobs`. Upload validation/GridFS
-storage remain synchronous, followed by durable scheduling only. A separate
-dispatcher confirms RabbitMQ publication before marking the precise job action
-sent. Pending retry/dead-letter actions survive broker downtime. Public job
-status excludes ownership tokens. Manual retry increments the job generation;
-unrequested legacy documents are excluded from reconciliation.
-
-
-Prompt 12.3 runs ingestion and summary consumers outside the gateway. Prefetch 1
-bounds deliveries; long provider calls run outside the RabbitMQ I/O thread.
-MongoDB leases, source-generation checks and the existing service claims guard
-publication. A completed ingestion action atomically becomes a summary outbox
-action. Bounded retries and dead letters are durable before acknowledgements.
-Expired workers require explicit reviewed recovery; completed artifacts are reused.
-
-
-Prompt 12.4 connects upload progress to the processing job and document metadata.
-Readiness is shown only after the persisted document is ready; transient failures
-remain retryable without fabricating a result. RabbitMQ ports are loopback-only
-for local development. Real-broker tests exercise the actual HTTP/storage/queue
-path with simulated provider boundaries and isolated queues/databases.
-
-
-Prompt 13.2 introduces an offline collector outside the gateway. It invokes the
-same answer chain and canonical retrieval helpers used by chat. Paired retrieval
-shares a single query vector and source snapshot, preserving vector ranking for
-the semantic baseline and the existing RRF for hybrid. Collection writes private
-artifacts instead of user conversations. Ragas remains outside request handling.
-
-
-The Prompt 13 evaluator is an optional, separately installed command-line tool.
-A reviewed source dataset is bound to actual database IDs only after original PDF
-hash/page checks. Its collector records real single-turn outputs, while bounded
-OpenRouter/Voyage adapters run Ragas 0.2.15 `EvaluationDataset` / `evaluate()`.
-JSON/Markdown exports keep each metric's score, skip or error state and compare
-only matching strategy/case pairs. Result reviews include provenance, timestamps
-and immutable result hashes; adding them to a saved report uses no provider calls.
-Neither evaluation nor benchmark artifacts are imported into the gateway's chat
-path. See [methodology](rag-evaluation.md) for limitations and actual baseline
-results.
-
-
-### Shared responsive frontend layout
-
-PageContainer supplies one centered 1440px boundary for every active page, with
-16px mobile, 24px tablet and 32px desktop gutters. Both existing navigation
-components use the same boundary while header backgrounds stay full-width.
-Page-specific width selection has been removed. Upload headings, selection and
-status cards share one max-w-5xl (1024px) column. Summary/chat use a 1200px inner
-boundary when the PDF is closed. Existing dashboard statistics adapt from one
-to three columns; document cards use auto-fit tracks so unused columns collapse.
-No document counts, storage calculations, selection or filtering logic changed.
-
-Ordinary pages scroll in the page frame. Workspace sets scrollable=false and
-uses a one-column/two-column grid whose actual content panes handle scrolling.
-The hidden mobile pane has no grid width. The shell's min-h-0 / min-w-0,
-container-relative width and dynamic viewport height allow children to shrink
-without growing the document or creating a second page scrollbar.
-
-Only JSX structure and CSS layout changed. API endpoints, processing states,
-summary/chat behavior and citation handling keep their existing contracts.
-
-
-### Intent-sensitive research chat
-
-A small English routing helper selects context without another model call. Facts
-keep the configured narrow retrieval limit. Topic, analysis and comparison queries
-use a bounded larger candidate selection with section diversity. The preceding
-user question supplies follow-up retrieval terms; prior assistant answers remain
-conversation context, never independent evidence. Atlas vector/BM25/RRF ranking,
-Voyage profiles, document filters and current-generation checks remain intact.
-
-Whole-paper requests first read the existing complete summary for the current
-summary profile and chunk generation. They never run a new summary job. Missing,
-incomplete or oversized saved summaries fall back to bounded samples across
-sections, with a context-coverage qualification required in the answer prompt.
-Unstructured documents receive samples distributed across their available chunks.
-This is bounded coverage, not a claim that every passage was read.
-
-The answer schema keeps paper claims separate from optional general background.
-General background requires an explicit/general-definition intent and is labeled
-"General background (not from this paper)". Mixed answers have separate paper and
-background sections. It is model knowledge, not verified external research.
-Server-side citations still require exact quotes on supplied current pages. One
-bounded correction attempt handles invalid output; unsupported output is rejected.
-The public chat request/response contract and queue workflows are unchanged.
-
-Offline collection uses the same routing/summary context and optionally accepts
-reviewed seed history through --history. Seed history is recorded in private run
-traces and never writes user conversations. For mixed answers, paper faithfulness
-and correctness score only the paper portion; relevance scores the whole response.
-General-only cases use explicit labeling/guardrail review rather than a fabricated
-paper-grounding score.
-
-
-Live intent checks exposed two output-contract problems. General-only responses
-now derive their outside-paper flag on the server. Citation recovery ignores only
-paired Markdown emphasis while finding the exact words, then stores the original
-source substring. A known neighboring selected chunk may be rebound only when
-that same page contains the exact quote. Unknown IDs, altered facts, disjoint
-quotes, other pages and other documents remain rejected. No fuzzy match or
-external source search is used. Short quotes reduce chunk-boundary errors.
-A single overview correction can ask for supported parts after global abstention;
-unsupported output still has to pass the same source checks.
-
-
-The current v4 completion handoff selects numbered source passages. The server
-serializes each selected page span into short exact windows, preserving every
-word, and the model returns only claim text plus numeric passage keys. The server
-constructs canonical source IDs, pages and quotes from those selected passages
-before the existing citation checks. Unknown/missing keys are rejected. No
-persisted Markdown chunk, embedding input, source generation or public API is
-changed by these prompt windows. Legacy injected completion adapters retain the
-validated draft contract for compatibility. General-only scope is derived from
-the absence of paper claims.
-
-Broader retrieval keeps a small prefix of the strongest ranked chunks before
-diversifying across sections. This prevents adjacent critical findings from
-being displaced by less relevant sections. Factual retrieval keeps its original
-limit and order. Live Atlas checks confirmed the previously missed near-perfect
-key-value result is now included in both comparison contexts; this establishes
-context inclusion, not answer correctness or a hybrid-search advantage.
-
-
-### Optional PDF workspace and shared sources
-
-DocumentWorkspace owns the active summary/chat tab, PDF visibility, lazy first
-mount, selected citation and mobile focus handling. A session keyed by selected
-document ID resets document-specific state synchronously. Toggling visibility
-does not replace that session: summary/chat remain mounted, and the existing
-PdfViewerPanel stays mounted but hidden after first use. Its page, zoom, loaded
-PDF and canonical anchor are retained. Desktop/tablet switch between one grid
-column and 11fr/9fr; mobile uses a modal PDF panel with a close control, focus
-containment, return focus and Escape.
-
-Chat citations and saved-summary sources enter the same Workspace callback.
-It checks selected document identity and page bounds before opening the panel.
-The existing server resolver remains authoritative for canonical source,
-generation and quote validation. The viewer waits for the PDF's actual page count
-before applying a verified jump; invalid destinations leave its last valid page.
-
-Summary sources already carry document/chunk-set scope, source chunks, page and
-quotes. A small Web Crypto helper computes the existing SHA-256 citation identity
-without adding an endpoint or library. Asynchronous summary selections are
-cancelled on document changes and superseded selections. Supporting summary
-passages are collapsed by default. Secure hashing is available on localhost/
-HTTPS; a friendly source error handles environments without it.
-
-No retrieval, parsing, stored chunking, embedding, summary generation, RabbitMQ
-or offline Ragas code changes are part of this refinement. See
-[verification](optional-pdf-workspace.md).
-
-
-### Balanced Workspace content width
-
-The former nested 1152px page / 768px content caps left summary cards much
-narrower than their toolbar. Workspace uses the shared 1440px PageContainer
-boundary, keeping 16px mobile, 24px tablet and 32px desktop gutters.
-The closed-PDF toolbar row and summary/chat wrapper share one 1200px maximum,
-so their edges remain aligned. All five summary cards fill that wrapper; their
-paragraphs keep a 100ch line limit and consistent 24px desktop card padding.
-
-Chat uses the same content boundary and input alignment. Individual answers are
-capped at 90ch and question bubbles fit their content with an 85%/70ch limit.
-Opening the existing PDF removes the inner content cap and retains the 55/45 grid;
-closing it restores the wide centered content. No component identity, state,
-source resolution or backend processing behavior is changed by these CSS rules.
-
-
-### Frontend experience and optional code boundary
-
-App uses the existing Dashboard/Upload/Workspace shell, with real upload metadata
-in a session-scoped library. Hardcoded sample READY documents were removed;
-SHA-256 prevents duplicate library cards and document shortcuts carry the requested
-summary/chat tab. No service APIs or processing state machines changed.
-
-Shared CSS tokens and component classes unify controls and typography. Document
-articles use inline-size container queries with a stacked fallback. Workspace
-uses explicit ARIA tabs and retains both content panels. The same existing PDF
-component is imported lazily outside the session component and retained after its
-first use. A focused error boundary protects the conversation from optional PDF
-code/render failures. The mobile overlay keeps existing focus containment and
-makes the global header inert until closed. See [guidance and verification](frontend-experience.md).
-
-
-### Document deletion boundary
-
-`DELETE /api/v1/documents/{document_id}` delegates to
-`shared/document_lifecycle.py`. A metadata barrier and short conditional write guard
-serialize document-specific persistence against cleanup without locking AI calls.
-GridFS and scoped derived records are removed before metadata. Shared vector
-caches/indexes remain. Only acknowledged completion returns 204; partial failure
-retains the barrier and file identity for retry. Active/uncertain writes return 409.
-Ambiguous writes retain their token for operator review, without automatic expiry.
-Deploy the gateway, dispatcher and all writers together before using deletion.
-The existing application has no authentication or per-user ownership layer.
-
-Real MongoDB/GridFS cleanup and worker-race tests pass within the **471 passed,
-6 optional checks skipped** backend suite; all changed Python lint/format checks pass.
-No existing user paper was deleted during verification.
-
-
-### Upload dialog and paper actions
-
-App retains the upload controller across navigation; its native dialog hosts the
-existing picker, request and processing UI. Storage immediately upserts the session
-library. Closed-dialog polling updates real metadata without cancelling queued
-work. Dashboard menus confirm deletion, wait for its response, update library
-statistics and clear selected document state. Deleted IDs reject stale responses.
-See [cleanup contract, authorization boundary, guidance and verification](document-actions-upload-dialog.md).
-
-
-### Container boundaries (Prompt 14.1)
-
-Compose starts the built Nginx frontend, FastAPI gateway, background supervisor and
-RabbitMQ. The same non-root Python runtime image serves the gateway and workers;
-Node is confined to the frontend build stage. Runtime requirements exclude test,
-lint and evaluation packages. Nginx proxies the unchanged `/api/v1` contracts and
-serves local PDF.js assets. Health dependencies prevent the frontend from starting
-before gateway liveness. Worker probes check broker consumers without paid calls.
-
-Atlas configuration is passed through at runtime. Local MongoDB is an explicit
-storage-only profile and does not replace Atlas search. No credentials or private
-PDFs enter build contexts. Existing persistent resource names are retained.
-A disposable smoke project uses its own names, volumes, ports and empty provider
-keys. See [deployment and limitations](deployment.md).
-
-
-### CI boundary (Prompt 14.2)
-
-GitHub Actions checks Python 3.12 and Node 22 on Linux. Backend fixtures use real
-MongoDB/RabbitMQ service containers and simulate paid boundaries; provider/Atlas
-credentials are absent. Strict frontend compilation, Vitest and production builds
-precede a disposable Docker smoke. The smoke exercises the real proxy and storage
-lifecycle in its own containers. Offline Ragas schema/metric/report tests are allowed,
-but live judge calls, accuracy benchmarks, image publication and deployment are not
-part of automatic CI. Official setup actions are SHA-pinned with read-only repository
-permissions. See [CI configuration and limits](ci.md).
-
-### Summary quote discipline (final QA)
-
-`grounded-summary-v2` asks for short, contiguous, verbatim page quotes rather than
-elided passages. Strict chunk/page/quote validation and bounded repairs remain
-unchanged. The workflow version changes the summary profile hash. Final live QA
-recovered a terminal failed summary using cached ingestion outputs; details are in
-[structured summaries](structured-summary.md#final-qa-quote-correction-2026-11-13).
-
-### Browser QA boundary
-
-Playwright lives in development tooling. Default browser tests intercept API
-responses and render an in-memory synthetic PDF using the existing viewer; CI
-runs these without provider credentials. A separately selected live check calls
-the actual gateway from the normal localhost development origin and verifies a
-hash-bound public source. Both use isolated browser contexts and private ignored
-artifacts. Vitest and browser test discovery are separated. See [browser QA](browser-qa.md).
-
-### Final verification and evaluation artifacts
-
-The live public benchmark now has a completed, revalidated v2 saved summary; both
-overview traces exercise summary reuse. Offline Ragas artifacts retain measured
-values, failures and result-bound assistant reviews, separately from application
-chat. The latest run has two metric errors and remaining claim-to-citation defects.
-See [final QA](final-qa.md), [evaluation](../evaluation/reports/2026-11-13-final-qa/README.md)
-and [demo guide](demo-guide.md) for exact scope and release limitations.
-
-### Current frontend brand and reading layout
-
-The warm #C6360A identity supersedes earlier blue visual descriptions. Shared
-Tailwind/CSS tokens style the active frontend; a shared identity component imports
-the user's unchanged transparent PNG for both headers and favicon. The library
-uses responsive rows and compact real metrics, while the summary uses one divided
-reading sheet with named size-container rules. Citation prose displays actual page
-labels from existing metadata. Processing, retrieval and source verification
-contracts remain unchanged. See [frontend redesign](frontend-brand-redesign.md).
-
-### Reference dashboard and interaction theme
-
-One navigation DOM changes from compact tabs to a 224px sidebar at 1280px. The
-header spans both columns; the existing page frame caps the remaining content
-at 1440px. A native paper table reflows into stacked rows according to its own
-container width. Search/status/sort operate on the existing app-session metadata;
-no database/list endpoint or persistence model changed. Active processing counts
-only PARSING, EMBEDDING and SUMMARIZING, while pending remains uploaded/queued.
-Summary requires READY; chat also accepts completed embeddings. Row selection
-still opens an unfinished document's existing processing view.
-
-Shared CSS semantic tokens derive from the Tailwind brand scale. A reusable SVG
-viewport displays the user's original raster illustrations without altering
-pixels; statistics and labels remain real DOM content. The unchanged book PNG
-uses an icon viewport plus one readable wordmark, and remains the favicon.
-Mobile PDF presentation makes both the header and sidebar inert, restoring their
-previous state on close. Citation resolution, chat history and PDF loading are
-unchanged. See [dashboard theme audit](dashboard-reference-theme.md).
-
-### Live QA corrections — November 2026
-
-The frontend now retains document references and selected navigation in sessionStorage, refetching backend metadata on refresh rather than caching processing state. READY with an unreadable saved summary displays an availability error. `markdown-pages-v2` includes native extracted header/footer evidence with original pages without mutating stored parsing; old records require explicit reprocessing. Intent routing no longer treats an incidental “generally” as explicit general background. Summary repair retains strict source validation and adds bounded draft/all-path feedback without changing the existing workflow profile version. Live verification boundaries and open failures are in the [latest QA report](live-e2e-qa-2026-11-14.md).
-
-### Optional model reasoning policy
-
-`LLM_REASONING_ENABLED` controls the existing OpenRouter completion client and offline evaluator. An omitted value preserves existing defaults/profile hashes; an explicit policy enters saved-summary identity and chat traces. Validation and retrieval are unchanged. See [the scoped free-model results](free-model-development.md).
+## HTTP boundary
+
+`backend/gateway/main.py` composes document, processing, chat, citation and health
+routers. Synchronous storage work runs through synchronous route handlers or the
+thread pool. Pydantic schemas validate identifiers and responses; safe errors do
+not reflect private request bodies or provider messages. CORS permits configured
+origins but provides no authentication or authorization.
+
+| API under `/api/v1` | Purpose |
+| --- | --- |
+| `POST /documents` | Validate/store one PDF; ensure a durable processing job |
+| `GET /documents/{id}` and `/status` | Metadata and actual document state |
+| `GET /documents/{id}/pdf` | Original PDF bytes |
+| `GET /documents/{id}/parsed`, `/chunks`, `/summary` | Published extraction, chunks and summary |
+| `GET /documents/{id}/processing` | Job progress/state without invented percentages |
+| `POST /documents/{id}/processing/retry` | Supported failed-job recovery |
+| `POST /documents/{id}/chat` | Document-scoped question answering |
+| `GET /documents/{id}/chat/{conversation_id}` | Persisted conversation history |
+| `POST /documents/{id}/citations/resolve` | Revalidate a source before viewer navigation |
+| `DELETE /documents/{id}` | Delete original and document-scoped records |
+| `GET /health` | Gateway liveness; `/health` also exists outside `/api/v1` |
+
+There is no account system or backend library-list endpoint. Original PDF responses
+are read into memory, without byte-range streaming. See the generated `/docs`
+OpenAPI page for precise request/response contracts.
+
+## Upload and storage
+
+The gateway accepts one multipart PDF, rejects unsupported, corrupt or encrypted
+files using byte/structure checks, and caps the file at 25 MiB by default. SHA-256
+and a unique metadata index deduplicate identical bytes; concurrent losing uploads
+remove only their own candidate GridFS file.
+
+Original bytes live in `fs.files` / `fs.chunks`. The `documents` record links the
+original and active processing generations. Parsed pages, source elements, chunks,
+embeddings and summaries are versioned rather than overwritten during generation.
+
+| Records | Role |
+| --- | --- |
+| `documents`, GridFS | Identity, lifecycle, active pointers and original bytes |
+| `parsed_pages`, `source_elements` | Immutable parse-run pages and optional source geometry |
+| `chunks` | Heading/page-aware chunk generations |
+| `embedding_vectors`, `chunk_embeddings` | Content/profile vector cache and document-scoped searchable records |
+| `summary_runs` | Immutable validated summaries and generation profiles |
+| `chat_conversations`, `chat_turns` | Scoped history, turn ownership and canonical citations |
+| `processing_jobs` | Durable outbox, claims, attempts, leases and terminal states |
+
+`backend/shared/database.py` initializes ordinary indexes explicitly. Other domain
+modules maintain their version-specific indexes. Populated legacy chunk indexes
+require a backed-up, reviewed migration; startup does not delete that data.
+GridFS and metadata writes are not one transaction: ambiguous failures can leave
+orphans requiring operator reconciliation. There is no automatic bulk deletion.
+
+## Background processing
+
+Upload stores the original and ensures a MongoDB job before returning. The worker
+supervisor runs an outbox dispatcher and ingestion/summary consumers using Pika.
+Confirmed publishing plus idempotent claims protects against broker redelivery.
+The ingestion path parses, chunks and embeds, then schedules summary work.
+Consumers use bounded retries, backoff, leases, heartbeat checks and a dead-letter
+queue; paid provider failures are not reported as successful completion.
+
+Documents become `READY` only after a current summary and configured embeddings
+are complete. That state does not establish Atlas search-index queryability or
+model answer quality. Interrupted provider calls can require reviewed recovery
+instead of automatic takeover that might duplicate paid work. Detailed recovery
+and queue contracts are in [background jobs](background-jobs.md).
+
+## Extraction, chunking and embeddings
+
+LlamaParse v2 uses the unified `llama-cloud` SDK and returns page-aware Markdown.
+Normalization preserves all one-based pages, headings, tables, source elements and
+available coordinate units. Missing coordinates are not invented. Native page
+margin text is retained for publication metadata evidence.
+
+LangChain's `MarkdownHeaderTextSplitter` separates headings, followed by
+`RecursiveCharacterTextSplitter` with configurable character size/overlap
+(default 1200 / 150). Splitting is page/source aware; overlap is a target, not a
+guaranteed exact length. Stable chunk-set identities include source/configuration
+versions. Re-chunking invalidates incompatible downstream generations.
+
+Voyage embeds documents and queries with their respective input types. The safe
+template selects `voyage-4-lite`, 1024 dimensions. Embedding profiles prevent reuse
+across incompatible models/dimensions. A content/profile cache avoids repeating
+unchanged document vectors. Voyage reranking is configured but not implemented.
+See [chunking](markdown-chunking.md) and [hybrid retrieval](hybrid-rag.md).
+
+## Intent-sensitive research chat
+
+The active scope includes document, parse run, chunk set and embedding profile.
+Atlas `$vectorSearch` supplies semantic candidates and `$search` text supplies
+BM25 keyword candidates; LangChain runs the two branches and Python combines ranks
+using RRF (default constant 60). Both indexes must be ready/queryable. The active
+keyword implementation uses Atlas, not the declared `rank-bm25` Python package.
+
+Intent rules distinguish facts, broad research questions, metadata, follow-ups,
+mixed questions and general background. Metadata uses targeted extracted title-page
+and page-margin evidence, not an independently verified structured author catalog.
+Overview questions use bounded section-diverse context. Follow-ups receive bounded
+history while preserving the literal question. General background is labeled and
+must not acquire paper citations.
+
+A LangChain composition packs context and calls OpenRouter for structured answer
+selection. The server maps selected passage keys back to canonical source records;
+public responses hide retrieval scores and internal traces. Stale/foreign sources
+are rejected. Insufficient evidence permits abstention. Page/quote identity checks
+do not establish semantic entailment of every generated claim.
+
+## Structured summaries
+
+`summary_service/workflow.py` builds a deterministic LangGraph with identify,
+generate, validate, advance, combine and save nodes. All current chunks pass through
+bounded windows; validated notes reduce through a bounded tree for long papers.
+Schema/source failures can receive up to two targeted repairs by default.
+Transport retries have a separate limit. No autonomous agent or model fallback
+is hidden in this workflow.
+
+The five sections are Title, Authors and Abstract; Problem Statement; Methodology;
+Key Results; Conclusion. Missing facts remain explicitly unavailable. Quotes must
+match current page-attributed source text. The model/schema/workflow/configuration
+profile identifies immutable results; ownership and unchanged source pointers are
+checked before publication. Unchanged completed results can be reused. Strict quote
+validation can still reject full-paper generations; see [summary details](structured-summary.md).
+
+## Frontend and citation navigation
+
+`frontend/src/App.tsx` composes Dashboard, Upload and Workspace using shared
+containers. The orange identity uses the supplied book-logo PNG. Library entries
+are session-storage references; refresh refetches current metadata and drops
+removed entries. Conversation history is server-persisted and scoped per document.
+There is no cross-device account library or author/keyword catalog search.
+
+The PDF viewer is hidden initially and lazy-loaded after an explicit request.
+One viewer component supports toolbar opening and citations. The resolver checks
+document, active generation, one-based page and exact quoted source. A citation
+opens the viewer and navigates it; verified text/geometry can highlight the passage,
+otherwise the page displays quietly. Invalid sources show a friendly error.
+
+At desktop widths the workspace uses approximately 55:45 content/PDF columns;
+mobile uses a full-screen viewer. Chat, draft, summary, page and zoom state survive
+viewer toggles within a document; document changes reset scoped PDF navigation.
+PDF.js worker, fonts and CMaps are copied locally from the installed version.
+See [citation behavior](pdf-citations.md) and [browser QA](browser-qa.md).
+
+## Deletion and data ownership
+
+Deletion marks the document `DELETING` so workers and readers reject new work,
+then removes scoped jobs, conversations, source generations and GridFS original.
+Partial cleanup is retryable. It preserves other documents, shared indexes and
+the content/profile embedding cache. Browser deletion requires confirmation.
+Tests use isolated records; existing user papers are never cleanup fixtures.
+
+## Offline evaluation
+
+The optional `evaluation/` CLI collects real retrieval/answer traces, then uses
+Ragas 0.2.15 `EvaluationDataset` / `evaluate()` for applicable faithfulness, answer
+relevancy, context precision/recall and factual correctness. Paired semantic-only
+and hybrid retrieval share candidate snapshots. Missing scores remain errors or
+skips, not zeroes or substituted results. Normal HTTP chat never imports Ragas.
+
+The active 20-case public-paper dataset and nine-case intent dataset include
+unsupported questions and versioned review provenance. Current reviews are
+assistant checks; independent human approval remains outstanding. Published
+reports document incomplete runs and attribution/citation failures. They do not
+establish broad accuracy or hybrid superiority. See [evaluation methodology](rag-evaluation.md).
+
+## Deployment and boundaries
+
+Compose runs the gateway, worker supervisor, RabbitMQ and Nginx frontend; optional
+ordinary MongoDB supports local storage only. One Python image is reused across
+API/worker roles. CI runs credential-free checks plus isolated real MongoDB/broker
+integration and a container smoke test; paid evaluations remain opt-in.
+
+Provider keys and database credentials stay in ignored runtime environment files,
+never frontend variables, image build arguments or source control. OpenRouter is
+the implemented completion gateway; alternate role names do not provide automatic
+fallback or vision inference. This local/demo app needs dependency remediation,
+authentication, authorization and deployment security before public multi-user use.

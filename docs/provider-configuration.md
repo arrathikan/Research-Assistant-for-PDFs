@@ -1,48 +1,58 @@
 # Provider configuration
 
-Copy `.env.example` to the ignored `.env` and populate credentials locally. Never
-copy credentials into frontend `VITE_` variables. Existing running services must
-be restarted to reload their cached settings.
+Copy `.env.example` to the ignored root `.env` and populate credentials locally.
+Never place credentials in `VITE_` variables, Docker build arguments or source
+control. Restart gateway and worker processes to reload cached settings.
 
-The configured completion gateway is OpenRouter. `OPENROUTER_API_KEY` belongs only
-to `https://openrouter.ai/api/v1`; do not send it to OpenAI's API or put it in
-`OPENAI_API_KEY`. `OPENROUTER_APP_URL` and `OPENROUTER_APP_NAME` supply application
-attribution for future completion clients. They do not rename ResearchAI's UI.
-`LLM_PROVIDER` accepts only `openrouter`.
+## Completions
 
-| Setting | Configured value / purpose |
-| --- | --- |
-| `PRIMARY_REASONING_MODEL` | `openai/gpt-5.6-luna` |
-| `CHEAP_REASONING_MODEL` | `meta-llama/llama-3.3-70b-instruct` |
-| `VISION_MODEL` | `mistralai/mistral-small-3.1-24b-instruct` |
-| `LLM_MAX_RETRIES` | 3; validated range 0–5 |
-| `OPENROUTER_APP_URL` | `https://verdeai.local` |
-| `OPENROUTER_APP_NAME` | `VerdeAI` |
-| `VOYAGE_EMBEDDING_MODEL` | `voyage-4-lite`; direct Voyage API |
-| `EMBEDDING_DIMENSIONS` | 1024 |
-| `VOYAGE_RERANKER_MODEL` | `rerank-2.5`; reserved for retrieval integration |
-| `LLAMA_PARSE_TIER` | `agentic`; direct LlamaParse API |
+`LLM_PROVIDER` currently accepts only `openrouter`. `OPENROUTER_API_KEY` is an
+OpenRouter credential, not an OpenAI API credential. The client calls the fixed
+`https://openrouter.ai/api/v1/chat/completions` endpoint. `OPENROUTER_BASE_URL` is
+not a consumed setting; adding it does not change routing.
 
-`VOYAGE_API_KEY`, `LLAMA_CLOUD_API_KEY`, and `OPENROUTER_API_KEY` are independent
-credentials. Model availability does not establish account access, quota, or
-retrieval quality. Provider calls may consume credits.
+`PRIMARY_REASONING_MODEL` selects summary and chat generation. The template's model
+identifier is configuration, not a guarantee of provider availability. Check your
+account's access, quota and strict JSON-schema support before a live demonstration.
+`OPENROUTER_APP_URL` and `OPENROUTER_APP_NAME` supply attribution only.
 
-For existing deployments, `VOYAGE_MODEL`, `VOYAGE_DIMENSIONS` and `LLM_MODEL`
-remain fallback variable names. The new names above take precedence if both are
-present. With no embedding model configured, the existing `voyage-3` default is
-preserved; `.env.example` explicitly selects `voyage-4-lite`. Supported Voyage 4
-models receive an explicit output dimension (256, 512, 1024 or 2048). Legacy
-embedding models still require 1024 dimensions.
+`LLM_MAX_RETRIES` bounds transient transport retries. `LLM_TIMEOUT_SECONDS` and
+`LLM_MAX_OUTPUT_TOKENS` bound requests. By default GPT-5 uses low reasoning effort
+and omits temperature; other models use `LLM_TEMPERATURE`. Explicit
+`LLM_REASONING_ENABLED=false` disables supported model reasoning to reserve output
+for JSON. Omit it to preserve the existing policy. Reasoning changes participate
+in relevant generation/trace profiles.
 
-Changing models changes the embedding profile even when the vector dimension
-stays 1024. Re-embed the document for the selected profile before searching; do
-not reuse `voyage-3` vectors as though they came from `voyage-4-lite`.
+`CHEAP_REASONING_MODEL` and `VISION_MODEL` are reserved roles. They do not provide
+automatic fallback or a vision pipeline. Normal requests use one configured model.
+`EVAL_JUDGE_MODEL` independently selects the offline judge; changing the primary
+model does not automatically change the judge. Full evaluation can consume many
+calls and is never part of ordinary chat or CI.
 
-The summary service now uses OpenRouter for schema-constrained completions. See
-[structured summaries](structured-summary.md) for generation and verification.
-The hybrid chatbot now uses the same OpenRouter gateway. Automatic model fallback,
-vision requests and Voyage reranking remain outside the current RRF pipeline.
+## Extraction and embeddings
+
+`LLAMA_CLOUD_API_KEY`, `LLAMA_PARSE_TIER`, `LLAMA_PARSE_VERSION` and
+`LLAMA_PARSE_TIMEOUT_SECONDS` configure LlamaParse. A fixed supported parser
+version improves reproducibility; `latest` can change output.
+
+`VOYAGE_API_KEY` authenticates directly to Voyage. The template selects
+`VOYAGE_EMBEDDING_MODEL=voyage-4-lite` with `EMBEDDING_DIMENSIONS=1024`.
+Supported Voyage 4 models accept 256/512/1024/2048 dimensions. Legacy supported
+models require 1024. `VOYAGE_MODEL` / `VOYAGE_DIMENSIONS` and `LLM_MODEL` remain
+fallback names; explicit new names take precedence. Settings without an embedding
+model retain the legacy `voyage-3` default.
+
+Changing model/dimension changes the embedding profile; regenerate compatible
+vectors and ensure the Atlas index dimension matches before querying.
+`VOYAGE_RERANKER_MODEL` is reserved; retrieval currently uses RRF without reranking.
+
+## Local/demo boundaries
+
+Template MongoDB and RabbitMQ credentials are local-only defaults. Configure an
+Atlas URI, least-privilege database access and network allowlist for live hybrid
+search. Ordinary local MongoDB supports storage only. See [Atlas setup](atlas-setup.md),
+[search indexes](hybrid-rag.md) and [Docker runtime overrides](deployment.md).
 
 Provider references: [OpenRouter model catalog](https://openrouter.ai/api/v1/models),
-[Voyage embeddings](https://docs.voyageai.com/docs/embeddings), and
-[Voyage rerankers](https://docs.voyageai.com/docs/reranker).
+[Voyage embeddings](https://docs.voyageai.com/docs/embeddings),
+[LlamaParse](https://developers.llamaindex.ai/llamaparse/).

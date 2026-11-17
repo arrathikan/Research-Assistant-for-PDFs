@@ -84,3 +84,13 @@ evaluation/results/*
 # Private browser QA artifacts
 frontend/test-results/
 frontend/playwright-report/
+
+# Additional local verification and editor artifacts
+.venv-*/
+.coverage.*
+coverage/
+.hypothesis/
+*.tmp
+*.bak
+*.orig
+*~

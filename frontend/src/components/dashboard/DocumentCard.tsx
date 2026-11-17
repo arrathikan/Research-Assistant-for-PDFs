@@ -36,3 +36,4 @@ export function DocumentCard({ document, onOpen, onViewSummary, onOpenChat, onDe
     </div></td>
   </tr>;
 }
+

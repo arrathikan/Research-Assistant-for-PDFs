@@ -1,157 +1,78 @@
-# Structured research summaries (Prompt 9)
+# Structured research summaries
 
-The summary format is Title/Authors/Abstract, Problem Statement, Methodology,
-Key Results and Conclusion. The internal `SummaryDraft` schema requires explicit
-source quotes for populated fields. Missing information is represented as null
-(or an empty author list), then displayed as "Not stated in the document."
+The five sections are Title, Authors and Abstract; Problem Statement; Methodology;
+Key Results; Conclusion. The internal draft schema requires current source quotes
+for populated fields. Missing facts are null/empty and appear as “Not stated in
+the document.” No example paper content is substituted for a real summary.
 
-The OpenRouter client calls only `https://openrouter.ai/api/v1/chat/completions`.
-It uses the configured primary model, application attribution, a strict JSON
-schema and provider routing that requires the requested parameters. It does not
-follow redirects or automatically change models. GPT-5 models use low reasoning
-effort and omit temperature; other models use `LLM_TEMPERATURE`.
+## Generation and validation
 
-Transport retries (`LLM_MAX_RETRIES`, 0–5) cover timeouts, connection failures,
-408, 429 and selected 5xx responses. Authentication, credit, invalid request and
-unsupported-model errors stop immediately with safe messages. Incomplete/truncated
-outputs are rejected. Raw provider responses and private paper text are not logged.
+`backend/services/summary_service/workflow.py` builds a deterministic LangGraph:
+identify → generate → validate → advance/combine → save, with bounded conditional
+repair. All page-attributed chunks enter heading-labeled windows; long papers
+reduce validated notes through a bounded tree. Sources are checked again at every
+level. A preflight rejects oversized input before a paid request; text is not
+silently truncated. Reduction must make progress and has at most eight rounds.
 
-Additional settings in `.env.example`:
+OpenRouter receives a strict JSON schema and parameter-compatible provider routing.
+There is no hidden model fallback. Transport retries cover transient network,
+408/429 and selected 5xx errors; invalid model/auth/credit errors stop safely.
+Truncated/incomplete output is rejected. Model reasoning shares the output budget;
+see [provider settings](provider-configuration.md).
 
 | Setting | Default | Meaning |
 | --- | --- | --- |
-| `LLM_TIMEOUT_SECONDS` | 60 | Timeout for a completion request |
-| `LLM_MAX_OUTPUT_TOKENS` | 4096 | Completion budget, including model reasoning |
-| `SUMMARY_CONTEXT_BYTES` | 48000 | UTF-8 guard for one source/notes context; not tokens |
-| `SUMMARY_MAX_WINDOWS` | 64 | Maximum extraction windows before rejecting oversized input |
-| `SUMMARY_VALIDATION_RETRIES` | 2 | Maximum targeted repairs per model output |
+| `LLM_TIMEOUT_SECONDS` | 60 | Timeout per completion request |
+| `LLM_MAX_OUTPUT_TOKENS` | 4096 | Output budget including reasoning |
+| `SUMMARY_CONTEXT_BYTES` | 48000 | UTF-8 context guard, not tokens |
+| `SUMMARY_MAX_WINDOWS` | 64 | Extraction-window bound |
+| `SUMMARY_VALIDATION_RETRIES` | 2 | Targeted repairs per invalid output |
 
-Evidence validation checks that each cited chunk is in the supplied input, that
-its page is correct, and that the quote exists in that page's chunk span (allowing
-whitespace normalization). This establishes source identity and quote presence;
-it does not prove that a generated claim follows from the quote. Manually review
-scientific claims and use the later evaluation stage for quality measurement.
+Validation requires source identity, correct page and an exact contiguous quote
+with whitespace normalization. It does not establish that a claim follows from
+that quote. Runtime prompt guidance and repair feedback preserve strict validation;
+full-paper generations can still fail. Inspect claims against original pages.
 
-## LangGraph workflow
+## Execution and publication
 
-`identify -> generate -> validate -> advance -> save`, with conditional edges
-back to `generate` for at most two targeted repairs. Long papers run extraction
-over all page-attributed chunks in bounded, heading-labelled windows, then combine
-validated notes through a reduction tree. Original source references are retained
-and checked at every level. No input text is silently truncated. A preflight
-checks all window/record limits before the first paid request. Reduction must
-make progress and is capped at eight rounds.
-
-The graph has no agents, tools, persistent checkpoints or hidden model fallback.
-Transport failures do not consume the schema-repair budget; each transport request
-has its own bounded retry budget. Failed jobs currently restart extraction on
-retry, so they may repeat successful paid calls. Save callbacks run only after
-successful validation. MongoDB publication is implemented below; React integration is described below.
-
-## Generate and retrieve
-
-Run from the project root with the backend dependencies installed and MongoDB
-running. Use the real document ID returned by upload:
+The worker supervisor runs ingestion followed by the summary consumer:
 
 ```bash
-python -m backend.services.document_processor.main DOCUMENT_ID
-python -m backend.services.document_processor.chunk_cli DOCUMENT_ID
+python -m backend.services.jobs.main run
+```
+
+For explicit operator processing of an already parsed/chunked document:
+
+```bash
 python -m backend.services.summary_service.main DOCUMENT_ID
 curl http://localhost:8000/api/v1/documents/DOCUMENT_ID/summary
 ```
 
-The parsing and summary commands can consume credits. Repeating an unchanged
-completed summary reuses the stored result. A missing model key does not prevent
-reading/reusing an existing valid summary. The RabbitMQ summary worker runs generation after ingestion; the GET endpoint
-never starts processing. Failed terminal jobs can use the supported processing
-retry endpoint; unchanged parsed chunks and embeddings are reused.
+Avoid concurrent manual processing of active jobs. Generation consumes credits;
+GET only reads. Repeating a compatible completed result reuses it. Failed terminal
+jobs can use the documented processing retry endpoint; valid parse/chunk/embedding
+outputs are reused, although failed summary extraction may repeat paid calls.
 
-`summary_runs` holds immutable results keyed by document, active chunk set and
-summary profile (model, schema, workflow and relevant limits). The document stores
-an active-summary pointer, parse/chunk generation, summary status and ownership
-token. Only the owning job can publish against an unchanged source generation.
-A saved result left by a publication failure can be reused on retry. Older results
-remain stored; switching models/configuration requires a matching result. Reads
-revalidate references against current chunk/page text and refuse stale results.
+Immutable `summary_runs` are identified by document, active chunk set and profile
+(model, schema, workflow, limits and relevant reasoning policy). Ownership and
+unchanged source-generation checks guard publication. A saved run left by a pointer
+publication failure can be recovered on retry. Reads reject stale references.
 
-The endpoint returns 404 for an unknown document, 409 for a missing/stale/in-progress
-summary and 503 for failed generation or unavailable/invalid storage. Responses
-include the five sections, verified source quotes, unavailable field names, model,
-profile and chunk-set identifiers.
-
-A completed summary sets the document to READY only when current configured
-embeddings for those chunks are also complete; otherwise it remains PENDING.
-Atlas index availability is a separate readiness check and is not established by
-summary completion. Failed jobs retain a safe failure status. A process crash may
-leave a RUNNING claim: inspect that job before manually recovering ownership;
-there is no automatic stale-claim takeover in this stage.
-
+The API returns 404 for an unknown paper, 409 for unavailable/stale/in-progress
+output and 503 for failed generation or invalid/unavailable storage. Summary
+completion marks a document READY only when current configured embeddings are
+also complete. Atlas search-index readiness is a separate check. Interrupted work
+requires [reviewed recovery](background-jobs.md), not a fabricated READY state.
 
 ## Frontend and verification
 
-The five responsive summary cards fetch the saved summary. Loading, in-progress,
-not-found and failure states are explicit; 409 responses are checked again every
-five seconds while the panel is mounted. A Check again button repeats the read
-without triggering paid generation. Switching documents discards late responses,
-and responses for a different document are rejected. Each section shows its
-saved source pages and quotes. Click-to-highlight behavior remains Prompt 11.
-Sample documents without real storage IDs show a prompt to upload a PDF rather
-than invented paper-specific summary content.
+The summary panel shows saved sections and clickable verified citations. Loading,
+processing and failure states are explicit; retrying a read never starts a paid
+job. Late responses for a different selected document are discarded. Opening or
+closing the PDF retains summary/chat state.
 
-Run deterministic checks from the project root:
-
-```bash
-python -m pytest backend/tests -q
-cd frontend
-npm run build
-npm test
-```
-
-MongoDB integration tests need `RESEARCHAI_TEST_MONGODB_URI` pointing to a disposable
-local test server. Fixtures create and remove uniquely named databases. Normal
-tests mock completions and skip the two explicitly paid parser/summary checks.
-To opt into the summary smoke test with only synthetic research text:
-
-```bash
-RESEARCHAI_RUN_SUMMARY_LIVE=1 python -m pytest backend/tests/test_summary_live.py -q
-```
-
-Verification on 2026-11-11: current working copy **264 backend tests passed, 2
-skipped** with disposable MongoDB; frontend build and **30 tests passed**, including
-the existing local workspace tests. The separately enabled real-model summary
-test **passed** using `openai/gpt-5.6-luna`. It verified schema/source checks and
-the synthetic result stated in the input. This is a connectivity/workflow smoke
-test, not a scientific-summary accuracy benchmark or a fabricated Ragas score.
-
-The existing local workspace redesign is preserved and connected locally. The
-committed App layout receives the same summary panel independently, so no
-unrelated local dashboard/chat/PDF-viewer changes are included in this stage.
-Prompt 8 Atlas search remains unfinished and is not required by summarization.
-
-
-The upload result now offers View summary for a stored document that has not yet
-reached READY. This opens the read-only summary panel on the upload page and does
-not open a pending chatbot/workspace or start a paid job. This allows summary
-review while current embeddings remain pending.
-
-Independent PR verification used a credential-free export of the staged files:
-**254 backend tests passed, 2 skipped**, frontend production build and **26 tests
-passed**. The smaller counts exclude the preserved, uncommitted Prompt 8 storage
-and workspace tests. The local working copy passed 264 backend tests and 30
-frontend tests. No scientific accuracy claim is inferred from these test counts.
-
-## Final QA quote correction (2026-11-13)
-
-A real public benchmark reached summary generation but repeatedly failed exact
-quote validation: the model inserted ellipses into a source quote. Workflow
-`grounded-summary-v2` explicitly requests short contiguous quotes, preserves
-Markdown and gives actionable bounded repair feedback. Validation remains strict;
-no fabricated or abbreviated quote is accepted. The workflow version participates
-in the profile hash so older prompts cannot silently reuse a matching summary.
-
-After this correction, the existing public paper's supported retry completed on
-its first job attempt. `read_summary` revalidated the saved result against the
-current source generation. This verifies publication, not scientific correctness
-of every summary claim. The focused models/workflow suite passed 21 tests; the
-complete backend suite passed 474 tests with four paid checks deselected. Existing
-parsed pages and embeddings were reused; a new paid parse was not required.
+[CI](ci.md) documents deterministic workflow/source tests and opt-in provider
+markers. Historical [final QA](final-qa.md) records a successful repaired public
+summary; [later live QA](live-e2e-qa-2026-11-14.md) records further strict-quote
+failures. These observations do not establish summary accuracy across papers or
+models. Current cleanup checks are in [the submission review](submission-review.md).

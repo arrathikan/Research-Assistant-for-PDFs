@@ -1,4 +1,4 @@
-# Document-scoped hybrid RAG (Prompt 10)
+# Document-scoped hybrid RAG
 
 Retrieval uses direct Voyage query embeddings, Atlas Vector Search, MongoDB
 Search with explicit BM25 similarity, and Python reciprocal rank fusion (RRF).
@@ -109,9 +109,8 @@ failed and insufficient-evidence states, shows source quotes and recovers saved
 history. Only the conversation ID is stored in sessionStorage, separately per
 document; chat text is not persisted in browser storage. A document switch
 ignores late answers. Sending failures never create a simulated assistant reply.
-Citation callbacks preserve IDs/document/chunk/page/quote for Prompt 11's viewer.
-The local workspace redesign is preserved and connected locally; the committed
-App gets the same panel without committing unrelated local layout/PDF-viewer work.
+Citation callbacks preserve document/page/quote metadata for the shared optional
+PDF viewer; internal source identifiers stay outside normal UI.
 
 For a parsed/chunked document, prepare embeddings, create indexes, then ask:
 
@@ -131,7 +130,8 @@ curl -X POST http://localhost:8000/api/v1/documents/DOCUMENT_ID/chat \
 Use the returned conversation_id for subsequent turns/history. Retrieval and
 answers may consume provider credits. The primary model is configurable through
 OpenRouter. Voyage reranking is configured but not enabled by this RRF pipeline.
-RabbitMQ orchestration and interactive PDF source highlighting remain later stages.
+RabbitMQ orchestration and interactive PDF source inspection are implemented;
+see [background jobs](background-jobs.md) and [citations](pdf-citations.md).
 
 ## Verification
 
