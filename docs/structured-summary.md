@@ -1,4 +1,3 @@
-
 # ResearchAI — Structured Research Summarization
 
 ResearchAI uses **LangGraph, LangChain, OpenRouter, and MongoDB** to generate structured, source-grounded summaries of academic PDF documents.
@@ -52,7 +51,7 @@ ResearchAI uses a stateful LangGraph workflow to coordinate summary generation, 
 
 The primary workflow is:
 
-`identify → generate → validate → advance → save`
+`identify → generate → validate → advance/combine → save`
 
 ### Source Identification
 
@@ -132,7 +131,7 @@ Incomplete or truncated outputs are rejected.
 
 These settings are defined in the application's environment configuration.
 
-The context limit is measured in UTF-8 bytes rather than model tokens.
+The context limit is measured in UTF-8 bytes rather than model tokens. Model reasoning shares the completion output budget; see [provider configuration](provider-configuration.md).
 
 ## 5. Source-Grounded Summary Validation
 
@@ -185,6 +184,8 @@ Read operations revalidate saved source references to avoid returning stale or i
 ## 7. Running Structured Summarization
 
 Run the commands from the repository root with backend dependencies installed and MongoDB configured.
+
+For normal uploads, start `python -m backend.services.jobs.main run` and let the workers run the pipeline. The following commands are explicit operator tools for stored documents; avoid running them concurrently with active jobs.
 
 ### Step 1 — Extract PDF Content
 
@@ -322,7 +323,7 @@ Following the correction:
 
 This verification demonstrates successful workflow recovery and source-validation behavior, not comprehensive scientific-summary accuracy.
 
-See the [Final QA Report](final-qa.md).
+See the historical [Final QA Report](final-qa.md). The [later live QA report](live-e2e-qa-2026-11-14.md) records further strict-quote failures and blocked full-paper retests; successful recovery in one run is not general summary-accuracy evidence.
 
 ## 12. Engineering Decisions
 

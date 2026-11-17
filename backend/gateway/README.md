@@ -1,4 +1,3 @@
-
 # ResearchAI — API Gateway
 
 The **API Gateway** is the primary HTTP interface between the ResearchAI frontend and backend services. Built with **FastAPI and Pydantic**, it provides REST endpoints for document management, processing status, structured summaries, and research conversations.

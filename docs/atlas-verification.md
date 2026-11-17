@@ -1,8 +1,7 @@
-
 # ResearchAI — MongoDB Atlas Integration Verification
 
-**Verification Date:** November 11, 2026  
-**Verification Status:** Passed  
+**Verification Date:** November 11, 2026
+**Verification Status:** Passed
 **Scope:** MongoDB Atlas connectivity, Hybrid RAG retrieval, and OpenRouter integration
 
 ## 1. Overview
@@ -160,7 +159,7 @@ The following boundaries apply:
 - No Ragas accuracy scores were produced by this test.
 - The results do not establish that Hybrid RAG is generally superior to semantic-only retrieval.
 
-New documents must complete the required extraction, chunking, and embedding stages before retrieval is available.
+New documents must complete the required extraction, chunking, and embedding stages before retrieval is available. The current application schedules those stages through [background workers](background-jobs.md); this November 11 snapshot does not describe the current orchestration as unfinished.
 
 ## 9. Related Documentation
 

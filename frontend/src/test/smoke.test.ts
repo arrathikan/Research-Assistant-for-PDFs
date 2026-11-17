@@ -14,3 +14,4 @@ describe("Frontend Environment Setup", () => {
     expect(element).toHaveTextContent("ResearchAI");
   });
 });
+

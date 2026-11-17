@@ -1,4 +1,3 @@
-
 # ResearchAI — Background Processing Architecture
 
 ResearchAI uses **RabbitMQ, MongoDB, and Python background workers** to process uploaded research papers asynchronously.

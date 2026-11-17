@@ -1,4 +1,3 @@
-
 # ResearchAI — Hybrid Retrieval-Augmented Generation
 
 ResearchAI implements a **document-scoped Hybrid Retrieval-Augmented Generation (RAG)** pipeline that combines semantic vector search and BM25 keyword retrieval to generate research answers grounded in uploaded PDF documents.
@@ -33,7 +32,9 @@ flowchart TD
     N --> O["React Chat Interface"]
 ```
 
-The pipeline uses two retrieval strategies to identify relevant information from the currently selected research paper.
+For retrieval-backed paper questions, the pipeline uses two retrieval strategies to identify relevant information from the currently selected research paper.
+
+Intent-sensitive routing also supports extracted publication metadata, section-diverse overviews, saved-summary reuse and follow-ups. Clearly labeled general-background answers do not acquire paper citations. These paths do not all exercise the same retrieval rankings; see the [architecture](architecture.md).
 
 All retrieval operations are restricted to the active document, chunk set, and embedding profile.
 

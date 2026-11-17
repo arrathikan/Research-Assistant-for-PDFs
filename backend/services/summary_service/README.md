@@ -1,14 +1,18 @@
 # Summary service
 
-Runs a controlled LangGraph workflow over published, page-attributed Markdown
-chunks. It produces the five required research-summary sections through the
-configured OpenRouter gateway and verifies source IDs, pages and quoted text.
+A deterministic LangGraph workflow generates five research-summary sections from
+published page-attributed chunks. OpenRouter returns schema-constrained drafts;
+the server validates current source IDs, pages and quotes before publication.
+Missing facts stay explicitly unavailable. Validation does not prove scientific
+correctness and can reject inaccurate full-paper model outputs.
+
+Normal uploads schedule the RabbitMQ summary consumer after ingestion. An explicit
+operator command is also available from the repository root:
 
 ```bash
 python -m backend.services.summary_service.main DOCUMENT_ID
 ```
 
-Parsing/chunking must be completed first. This is an explicit job, not yet a
-RabbitMQ consumer. GET `/api/v1/documents/{id}/summary` reads the published result
-without a paid model call. See [the complete guide](../../../docs/structured-summary.md)
-for generation, retries, missing information, versioned storage and limitations.
+Do not run it concurrently with an active job. `GET /api/v1/documents/{id}/summary`
+reads a saved current result without a paid call. See [the summary guide](../../../docs/structured-summary.md)
+for bounded repair, versioned publication and readiness semantics.

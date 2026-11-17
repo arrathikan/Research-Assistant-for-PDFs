@@ -6,6 +6,8 @@
 
 The application uses a modular, asynchronous architecture to separate user interactions from computationally intensive document processing and AI operations.
 
+The gateway and workers share one Python codebase and run as separate processes. Service directories are module boundaries rather than independently deployed HTTP microservices. Ragas runs separately from the serving application.
+
 ### Architecture Goals
 
 - **Modularity:** Separate document ingestion, summarization, retrieval, and user interaction into maintainable components.
@@ -26,7 +28,8 @@ flowchart TD
 
     API --> DB[("MongoDB Atlas + GridFS")]
     API --> JOB["Durable Processing Jobs"]
-    JOB --> MQ["RabbitMQ"]
+    JOB --> DISPATCH["Outbox Dispatcher"]
+    DISPATCH --> MQ["RabbitMQ"]
     MQ --> WORKER["Background Workers"]
 
     WORKER --> PARSE["LlamaParse"]
@@ -103,7 +106,7 @@ The extracted representation preserves available information such as:
 
 The extraction system validates page coverage and retains the original PDF as the authoritative document.
 
-Incomplete parsing results are not published as completed document content.
+Incomplete parsing results are not published as completed document content. Native page-margin text is retained as evidence for publication metadata; missing coordinates are not invented.
 
 ### 3.3 Markdown-Aware Chunking
 
@@ -113,7 +116,7 @@ ResearchAI uses LangChain text splitters to divide extracted content into manage
 
 Each chunk retains metadata identifying its source document, relevant sections, page references, and processing version.
 
-This structure supports evidence-based retrieval and citation navigation.
+This structure supports evidence-based retrieval and citation navigation. Defaults are a maximum of 1,200 characters and a target overlap of 150 characters; the actual overlap follows section and text boundaries.
 
 ### 3.4 Embedding Generation
 
@@ -180,7 +183,7 @@ flowchart TD
 
 The workflow uses Pydantic schemas to enforce output structure and checks supporting source references before publishing results.
 
-For longer documents, bounded processing and reduction steps combine information while preserving supporting evidence.
+For longer documents, bounded processing and reduction steps combine information while preserving supporting evidence. The graph uses identify, generate, validate, advance, combine and save nodes; it is not an autonomous agent or hidden model-fallback loop.
 
 Completed summaries are persisted and reused instead of regenerated for every user request.
 
@@ -254,6 +257,8 @@ Retrieval is scoped to the selected document and its active processing generatio
 
 The answer-generation pipeline validates source references and handles insufficient evidence explicitly.
 
+Intent routing distinguishes factual questions, metadata, research overviews, follow-ups, mixed questions and general background. Metadata uses extracted title-page and margin evidence; overviews use bounded section-diverse context or a compatible saved summary. General background is labeled and has no paper citations. Conversation history helps interpret a follow-up but is not independent factual evidence.
+
 ---
 
 ## 6. Citation and PDF Navigation
@@ -279,7 +284,7 @@ When a user selects a citation:
 4. Matching text or verified regions are highlighted when possible.
 5. If precise highlighting is unavailable, page-level navigation is provided.
 
-The React-PDF viewer remains optional and is opened only when requested.
+The React-PDF viewer is closed initially. Toolbar opening and citation navigation use the same lazy-loaded viewer. Chat, draft, summary, page and zoom state survive viewer toggles; changing the selected document resets document-specific navigation. Page-only fallback is quiet when precise highlighting is unavailable.
 
 On desktop, the workspace supports a split layout for reading and source verification. On mobile, the PDF opens in a dedicated full-screen viewer.
 
@@ -345,6 +350,10 @@ Previous completed versions can remain available for recovery or auditing.
 
 This design reduces the risk of exposing partially processed data.
 
+### Document Deletion
+
+Deletion marks a document as deleting so readers and workers reject new work, then removes its jobs, conversations, source generations and GridFS original. Partial cleanup can be retried. Other documents, shared search indexes and the reusable content/profile embedding cache are preserved. Library entries are browser-session references, not a cross-device user-account library.
+
 ---
 
 ## 9. RAG Evaluation Architecture
@@ -397,7 +406,7 @@ The FastAPI gateway exposes REST endpoints for document management, summaries, a
 
 The gateway uses Pydantic for typed validation and structured responses.
 
-Document-processing operations remain separate from read-only retrieval endpoints.
+Document-processing operations remain separate from read-only retrieval endpoints. Original PDFs are complete in-memory responses without byte-range streaming. See the [gateway guide](../backend/gateway/README.md) and generated `/docs` for complete contracts, including processing retry and citation resolution. Health endpoints establish process liveness, not dependency readiness.
 
 ---
 

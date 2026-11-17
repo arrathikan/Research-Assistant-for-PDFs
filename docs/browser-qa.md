@@ -1,4 +1,3 @@
-
 # ResearchAI — Browser Testing and Quality Assurance
 
 ResearchAI uses **Playwright, Vitest, and TypeScript** to verify frontend functionality, user interactions, PDF rendering, and responsive layouts.

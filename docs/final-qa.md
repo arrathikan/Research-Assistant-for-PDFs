@@ -1,9 +1,10 @@
-
 # ResearchAI — Quality Assurance & Verification Report
 
-**Verification Date:** November 13, 2026  
-**Project:** ResearchAI — AI-Powered Research Paper Assistant  
+**Verification Date:** November 13, 2026
+**Project:** ResearchAI — AI-Powered Research Paper Assistant
 **Status:** Development verification completed; production hardening required
+
+**Historical scope:** The results below describe November 13. The [later live QA report](live-e2e-qa-2026-11-14.md) records additional source-validation failures and blocked retests. Earlier passing results do not establish that a later revision or a fresh paper passed the same checks.
 
 ## 1. Executive Summary
 

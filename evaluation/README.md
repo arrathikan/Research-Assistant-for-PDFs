@@ -1,4 +1,3 @@
-
 # Offline RAG Evaluation
 
 ResearchAI includes a reproducible, offline evaluation framework built with **Ragas** to measure retrieval quality, answer generation, and citation reliability.
@@ -126,7 +125,7 @@ pip install -r backend/requirements.txt -r evaluation/requirements.txt
 
 Configure the necessary API credentials and evaluation settings in `.env`.
 
-External AI calls may consume provider credits.
+External AI calls may consume provider credits. `EVAL_*` settings bound timeouts, concurrency, sample counts and request/input budgets. Collections are saved before judging, so scoring can be retried without repeating answer generation. Anonymous Ragas telemetry is disabled by the evaluation process.
 
 ## Running the Evaluation
 
@@ -217,9 +216,11 @@ python -m evaluation.evaluate review \
   --manual /absolute/path/to/manual-review.json
 ```
 
-The review process preserves existing metric scores and verifies that review records correspond to the original evaluation results.
+The review process writes a new evaluation ID linked to the original report, preserves existing metric scores and request counts, and verifies that review records match the unchanged evaluation results. Unknown sample/strategy keys are rejected.
 
 Reviews must identify whether they were completed by a human or an AI assistant. Assistant-generated assessments are not presented as independent human approval.
+
+<a id="research-assistant-intent-checks"></a>
 
 ## Research Assistant Evaluation
 
@@ -258,7 +259,7 @@ Follow-up questions are reviewed with their recorded conversation context becaus
 
 ## Evaluation Results
 
-The latest documented evaluation report is available at:
+The November 13 paired intent-evaluation report is available at:
 
 [Final QA Evaluation Report — November 13, 2026](reports/2026-11-13-final-qa/README.md)
 
@@ -276,7 +277,7 @@ The evaluation also identified remaining issues involving citation support and s
 
 These results demonstrate that the evaluation workflow can execute and report quality measurements. They do not establish universal answer accuracy or prove that hybrid retrieval is consistently superior.
 
-Detailed scores, source assessments, and limitations are maintained in the published reports.
+Detailed scores, source assessments, and limitations are maintained in the [report index](reports/README.md). The [later November 14 report](reports/2026-11-14-live-qa/README.md) preserves a smaller baseline and failed post-change collection; it does not establish a quality improvement.
 
 ## Testing
 

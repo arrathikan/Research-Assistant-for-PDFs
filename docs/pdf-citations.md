@@ -1,4 +1,3 @@
-
 # ResearchAI — PDF Citations and Source Verification
 
 ResearchAI provides an interactive PDF citation system that connects AI-generated answers and structured summaries to supporting evidence in the original research document.
@@ -171,9 +170,9 @@ Unknown or incompatible coordinates are not guessed or converted using unsupport
 
 ### 6.3 Page-Only Fallback
 
-If neither exact text matching nor verified region geometry is available, ResearchAI navigates to the referenced page and displays the supporting quotation without an overlay.
+If neither exact text matching nor verified region geometry is available, ResearchAI navigates to the referenced page without an overlay.
 
-The interface indicates that an exact highlight is unavailable.
+The cited page remains available without a technical highlight warning.
 
 This can occur with scanned documents, OCR differences, ambiguous text, or incomplete source coordinates.
 
@@ -216,7 +215,7 @@ Generated content is rendered safely rather than inserted as arbitrary HTML.
 
 ## 8. Workspace Integration
 
-Citation navigation is integrated into the ResearchAI document workspace.
+Citation navigation is integrated into the ResearchAI document workspace. The viewer is hidden by default; View Original PDF and source citations open the same viewer, and Close PDF restores the wider workspace without clearing chat or summary state.
 
 ### Desktop and Tablet
 

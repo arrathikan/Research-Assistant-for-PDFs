@@ -1,4 +1,3 @@
-
 # ResearchAI — Markdown-Aware Document Chunking
 
 ResearchAI implements a **Markdown-aware, page-preserving text chunking pipeline** using LangChain to transform extracted academic PDF content into structured, searchable text segments.
@@ -27,7 +26,7 @@ Chunking operates on previously extracted document content and does not require 
 
 ## 2. Chunking Architecture
 
-```mermaid id="qc4g2h"
+```mermaid
 flowchart TD
     A["LlamaParse Extracted Pages"] --> B["Page-Aware Markdown"]
     B --> C["MarkdownHeaderTextSplitter"]

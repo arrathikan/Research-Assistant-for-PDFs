@@ -46,29 +46,44 @@ Use the host/options provided by Atlas. The line above is a placeholder, not a
 working URI. Never paste the actual URI into chat or commit it. The project
 already ignores `.env`. Existing local PDFs are not automatically copied to Atlas.
 
-## 6. Verify and create application indexes
+## 6. Initialize storage and search
 
-After saving `.env`, restart the gateway to reload its cached settings. From the
-project root with backend dependencies installed:
+From the repository root with backend dependencies installed and `.env` saved:
 
 ```bash
 python -m backend.shared.database
+```
+
+A new database also needs the empty `chunk_embeddings` collection before search
+index creation. The index CLI does not create a missing collection: an empty
+namespace can return MongoDB error code 26. Create it in Atlas Collections, or use
+this idempotent explicit initialization:
+
+```bash
+python - <<'PYCODE'
+from backend.shared.config import get_settings
+from backend.shared.database import connect_database
+
+with connect_database(get_settings()) as database:
+    if "chunk_embeddings" not in database.list_collection_names():
+        database.create_collection("chunk_embeddings")
+PYCODE
 python -m backend.services.rag_service.indexes --create
 ```
 
-The first command connects and initializes ordinary application collections/indexes.
-The second creates missing vector/BM25 search indexes without overwriting existing
-ones. Wait until both are queryable. A freshly created database needs actual
-uploaded/parsed/chunked/embedded documents before chat can return evidence.
+The CLI requests missing vector/BM25 indexes and checks existing definitions without
+replacing them. It does not wait for readiness. In Atlas Search, wait for both
+`chunk_embeddings_v1` and `chunk_keywords_v1` to be queryable before chat. Running
+the module without `--create` only prints index definitions, not live status.
 
-When working with the assistant, reply **Atlas ready** after saving the URI
-locally. The assistant can then verify the connection without displaying it and
-complete the remaining live search checks. See [hybrid RAG](hybrid-rag.md) for the
-explicit optional live-test requirements and current verification scope.
+Start the gateway and workers as described in [the README](../README.md); restart
+both after environment changes. Upload a PDF and allow actual parsing, chunking,
+embedding and summary jobs to finish. Ready document metadata is separate from
+search-index readiness and model access.
 
-
-Verification note: this project's Atlas cluster enforces a 38-byte database-name
-limit. The live test uses a short researchai_test name; keep custom test namespaces
-within the deployment's limit. The project database name research_assistant fits.
-The application connection, vector/BM25 indexes and isolated live hybrid test have
-now been verified; see [the result](atlas-verification.md).
+The optional live test uses a short `researchai_test` database name because the
+previously tested cloud deployment enforced a 38-byte name limit. Fresh test
+databases may also exceed a shared tier's search-index quota; use dedicated test
+infrastructure instead of deleting application indexes. Historical cloud evidence
+is in [Atlas verification](atlas-verification.md); current smoke scope is in
+[the submission review](submission-review.md).

@@ -1,9 +1,8 @@
-
 # ResearchAI — RAG Evaluation Report
 
-**Evaluation Date:** November 13, 2026  
-**Evaluation Framework:** Ragas 0.2.15  
-**Evaluation Status:** Partial — 2 metric errors  
+**Evaluation Date:** November 13, 2026
+**Evaluation Framework:** Ragas 0.2.15
+**Evaluation Status:** Partial — 2 metric errors
 **Benchmark:** Research Assistant Intent Evaluation
 
 ## 1. Overview
@@ -54,7 +53,7 @@ The evaluation uses public research content. No private uploaded papers or appli
 
 ## 3. Evaluation Workflow
 
-```mermaid id="v9sr1n"
+```mermaid
 flowchart TD
     A["Benchmark Questions"] --> B["ResearchAI RAG Pipeline"]
     B --> C["Semantic Retrieval"]
@@ -226,7 +225,7 @@ Both overview evaluations successfully reused the completed `grounded-summary-v2
 
 The corresponding traces recorded:
 
-```text id="rs2ddm"
+```text
 summary_reused=true
 context_strategy=saved_summary
 ```
@@ -255,7 +254,7 @@ The benchmark was executed against the configured ResearchAI pipeline at:
 
 **SHA-256:**
 
-```text id="x2b7v1"
+```text
 f37f6fabe0fe0d8c73b67579cd115dbf14e282cfb7b7af655ae8109638402c9b
 ```
 
