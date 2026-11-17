@@ -1,126 +1,417 @@
-# Markdown-aware chunking
+# ResearchAI — Markdown-Aware Document Chunking
 
-## Run it
+ResearchAI implements a **Markdown-aware, page-preserving text chunking pipeline** using LangChain to transform extracted academic PDF content into structured, searchable text segments.
 
-Install the backend dependencies and complete parsing for the document first.
-The chunking stage is local and requires MongoDB access but no LlamaParse,
-Voyage or LLM API key. It does not parse an unparsed PDF automatically.
+The chunking system preserves document hierarchy, page references, and source metadata, enabling accurate document retrieval and verifiable citations in the Hybrid RAG pipeline.
+
+## 1. Overview
+
+Traditional fixed-size text splitting can divide research content without respecting section boundaries or document structure.
+
+ResearchAI addresses this by combining **MarkdownHeaderTextSplitter** and **RecursiveCharacterTextSplitter** to create bounded chunks while retaining the original research paper's structure.
+
+### Key Capabilities
+
+- **Structure-Aware Splitting:** Preserves Markdown heading hierarchy and section boundaries.
+- **Configurable Chunking:** Supports adjustable chunk size and overlap.
+- **Page-Aware Attribution:** Tracks which PDF pages contributed to each chunk.
+- **Source Metadata:** Retains available source elements and coordinate information.
+- **Deterministic Chunk IDs:** Generates stable identifiers for matching inputs and configurations.
+- **Versioned Persistence:** Publishes only complete chunk sets in MongoDB.
+- **Recovery Support:** Reuses completed chunks and avoids publishing partial results.
+
+Chunking operates on previously extracted document content and does not require additional AI provider calls.
+
+---
+
+## 2. Chunking Architecture
+
+```mermaid
+flowchart TD
+    A["LlamaParse Extracted Pages"] --> B["Page-Aware Markdown"]
+    B --> C["MarkdownHeaderTextSplitter"]
+    C --> D["Section-Based Segments"]
+    D --> E["RecursiveCharacterTextSplitter"]
+    E --> F["Bounded Text Chunks"]
+    F --> G["Page and Source Mapping"]
+    G --> H["Deterministic Chunk IDs"]
+    H --> I["Versioned MongoDB Storage"]
+    I --> J["Active Chunk Set"]
+    J --> K["Embedding and Hybrid RAG"]
+```
+
+The pipeline executes after PDF parsing and before embedding generation.
+
+Each stage preserves the metadata required to connect generated responses to the original source document.
+
+## 3. Chunking Strategy
+
+### 3.1 Markdown Header Splitting
+
+ResearchAI uses LangChain's `MarkdownHeaderTextSplitter` to identify document headings and maintain their hierarchy.
+
+The implementation recognizes Markdown headings from `#` through `######`.
+
+For example:
+
+```markdown
+# Introduction
+
+Research background and motivation.
+
+## Methodology
+
+Details of the proposed approach.
+
+### Model Architecture
+
+Explanation of model components.
+```
+
+Sections with different heading contexts remain separate.
+
+Headings inside fenced code blocks are not interpreted as research section boundaries.
+
+### 3.2 Recursive Character Splitting
+
+After grouping content by heading, ResearchAI uses `RecursiveCharacterTextSplitter` to enforce chunk-size limits.
+
+The splitter prioritizes natural text boundaries such as paragraphs, lines, and words before splitting at individual characters.
+
+This helps preserve context while maintaining manageable chunk sizes.
+
+### 3.3 Chunk Overlap
+
+Overlap retains a configurable amount of preceding content between adjacent chunks within the same section.
+
+The default configuration uses:
+
+- **Chunk Size:** 1,200 characters
+- **Chunk Overlap:** 150 characters
+
+Actual overlap may be smaller depending on text boundaries and section structure.
+
+The configuration is measured in Python characters, not tokens or UTF-8 bytes.
+
+## 4. Configuration
+
+The chunking pipeline supports the following environment variables.
+
+| Setting | Default | Description |
+|---|---|---|
+| `CHUNK_SIZE` | `1200` | Maximum characters per chunk |
+| `CHUNK_OVERLAP` | `150` | Target character overlap between adjacent chunks |
+
+The configuration must satisfy:
+
+```text
+CHUNK_SIZE > 0
+0 <= CHUNK_OVERLAP < CHUNK_SIZE
+```
+
+Invalid configurations are rejected before chunking begins.
+
+Command-line arguments can override the environment settings for individual executions.
+
+## 5. Page-Aware Source Attribution
+
+ResearchAI preserves the original PDF page references during chunking.
+
+Page markers are introduced internally from the parsed page numbers and removed before chunk content is persisted.
+
+A chunk may contain content spanning multiple pages when the same document section continues across page boundaries.
+
+### Chunk Metadata
+
+Each stored chunk retains relevant information such as:
+
+| Metadata | Purpose |
+|---|---|
+| `document_id` | Source document identifier |
+| `parse_run_id` | Source extraction version |
+| `chunk_set_id` | Chunk generation identifier |
+| `chunk_index` | Ordered position within the chunk set |
+| `heading_path` | Document heading hierarchy |
+| `section_title` | Current research section |
+| `page_numbers` | Contributing PDF pages |
+| `page_spans` | Page-specific evidence and chunk offsets |
+| `source_element_ids` | Matched extracted source elements |
+| `bounding_boxes` | Available source-region coordinates |
+
+Page spans identify the portion of chunk text associated with each source page.
+
+These offsets refer to normalized chunk content, not exact character positions in the original PDF.
+
+### Source Mapping Rules
+
+ResearchAI applies conservative source attribution:
+
+- Blank pages are not treated as supporting evidence.
+- Source elements are associated only when supporting text can be matched unambiguously.
+- Repeated or ambiguous text uses page-level attribution.
+- Unknown coordinate systems do not produce invented source boxes.
+- Original extracted Markdown and PDF content remain authoritative.
+
+This metadata supports downstream citation verification and PDF source navigation.
+
+## 6. Deterministic Chunk Generation
+
+ResearchAI generates stable chunk identifiers based on document content, extraction provenance, configuration, and splitter version.
+
+### Benefits
+
+- Identical inputs produce consistent chunk identities.
+- Repeated processing can reuse existing records.
+- Configuration changes create separate chunk generations.
+- Previously published chunks remain available during reprocessing.
+- Downstream systems can verify which source generation produced their evidence.
+
+Chunking algorithm changes are represented through an explicit algorithm version.
+
+This prevents incompatible chunk-generation behavior from silently reusing previously stored results.
+
+## 7. MongoDB Persistence
+
+Chunk results are stored in MongoDB using immutable, versioned chunk sets.
+
+The persistence workflow separates chunk creation from publication.
+
+### Processing Workflow
+
+1. Load the active completed PDF extraction.
+2. Validate document and parsing provenance.
+3. Claim the document for chunk processing.
+4. Generate the new deterministic chunk set.
+5. Persist chunk records using stable identifiers.
+6. Verify completeness and source consistency.
+7. Publish the new `active_chunk_set_id`.
+
+Only the active, complete chunk generation is returned to downstream consumers.
+
+### Data Consistency
+
+The chunk reader validates:
+
+- Active chunk-set identity
+- Expected chunk count
+- Chunk ordering
+- Matching extraction generation
+- Document isolation
+
+Partial or incompatible results are not exposed as completed chunk sets.
+
+### Recovery
+
+If processing fails before publication, the existing active chunk set remains unchanged.
+
+A supported retry can reuse previously written records belonging to the same deterministic generation.
+
+Abandoned partial records may require manual reconciliation.
+
+The system does not automatically remove older chunk generations.
+
+## 8. Core Functions
+
+The chunking implementation exposes reusable processing functions.
+
+### `chunk_document()`
+
+```python
+chunk_document(parsed, parse_run_id, config)
+```
+
+Transforms a normalized parsed document into deterministic, page-aware text chunks.
+
+This function handles document structure, chunk boundaries, source metadata, and chunk identification.
+
+### `chunk_stored_document()`
+
+```python
+chunk_stored_document(database, document_id, settings)
+```
+
+Coordinates chunk generation and persistence for a previously parsed document.
+
+It manages processing claims, MongoDB writes, source-generation checks, and active chunk-set publication.
+
+### `read_document_chunks()`
+
+Retrieves the complete active chunk set for a document.
+
+The reader verifies chunk-set completeness and consistency before returning results.
+
+These functions separate text transformation from database orchestration and retrieval.
+
+## 9. Running the Chunking Pipeline
+
+Execute the following commands from the repository root with backend dependencies installed.
+
+A document must already have a completed parsing result.
+
+### Default Configuration
 
 ```bash
 python -m backend.services.document_processor.chunk_cli DOCUMENT_ID
-python -m backend.services.document_processor.chunk_cli DOCUMENT_ID --chunk-size 1200 --chunk-overlap 150
+```
+
+### Custom Configuration
+
+```bash
+python -m backend.services.document_processor.chunk_cli \
+  DOCUMENT_ID \
+  --chunk-size 1200 \
+  --chunk-overlap 150
+```
+
+Replace `DOCUMENT_ID` with the identifier returned during PDF upload.
+
+### Retrieve Generated Chunks
+
+```bash
 curl http://localhost:8000/api/v1/documents/DOCUMENT_ID/chunks
 ```
 
-Environment defaults are `CHUNK_SIZE=1200` and `CHUNK_OVERLAP=150`, in Python
-characters, not tokens or bytes. Size must be positive and overlap must satisfy
-0 <= overlap < size. CLI flags override the environment for that invocation.
-Restart an older gateway process with the current dependencies/code to expose
-the new read endpoint and use the updated index initialization.
+The API returns the complete active chunk set.
 
-`GET /api/v1/documents/{id}/chunks` returns the complete active chunk set. It
-returns 409 before chunking/current parsing is complete, 404 for unknown IDs,
-422 for malformed IDs and 503 for storage failure. Reads never start processing.
-The endpoint currently returns the full set without pagination.
+The read endpoint does not initiate new parsing, chunking, or embedding operations.
 
-## How splitting works
+## 10. Chunk Retrieval API
 
-MarkdownHeaderTextSplitter detects headings h1 through h6 and carries their
-hierarchy across PDF pages. Fenced-code headings do not become research sections.
-Paragraphs with the same heading context are grouped, while new heading sections
-stay separate. RecursiveCharacterTextSplitter then uses paragraph, line, word
-and character boundaries to keep content within the configured limit.
+**Endpoint:**
 
-Overlap applies inside a section; boundary choices can yield less than the
-configured overlap. Small tables retain their Markdown rows. Oversized tables
-or rows may split to respect the hard character cap. LangChain normalizes
-whitespace/indentation; this is not a byte-preserving Markdown formatter.
-The parsed Markdown and original PDF remain authoritative.
+`GET /api/v1/documents/{id}/chunks`
 
-## Page/source attribution
+### Response Behavior
 
-Explicit page markers are inserted from the parsed page numbers before splitting
-and removed before chunks are saved. Missing/ambiguous marker coverage is an
-error. A chunk can span a continuing section on multiple pages and keeps:
+The endpoint returns stored document chunks with their associated page and source metadata.
 
-- document_id, parse_run_id and deterministic chunk_set_id/id;
-- ordered chunk_index, heading_path and deepest section_title;
-- first/last page plus exact contributing page_numbers;
-- per-page evidence text and start/end offsets into the chunk content;
-- matched source element IDs, available boxes, coordinate units and page sizes.
+Only a complete chunk set matching the active parsing generation can be returned.
 
-Blank pages are not cited as evidence. Offsets describe chunk text, not guessed
-positions in the PDF or original Markdown. Source matching normalizes whitespace
-and requires a unique supporting location on the source page. Source elements
-intersecting the relevant text range are preserved, including their coordinate
-metadata. Ambiguous repeated text or unavailable coordinates use page attribution
-without invented element/box links. Exact PDF highlighting comes later.
+### Error Handling
 
-IDs include document content/source metadata, parse provenance, chunk settings,
-actual splitter version and algorithm version (`markdown-pages-v1`). Repeating
-the same input/configuration preserves IDs. Changing parsed content, coordinates,
-configuration or splitter/algorithm version intentionally creates another set.
-Update the algorithm version when changing chunk semantics. Token counts remain
-null; this stage does not claim character counts are embedding-token counts.
+| HTTP Status | Meaning |
+|---|---|
+| `404` | Document not found |
+| `409` | Chunking incomplete or source generation mismatch |
+| `422` | Invalid document identifier |
+| `503` | Storage service unavailable |
 
-## Persistence and recovery
+The endpoint currently returns the complete chunk set without pagination.
 
-`chunk_document(parsed, parse_run_id, config)` is the reusable pure chunking
-function. `chunk_stored_document(database, document_id, settings)` reads a
-published parse, claims chunking, upserts a new immutable set and conditionally
-publishes active_chunk_set_id. `read_document_chunks` filters by that pointer,
-checks count/order and requires the set to match the active parsed version.
+## 11. Index Compatibility
 
-Stable-ID writes use set-on-insert, preserving previously stored records. A new
-configuration keeps old output available until the replacement set is fully
-published. A partial failure keeps the old active pointer; retry completes the
-same deterministic set without duplicate records. Source isolation and parse
-version are checked before publication. Abandoned partial sets remain for manual
-reconciliation; no chunk records are deleted automatically.
+ResearchAI uses a unique MongoDB index across:
 
-Metadata tracks chunking_status/chunked_at. Success leaves the overall document
-PENDING for later embeddings/summary generation; no embedding is performed and
-no document is marked READY for chat. A running claim blocks other writers. A
-process interruption or parse-version change can leave a running claim; inspect
-the document and unpublished output before manual recovery. Rechunking a document
-actively in a later pipeline stage is blocked.
+```text
+(document_id, chunk_set_id, chunk_index)
+```
 
-## Legacy index compatibility
+This supports multiple immutable chunk generations for the same document.
 
-The unique index now covers `(document_id, chunk_set_id, chunk_index)`. The old
-`document_chunk_index` over `(document_id, chunk_index)` cannot support immutable
-generations. Initialization removes that known legacy index only when its
-collection is empty. It does not delete records.
+Older schemas using only `(document_id, chunk_index)` can conflict with versioned storage.
 
-Populated legacy data causes an explicit initialization error. Stop old writers,
-back up and review the legacy records, and create/verify the new unique index
-before an operator removes the old index. Existing legacy records can be kept
-for audit; only newly published active sets are returned by the chunk reader.
-Do not blindly drop indexes on a database used by older services.
+The application handles empty legacy collections automatically where supported.
 
-## Verification
+For populated legacy collections, index changes require manual review and a controlled migration.
+
+Existing records should not be deleted or indexes dropped without verifying compatibility with active services.
+
+## 12. Testing and Verification
+
+The chunking pipeline includes tests for:
+
+- Markdown heading hierarchy
+- Recursive splitting and overlap
+- Section boundaries
+- Cross-page chunk continuation
+- Source element matching
+- Page and coordinate metadata
+- Deterministic identifiers
+- Invalid configuration
+- MongoDB persistence
+- Reprocessing and artifact reuse
+- Partial write recovery
+- Document isolation
+- Legacy index compatibility
+
+### Backend Tests
 
 ```bash
 python -m pytest backend/tests -q
-RESEARCHAI_TEST_MONGODB_URI=mongodb://localhost:27017 python -m pytest backend/tests -q
+```
+
+### MongoDB Integration Tests
+
+Use an isolated local MongoDB instance:
+
+```bash
+RESEARCHAI_TEST_MONGODB_URI=mongodb://localhost:27017 \
+python -m pytest backend/tests -q
+```
+
+Tests create disposable databases and remove their own resources.
+
+### CLI Verification
+
+```bash
 python -m backend.services.document_processor.chunk_cli --help
 ```
 
-On 2026-11-11: **178 passed, 1 skipped** with disposable local MongoDB. The skipped
-test is the paid live parser extraction smoke test; no paid parser was called.
-Offline: **160 passed, 19 skipped** (18 database tests plus the paid parser test).
-Tests use real LangChain splitters and synthetic parsed artifacts, and cover
-headings, overlap, page continuation, source boxes, stable IDs, invalid settings,
-real storage/reuse/reconfiguration, partial writes, parse changes, document
-isolation and both empty/populated legacy-index handling.
+### Verified Results
 
-Provider extraction quality and Atlas connectivity remain unverified. Chunking
-validation does not establish retrieval or answer quality; those are measured in
-later retrieval and offline Ragas stages.
+The documented November 11, 2026 verification produced:
 
-References: [Markdown header splitter](https://reference.langchain.com/python/langchain-text-splitters/markdown/MarkdownHeaderTextSplitter)
-and [recursive splitter](https://reference.langchain.com/python/langchain-text-splitters/character/RecursiveCharacterTextSplitter).
+| Test Environment | Result |
+|---|---|
+| Backend with disposable MongoDB | 178 passed, 1 skipped |
+| Offline backend tests | 160 passed, 19 skipped |
+| Frontend regression tests | 22 passed |
+| Frontend production build | Passed |
 
-Frontend regression: **22 tests passed** and the full TypeScript/Vite production
-build passed in the current working checkout. Existing uncommitted workspace
-implementation remains outside this stage's commits.
+The tests used actual LangChain text splitters and synthetic parsed documents.
+
+No paid parsing, embedding, or LLM requests were required for chunking verification.
+
+**Verification scope:** These tests validate chunking behavior and persistence. They do not establish PDF extraction accuracy, retrieval effectiveness, or RAG answer correctness.
+
+## 13. Engineering Decisions
+
+| Decision | Rationale |
+|---|---|
+| Markdown-aware splitting | Preserve research paper structure |
+| Recursive character splitting | Enforce bounded chunk sizes |
+| Configurable overlap | Retain context across neighboring chunks |
+| Page-aware metadata | Enable source-based retrieval and citations |
+| Conservative source matching | Avoid fabricated source coordinates |
+| Deterministic chunk IDs | Support repeatable processing |
+| Versioned chunk sets | Prevent incomplete generations from becoming active |
+| Artifact reuse | Reduce unnecessary processing |
+| MongoDB persistence | Integrate chunk storage with the document pipeline |
+
+## 14. Limitations and Future Improvements
+
+The current chunking approach has several limitations:
+
+- Character-based limits do not directly represent embedding-model token limits.
+- Large tables may require splitting across multiple chunks.
+- Source text normalization can alter original Markdown whitespace.
+- Some document layouts may produce ambiguous source attribution.
+- PDF coordinate information may be incomplete or incompatible.
+- Reprocessing interrupted jobs can require manual recovery.
+- Complete chunk retrieval currently lacks pagination.
+
+Future improvements may include token-aware chunking, improved table preservation, more advanced layout-based segmentation, and broader chunking-quality evaluation.
+
+## 15. References
+
+- [LangChain Markdown Header Splitter](https://reference.langchain.com/python/langchain-text-splitters/markdown/MarkdownHeaderTextSplitter)
+- [LangChain Recursive Character Splitter](https://reference.langchain.com/python/langchain-text-splitters/character/RecursiveCharacterTextSplitter)
+- [System Architecture](architecture.md)
+- [Document Processing](../backend/services/document_processor/README.md)
+- [Hybrid RAG](hybrid-rag.md)
+- [PDF Citations](pdf-citations.md)
+- [RAG Evaluation](rag-evaluation.md)
+
+---
+
+**ResearchAI Markdown Chunking — Structure-preserving text segmentation for reliable retrieval and source-grounded research.**

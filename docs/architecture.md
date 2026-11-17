@@ -1,211 +1,482 @@
-# ResearchAI architecture
+# ResearchAI — System Architecture
 
-ResearchAI is a React client, a FastAPI HTTP gateway and a background-worker
-runtime sharing one Python codebase. Service directories are module boundaries;
-they are not independently deployed HTTP microservices. MongoDB stores application
-state and GridFS PDFs; RabbitMQ carries job notifications. Ragas runs separately.
+## 1. Overview
 
-## Runtime and data flow
+**ResearchAI** is an AI-powered research paper assistant designed to simplify academic document analysis through structured summarization, Hybrid Retrieval-Augmented Generation (RAG), and source-grounded question answering.
+
+The application uses a modular, asynchronous architecture to separate user interactions from computationally intensive document processing and AI operations.
+
+The gateway and workers share one Python codebase and run as separate processes. Service directories are module boundaries rather than independently deployed HTTP microservices. Ragas runs separately from the serving application.
+
+### Architecture Goals
+
+- **Modularity:** Separate document ingestion, summarization, retrieval, and user interaction into maintainable components.
+- **Reliability:** Support background processing, job recovery, and reuse of completed artifacts.
+- **Accuracy:** Ground generated responses in retrieved document evidence and validate source citations.
+- **Scalability:** Support concurrent document processing through independent background workers.
+- **Traceability:** Preserve document versions, processing metadata, and page-level source references.
+- **Maintainability:** Use clearly defined component boundaries, typed data models, and automated testing.
+
+---
+
+## 2. High-Level System Architecture
 
 ```mermaid
-flowchart LR
-    Browser[React client] --> Gateway[FastAPI gateway]
-    Gateway --> Mongo[MongoDB metadata / GridFS originals]
-    Gateway --> Outbox[MongoDB processing_jobs]
-    Outbox --> Dispatcher[Outbox dispatcher]
-    Dispatcher --> Broker[RabbitMQ durable queues]
-    Broker --> Ingestion[Ingestion consumer]
-    Ingestion --> Parse[LlamaParse]
-    Parse --> Chunk[Markdown chunking]
-    Chunk --> Embed[Voyage embeddings]
-    Embed --> Search[Atlas vector + keyword indexes]
-    Ingestion --> Outbox
-    Broker --> Summary[Summary consumer / LangGraph]
-    Summary --> LLM[OpenRouter]
-    Summary --> Mongo
-    Gateway --> RAG[Chat / LangChain]
-    RAG --> Search
-    RAG --> LLM
-    RAG --> Mongo
-    Browser --> Viewer[Optional React-PDF viewer]
-    Viewer --> Gateway
+flowchart TD
+    USER["Researcher"] --> UI["React + TypeScript Frontend"]
+    UI --> API["FastAPI Gateway"]
+
+    API --> DB[("MongoDB Atlas + GridFS")]
+    API --> JOB["Durable Processing Jobs"]
+    JOB --> DISPATCH["Outbox Dispatcher"]
+    DISPATCH --> MQ["RabbitMQ"]
+    MQ --> WORKER["Background Workers"]
+
+    WORKER --> PARSE["LlamaParse"]
+    PARSE --> CHUNK["LangChain Chunking"]
+    CHUNK --> EMBED["Voyage AI Embeddings"]
+    EMBED --> DB
+
+    WORKER --> SUMMARY["LangGraph Summarization"]
+    SUMMARY --> DB
+
+    API --> RAG["Hybrid RAG Engine"]
+    RAG --> VECTOR["Atlas Vector Search"]
+    RAG --> KEYWORD["BM25 Keyword Search"]
+
+    VECTOR --> FUSION["Reciprocal Rank Fusion"]
+    KEYWORD --> FUSION
+
+    FUSION --> LLM["OpenRouter LLM"]
+    LLM --> CITE["Citation Validation"]
+    CITE --> API
+    API --> UI
 ```
 
-## HTTP boundary
+### Core Architectural Components
 
-`backend/gateway/main.py` composes document, processing, chat, citation and health
-routers. Synchronous storage work runs through synchronous route handlers or the
-thread pool. Pydantic schemas validate identifiers and responses; safe errors do
-not reflect private request bodies or provider messages. CORS permits configured
-origins but provides no authentication or authorization.
+| Component | Technology | Responsibility |
+|---|---|---|
+| Frontend | React, TypeScript, Vite, Tailwind CSS | Research dashboard and interactive workspace |
+| API Gateway | FastAPI, Pydantic | HTTP endpoints, validation, and request orchestration |
+| Background Processing | RabbitMQ, Python workers | Asynchronous document processing and recovery |
+| Document Extraction | LlamaParse | Page-aware PDF content extraction |
+| Text Chunking | LangChain | Markdown-aware segmentation |
+| Embeddings | Voyage AI | Dense vector generation |
+| Storage | MongoDB Atlas, GridFS | PDFs, metadata, chunks, and generated results |
+| Hybrid Retrieval | Atlas Vector Search, BM25, RRF | Relevant evidence retrieval |
+| AI Orchestration | LangGraph, LangChain | Stateful summarization and question answering |
+| LLM Gateway | OpenRouter | Configurable language-model access |
+| PDF Viewer | React-PDF, PDF.js | Citation navigation and highlighting |
+| Evaluation | Ragas | Offline retrieval and answer-quality measurement |
 
-| API under `/api/v1` | Purpose |
-| --- | --- |
-| `POST /documents` | Validate/store one PDF; ensure a durable processing job |
-| `GET /documents/{id}` and `/status` | Metadata and actual document state |
-| `GET /documents/{id}/pdf` | Original PDF bytes |
-| `GET /documents/{id}/parsed`, `/chunks`, `/summary` | Published extraction, chunks and summary |
-| `GET /documents/{id}/processing` | Job progress/state without invented percentages |
-| `POST /documents/{id}/processing/retry` | Supported failed-job recovery |
-| `POST /documents/{id}/chat` | Document-scoped question answering |
-| `GET /documents/{id}/chat/{conversation_id}` | Persisted conversation history |
-| `POST /documents/{id}/citations/resolve` | Revalidate a source before viewer navigation |
-| `DELETE /documents/{id}` | Delete original and document-scoped records |
-| `GET /health` | Gateway liveness; `/health` also exists outside `/api/v1` |
+---
 
-There is no account system or backend library-list endpoint. Original PDF responses
-are read into memory, without byte-range streaming. See the generated `/docs`
-OpenAPI page for precise request/response contracts.
+## 3. Document Processing Pipeline
 
-## Upload and storage
+The document processing pipeline transforms uploaded academic PDFs into structured, searchable research content.
 
-The gateway accepts one multipart PDF, rejects unsupported, corrupt or encrypted
-files using byte/structure checks, and caps the file at 25 MiB by default. SHA-256
-and a unique metadata index deduplicate identical bytes; concurrent losing uploads
-remove only their own candidate GridFS file.
+### 3.1 PDF Upload and Validation
 
-Original bytes live in `fs.files` / `fs.chunks`. The `documents` record links the
-original and active processing generations. Parsed pages, source elements, chunks,
-embeddings and summaries are versioned rather than overwritten during generation.
+The FastAPI gateway receives document uploads and performs validation before persistence.
 
-| Records | Role |
-| --- | --- |
-| `documents`, GridFS | Identity, lifecycle, active pointers and original bytes |
-| `parsed_pages`, `source_elements` | Immutable parse-run pages and optional source geometry |
-| `chunks` | Heading/page-aware chunk generations |
-| `embedding_vectors`, `chunk_embeddings` | Content/profile vector cache and document-scoped searchable records |
-| `summary_runs` | Immutable validated summaries and generation profiles |
-| `chat_conversations`, `chat_turns` | Scoped history, turn ownership and canonical citations |
-| `processing_jobs` | Durable outbox, claims, attempts, leases and terminal states |
+Validation includes:
 
-`backend/shared/database.py` initializes ordinary indexes explicitly. Other domain
-modules maintain their version-specific indexes. Populated legacy chunk indexes
-require a backed-up, reviewed migration; startup does not delete that data.
-GridFS and metadata writes are not one transaction: ambiguous failures can leave
-orphans requiring operator reconciliation. There is no automatic bulk deletion.
+- PDF file type and structural integrity checks.
+- Configurable upload size limits.
+- Filename sanitization.
+- SHA-256 content-based duplicate detection.
+- Rejection of corrupt, empty, or unsupported PDFs.
 
-## Background processing
+Accepted PDFs are stored in MongoDB GridFS, while document metadata is maintained in MongoDB collections.
 
-Upload stores the original and ensures a MongoDB job before returning. The worker
-supervisor runs an outbox dispatcher and ingestion/summary consumers using Pika.
-Confirmed publishing plus idempotent claims protects against broker redelivery.
-The ingestion path parses, chunks and embeds, then schedules summary work.
-Consumers use bounded retries, backoff, leases, heartbeat checks and a dead-letter
-queue; paid provider failures are not reported as successful completion.
+A durable processing job is created to initiate asynchronous ingestion.
 
-Documents become `READY` only after a current summary and configured embeddings
-are complete. That state does not establish Atlas search-index queryability or
-model answer quality. Interrupted provider calls can require reviewed recovery
-instead of automatic takeover that might duplicate paid work. Detailed recovery
-and queue contracts are in [background jobs](background-jobs.md).
+### 3.2 PDF Extraction
 
-## Extraction, chunking and embeddings
+**LlamaParse** extracts structured content from uploaded research papers.
 
-LlamaParse v2 uses the unified `llama-cloud` SDK and returns page-aware Markdown.
-Normalization preserves all one-based pages, headings, tables, source elements and
-available coordinate units. Missing coordinates are not invented. Native page
-margin text is retained for publication metadata evidence.
+The extracted representation preserves available information such as:
 
-LangChain's `MarkdownHeaderTextSplitter` separates headings, followed by
-`RecursiveCharacterTextSplitter` with configurable character size/overlap
-(default 1200 / 150). Splitting is page/source aware; overlap is a target, not a
-guaranteed exact length. Stable chunk-set identities include source/configuration
-versions. Re-chunking invalidates incompatible downstream generations.
+- Page-aware Markdown text
+- Headings and section hierarchy
+- Tables and technical content
+- Page numbers and source references
+- Source coordinates where available
 
-Voyage embeds documents and queries with their respective input types. The safe
-template selects `voyage-4-lite`, 1024 dimensions. Embedding profiles prevent reuse
-across incompatible models/dimensions. A content/profile cache avoids repeating
-unchanged document vectors. Voyage reranking is configured but not implemented.
-See [chunking](markdown-chunking.md) and [hybrid retrieval](hybrid-rag.md).
+The extraction system validates page coverage and retains the original PDF as the authoritative document.
 
-## Intent-sensitive research chat
+Incomplete parsing results are not published as completed document content. Native page-margin text is retained as evidence for publication metadata; missing coordinates are not invented.
 
-The active scope includes document, parse run, chunk set and embedding profile.
-Atlas `$vectorSearch` supplies semantic candidates and `$search` text supplies
-BM25 keyword candidates; LangChain runs the two branches and Python combines ranks
-using RRF (default constant 60). Both indexes must be ready/queryable. The active
-keyword implementation uses Atlas, not the declared `rank-bm25` Python package.
+### 3.3 Markdown-Aware Chunking
 
-Intent rules distinguish facts, broad research questions, metadata, follow-ups,
-mixed questions and general background. Metadata uses targeted extracted title-page
-and page-margin evidence, not an independently verified structured author catalog.
-Overview questions use bounded section-diverse context. Follow-ups receive bounded
-history while preserving the literal question. General background is labeled and
-must not acquire paper citations.
+ResearchAI uses LangChain text splitters to divide extracted content into manageable retrieval units.
 
-A LangChain composition packs context and calls OpenRouter for structured answer
-selection. The server maps selected passage keys back to canonical source records;
-public responses hide retrieval scores and internal traces. Stale/foreign sources
-are rejected. Insufficient evidence permits abstention. Page/quote identity checks
-do not establish semantic entailment of every generated claim.
+**MarkdownHeaderTextSplitter** preserves document headings and structural boundaries, while **RecursiveCharacterTextSplitter** enforces configurable chunk sizes and overlap.
 
-## Structured summaries
+Each chunk retains metadata identifying its source document, relevant sections, page references, and processing version.
 
-`summary_service/workflow.py` builds a deterministic LangGraph with identify,
-generate, validate, advance, combine and save nodes. All current chunks pass through
-bounded windows; validated notes reduce through a bounded tree for long papers.
-Schema/source failures can receive up to two targeted repairs by default.
-Transport retries have a separate limit. No autonomous agent or model fallback
-is hidden in this workflow.
+This structure supports evidence-based retrieval and citation navigation. Defaults are a maximum of 1,200 characters and a target overlap of 150 characters; the actual overlap follows section and text boundaries.
 
-The five sections are Title, Authors and Abstract; Problem Statement; Methodology;
-Key Results; Conclusion. Missing facts remain explicitly unavailable. Quotes must
-match current page-attributed source text. The model/schema/workflow/configuration
-profile identifies immutable results; ownership and unchanged source pointers are
-checked before publication. Unchanged completed results can be reused. Strict quote
-validation can still reject full-paper generations; see [summary details](structured-summary.md).
+### 3.4 Embedding Generation
 
-## Frontend and citation navigation
+Voyage AI transforms document chunks into dense numerical vectors representing semantic meaning.
 
-`frontend/src/App.tsx` composes Dashboard, Upload and Workspace using shared
-containers. The orange identity uses the supplied book-logo PNG. Library entries
-are session-storage references; refresh refetches current metadata and drops
-removed entries. Conversation history is server-persisted and scoped per document.
-There is no cross-device account library or author/keyword catalog search.
+Embedding generation supports:
 
-The PDF viewer is hidden initially and lazy-loaded after an explicit request.
-One viewer component supports toolbar opening and citations. The resolver checks
-document, active generation, one-based page and exact quoted source. A citation
-opens the viewer and navigates it; verified text/geometry can highlight the passage,
-otherwise the page displays quietly. Invalid sources show a friendly error.
+- Separate document and query input types
+- Configurable embedding models and dimensions
+- Batched processing
+- Validation of returned vectors
+- Bounded retries for transient failures
+- Reuse of cached embeddings
 
-At desktop widths the workspace uses approximately 55:45 content/PDF columns;
-mobile uses a full-screen viewer. Chat, draft, summary, page and zoom state survive
-viewer toggles within a document; document changes reset scoped PDF navigation.
-PDF.js worker, fonts and CMaps are copied locally from the installed version.
-See [citation behavior](pdf-citations.md) and [browser QA](browser-qa.md).
+Generated vectors and searchable chunk snapshots are stored in MongoDB Atlas.
 
-## Deletion and data ownership
+### 3.5 Processing Lifecycle
 
-Deletion marks the document `DELETING` so workers and readers reject new work,
-then removes scoped jobs, conversations, source generations and GridFS original.
-Partial cleanup is retryable. It preserves other documents, shared indexes and
-the content/profile embedding cache. Browser deletion requires confirmation.
-Tests use isolated records; existing user papers are never cleanup fixtures.
+Document ingestion uses durable jobs with lifecycle tracking.
 
-## Offline evaluation
+A document progresses through processing states such as:
 
-The optional `evaluation/` CLI collects real retrieval/answer traces, then uses
-Ragas 0.2.15 `EvaluationDataset` / `evaluate()` for applicable faithfulness, answer
-relevancy, context precision/recall and factual correctness. Paired semantic-only
-and hybrid retrieval share candidate snapshots. Missing scores remain errors or
-skips, not zeroes or substituted results. Normal HTTP chat never imports Ragas.
+`PENDING → PARSING → EMBEDDING → SUMMARIZING → READY`
 
-The active 20-case public-paper dataset and nine-case intent dataset include
-unsupported questions and versioned review provenance. Current reviews are
-assistant checks; independent human approval remains outstanding. Published
-reports document incomplete runs and attribution/citation failures. They do not
-establish broad accuracy or hybrid superiority. See [evaluation methodology](rag-evaluation.md).
+Failed operations are recorded and can be handled through supported retry and recovery mechanisms.
 
-## Deployment and boundaries
+A document is marked ready only when the required processing artifacts are complete and consistent.
 
-Compose runs the gateway, worker supervisor, RabbitMQ and Nginx frontend; optional
-ordinary MongoDB supports local storage only. One Python image is reused across
-API/worker roles. CI runs credential-free checks plus isolated real MongoDB/broker
-integration and a container smoke test; paid evaluations remain opt-in.
+---
 
-Provider keys and database credentials stay in ignored runtime environment files,
-never frontend variables, image build arguments or source control. OpenRouter is
-the implemented completion gateway; alternate role names do not provide automatic
-fallback or vision inference. This local/demo app needs dependency remediation,
-authentication, authorization and deployment security before public multi-user use.
+## 4. Structured Summarization Architecture
+
+ResearchAI uses **LangGraph** to coordinate structured research paper summarization.
+
+The summary workflow extracts information into five predefined sections.
+
+| Section | Purpose |
+|---|---|
+| Title, Authors & Abstract | Identify the paper and its research objective |
+| Problem Statement & Motivation | Explain the problem addressed by the research |
+| Methodology & Architecture | Describe methods, models, algorithms, and design |
+| Key Results & Benchmarks | Present reported experimental findings |
+| Conclusion & Future Directions | Summarize contributions, limitations, and future work |
+
+### Workflow
+
+```mermaid
+flowchart TD
+    A["Processed Document Chunks"]
+    B["Identify Source Evidence"]
+    C["Generate Structured Summary"]
+    D["Validate Schema and Citations"]
+    E{"Valid Output?"}
+    F["Bounded Correction"]
+    G["Persist Versioned Summary"]
+    H["Return Validation Failure"]
+
+    A --> B --> C --> D --> E
+    E -->|Yes| G
+    E -->|No| F
+    F --> D
+    F -.->|Retry limit reached| H
+```
+
+The workflow uses Pydantic schemas to enforce output structure and checks supporting source references before publishing results.
+
+For longer documents, bounded processing and reduction steps combine information while preserving supporting evidence. The graph uses identify, generate, validate, advance, combine and save nodes; it is not an autonomous agent or hidden model-fallback loop.
+
+Completed summaries are persisted and reused instead of regenerated for every user request.
+
+---
+
+## 5. Hybrid Retrieval-Augmented Generation
+
+ResearchAI combines semantic and keyword-based retrieval to identify relevant evidence from academic documents.
+
+### 5.1 Semantic Vector Search
+
+Voyage AI generates a query embedding using a compatible embedding profile.
+
+MongoDB Atlas Vector Search retrieves semantically related document passages.
+
+This helps identify relevant content even when the wording of the user's question differs from the research paper.
+
+### 5.2 BM25 Keyword Search
+
+BM25 retrieves passages using lexical relevance.
+
+This is particularly useful for exact technical terminology, model names, algorithm names, acronyms, and other specific expressions.
+
+### 5.3 Reciprocal Rank Fusion
+
+ResearchAI combines semantic and keyword retrieval results using **Reciprocal Rank Fusion (RRF)**.
+
+The general scoring function is:
+
+\[
+RRF(d)=\sum_{r\in R}\frac{1}{k+\operatorname{rank}_r(d)}
+\]
+
+Where:
+
+- \(d\) represents a retrieved document passage.
+- \(R\) represents the retrieval ranking lists.
+- \(k\) is the rank-fusion constant.
+- \(\operatorname{rank}_r(d)\) is the position of passage \(d\) in ranking \(r\).
+
+RRF combines both retrieval strategies without requiring their raw relevance scores to use the same scale.
+
+### 5.4 Question Answering Workflow
+
+```mermaid
+flowchart TD
+    Q["User Question"]
+    E["Generate Query Embedding"]
+    V["Semantic Vector Search"]
+    B["BM25 Search"]
+    R["Reciprocal Rank Fusion"]
+    C["Build Evidence Context"]
+    L["LLM Answer Generation"]
+    S["Source Citation Validation"]
+    A["Grounded Answer"]
+    F["Abstain or Report Unsupported Answer"]
+
+    Q --> E
+    E --> V
+    Q --> B
+    V --> R
+    B --> R
+    R --> C
+    C --> L
+    L --> S
+    S -->|Valid| A
+    S -->|Insufficient evidence| F
+```
+
+Retrieval is scoped to the selected document and its active processing generation, preventing outdated or unrelated document chunks from being used as supporting evidence.
+
+The answer-generation pipeline validates source references and handles insufficient evidence explicitly.
+
+Intent routing distinguishes factual questions, metadata, research overviews, follow-ups, mixed questions and general background. Metadata uses extracted title-page and margin evidence; overviews use bounded section-diverse context or a compatible saved summary. General background is labeled and has no paper citations. Conversation history helps interpret a follow-up but is not independent factual evidence.
+
+---
+
+## 6. Citation and PDF Navigation
+
+ResearchAI connects generated research responses to supporting passages in the original PDF.
+
+The citation system retains references such as:
+
+- Source document identity
+- Chunk identity
+- PDF page number
+- Supporting text
+- Processing generation
+- Source coordinates when available
+
+### Citation Resolution
+
+When a user selects a citation:
+
+1. The frontend requests the relevant source.
+2. The backend validates the citation against current document evidence.
+3. The PDF viewer navigates to the referenced page.
+4. Matching text or verified regions are highlighted when possible.
+5. If precise highlighting is unavailable, page-level navigation is provided.
+
+The React-PDF viewer is closed initially. Toolbar opening and citation navigation use the same lazy-loaded viewer. Chat, draft, summary, page and zoom state survive viewer toggles; changing the selected document resets document-specific navigation. Page-only fallback is quiet when precise highlighting is unavailable.
+
+On desktop, the workspace supports a split layout for reading and source verification. On mobile, the PDF opens in a dedicated full-screen viewer.
+
+---
+
+## 7. Asynchronous Processing and Reliability
+
+ResearchAI uses **RabbitMQ** and background workers to separate expensive document-processing tasks from interactive HTTP requests.
+
+### Processing Architecture
+
+The backend persists processing jobs, which are published to RabbitMQ and consumed by independent workers.
+
+Workers execute extraction, chunking, embeddings, and summary generation.
+
+### Reliability Mechanisms
+
+| Mechanism | Purpose |
+|---|---|
+| Durable job records | Preserve processing state |
+| RabbitMQ acknowledgments | Track completed message handling |
+| Bounded retries | Recover from supported transient failures |
+| Dead-letter handling | Preserve failed tasks for inspection |
+| Idempotent processing | Reduce duplicate execution |
+| Processing ownership and leases | Coordinate concurrent workers |
+| Versioned artifacts | Prevent partially completed outputs from becoming active |
+| Cached embeddings | Reuse previously generated vectors |
+| Explicit recovery procedures | Handle interrupted or uncertain operations |
+
+Long-running operations are executed outside the API request lifecycle.
+
+These mechanisms improve resilience, although some interrupted or uncertain jobs still require reviewed recovery rather than automatic re-execution.
+
+---
+
+## 8. Data Storage Architecture
+
+MongoDB Atlas provides the primary persistence layer.
+
+### Main Data Categories
+
+| Collection or Storage | Responsibility |
+|---|---|
+| `documents` | Document metadata and processing status |
+| GridFS | Original uploaded PDF files |
+| `parsed_pages` | Extracted page content |
+| `source_elements` | Page-level source information |
+| `chunks` | Structured document segments |
+| `embedding_vectors` | Reusable embedding cache |
+| `chunk_embeddings` | Searchable vector snapshots |
+| `summary_runs` | Versioned summary outputs |
+| `chat_conversations` | Conversation metadata |
+| `chat_turns` | Saved questions and responses |
+| `processing_jobs` | Durable processing jobs and scheduling state |
+
+### Data Consistency
+
+ResearchAI maintains active processing-version references to distinguish current artifacts from previous processing results.
+
+New extraction, chunking, embedding, and summary artifacts are published only after their respective consistency checks.
+
+Previous completed versions can remain available for recovery or auditing.
+
+This design reduces the risk of exposing partially processed data.
+
+### Document Deletion
+
+Deletion marks a document as deleting so readers and workers reject new work, then removes its jobs, conversations, source generations and GridFS original. Partial cleanup can be retried. Other documents, shared search indexes and the reusable content/profile embedding cache are preserved. Library entries are browser-session references, not a cross-device user-account library.
+
+---
+
+## 9. RAG Evaluation Architecture
+
+ResearchAI includes a separate evaluation subsystem based on **Ragas**.
+
+Evaluation runs independently of normal chatbot requests.
+
+### Evaluation Metrics
+
+| Metric | Objective |
+|---|---|
+| Context Precision | Measure relevance of retrieved evidence |
+| Context Recall | Measure coverage of expected evidence |
+| Faithfulness | Evaluate whether responses are supported by context |
+| Answer Relevancy | Assess relevance to the user's question |
+| Factual Correctness | Compare responses with reference answers |
+
+### Evaluation Process
+
+1. Prepare source-grounded benchmark questions.
+2. Execute semantic-only and hybrid retrieval strategies.
+3. Generate responses using the configured RAG pipeline.
+4. Evaluate applicable metrics with Ragas.
+5. Review source evidence and citation correctness.
+6. Save reproducible reports and document observed failures.
+
+Evaluation reports distinguish successful measurements from skipped metrics, execution errors, and unsupported responses.
+
+The benchmarking system provides evidence for identifying retrieval and generation weaknesses without treating a single test run as proof of overall research-answer accuracy.
+
+See [Evaluation Documentation](../evaluation/README.md).
+
+---
+
+## 10. API Architecture
+
+The FastAPI gateway exposes REST endpoints for document management, summaries, and research conversations.
+
+| Method | Endpoint | Responsibility |
+|---|---|---|
+| `POST` | `/api/v1/documents` | Upload and register a PDF |
+| `GET` | `/api/v1/documents/{id}` | Retrieve document metadata |
+| `GET` | `/api/v1/documents/{id}/status` | Retrieve processing status |
+| `GET` | `/api/v1/documents/{id}/summary` | Retrieve a saved research summary |
+| `GET` | `/api/v1/documents/{id}/chunks` | Retrieve processed document chunks |
+| `POST` | `/api/v1/documents/{id}/chat` | Generate a document-grounded response |
+| `GET` | `/api/v1/documents/{id}/chat/{conversation_id}` | Retrieve conversation history |
+| `DELETE` | `/api/v1/documents/{id}` | Delete a document and associated data |
+
+The gateway uses Pydantic for typed validation and structured responses.
+
+Document-processing operations remain separate from read-only retrieval endpoints. Original PDFs are complete in-memory responses without byte-range streaming. See the [gateway guide](../backend/gateway/README.md) and generated `/docs` for complete contracts, including processing retry and citation resolution. Health endpoints establish process liveness, not dependency readiness.
+
+---
+
+## 11. Security and Configuration
+
+The application includes several security-conscious design decisions:
+
+- API credentials and database connection strings are configured through environment variables.
+- PDF uploads undergo file-format, size, and structural validation.
+- Cross-origin requests are restricted through configurable CORS policies.
+- Internal processing metadata and evaluation traces are excluded from public chatbot responses.
+- Database queries and AI retrieval are scoped to active document versions.
+- Containerized services separate frontend, API, and background-worker responsibilities.
+
+**Security boundary:** The current application does not provide a complete authentication and per-user authorization layer. Production deployment requires authentication, ownership-based access control, additional infrastructure hardening, and comprehensive security testing.
+
+---
+
+## 12. Deployment Architecture
+
+ResearchAI supports local development and containerized execution using Docker Compose.
+
+The containerized application includes:
+
+- **Nginx frontend:** Serves the built React application and proxies API requests.
+- **FastAPI gateway:** Handles HTTP requests and application endpoints.
+- **Background workers:** Execute document processing and AI workflows.
+- **RabbitMQ:** Coordinates asynchronous task delivery.
+- **MongoDB Atlas:** Provides external document storage and hybrid search.
+
+GitHub Actions performs automated backend, frontend, and Docker verification. Standard CI uses isolated test infrastructure and simulated paid-provider boundaries rather than relying on live AI calls.
+
+See [Deployment Documentation](deployment.md) and [CI Documentation](ci.md).
+
+---
+
+## 13. Engineering Trade-offs
+
+| Design Decision | Benefit | Trade-off |
+|---|---|---|
+| Hybrid RAG | Covers semantic and exact-term retrieval | Additional indexing and retrieval complexity |
+| MongoDB Atlas | Unified document and vector-search infrastructure | Dependence on Atlas search capabilities |
+| RabbitMQ | Decouples long-running workloads | Additional service and recovery complexity |
+| LangGraph | Structured and validated AI workflows | More orchestration than direct LLM calls |
+| Strict citation validation | Reduces unsupported citations | May reject otherwise useful responses |
+| Versioned artifacts | Improves processing consistency and recovery | Additional storage and metadata management |
+| External AI providers | Access to specialized parsing, embedding, and LLM services | Cost, rate limits, and provider availability |
+
+---
+
+## 14. Limitations and Future Improvements
+
+ResearchAI is an actively developed system with automated test coverage and selected live integration verification.
+
+Current limitations include:
+
+- Summary generation can fail when an LLM does not satisfy strict source validation.
+- Citation accuracy and research-answer completeness require further improvement.
+- Session-oriented document management is not a substitute for persistent user accounts.
+- Multi-document comparison is not currently supported.
+- Production authentication, authorization, observability, and deployment hardening remain future work.
+
+Planned improvements focus on retrieval quality, robust summarization, broader Ragas benchmarks, multi-document research capabilities, and production readiness.
+
+---
+
+## 15. Conclusion
+
+ResearchAI demonstrates an end-to-end AI application architecture combining document ingestion, hybrid information retrieval, stateful LLM workflows, asynchronous job processing, and source-based answer validation.
+
+Its main engineering focus is **building a research assistant whose outputs can be traced back to the original document**, while maintaining clear component boundaries, reusable processing artifacts, and measurable evaluation workflows.
+
+For implementation details, configuration, and verified test results, refer to the repository's supporting technical documentation.

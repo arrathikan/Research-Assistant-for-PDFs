@@ -1,77 +1,103 @@
-# ResearchAI — Research Assistant for PDFs
+# ResearchAI — AI-Powered Research Paper Assistant
 
-ResearchAI helps students and researchers understand academic papers through
-structured summaries, document-grounded chat, and citations linked to the
-original PDF. A React workspace connects to a FastAPI gateway and background
-workers that handle parsing, embeddings, and summary generation.
+**Understand research papers faster. Ask questions with confidence. Verify answers against their sources.**
 
-[Local development](#local-development) · [Docker](#run-with-docker) ·
-[Troubleshooting](#troubleshooting) · [Documentation](#documentation)
+ResearchAI is a full-stack research assistant that converts academic PDFs into structured summaries and supports document-grounded conversations with navigable citations. It combines **Hybrid Retrieval-Augmented Generation (RAG)**, stateful AI workflows, and asynchronous document processing in a responsive research workspace.
 
-## Features
+[![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-TypeScript-149ECA?logo=react&logoColor=white)](https://react.dev/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/atlas)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 
-- **PDF upload:** structure validation, a default 25 MiB limit, and SHA-256
-  deduplication to recognize papers already stored.
-- **Five-part summaries:** Title, Authors and Abstract; Problem Statement;
-  Methodology; Key Results; and Conclusion.
-- **Research chat:** paper-specific questions, metadata questions, and follow-ups,
-  with general background clearly distinguished from paper evidence.
-- **Hybrid retrieval:** MongoDB Atlas semantic search and BM25 keyword search
-  combined with reciprocal rank fusion (RRF).
-- **Source navigation:** clickable page citations open an optional PDF viewer.
-  Accurate passage highlighting is used when supported; otherwise, the viewer
-  opens the cited page.
-- **Paper library:** filename search, status filters, sorting, original PDF
-  downloads, and document deletion. Document references are restored within the
-  same browser session.
-- **Background processing:** real processing states, bounded retries, and saved
-  stage outputs. Uploading a file does not imply processing has finished.
+[Architecture](docs/architecture.md) · [Evaluation](evaluation/README.md) · [Deployment](docs/deployment.md)
 
-## Technology stack
+[Local development](#local-development) · [Docker](#run-with-docker) · [Troubleshooting](#troubleshooting) · [Documentation](#documentation)
 
-| Layer | Technologies |
-| --- | --- |
-| Frontend | React 18, TypeScript, Vite, Tailwind CSS |
-| PDF viewer | React-PDF / PDF.js |
-| API | Python, FastAPI, Pydantic, PyMongo |
-| Storage and search | MongoDB Atlas, GridFS, Atlas Vector Search, MongoDB Search |
-| Background jobs | RabbitMQ with separate dispatcher, ingestion, and summary workers |
-| AI pipeline | LlamaParse, LangChain, Voyage AI embeddings, LangGraph, OpenRouter |
-| Testing | pytest, Ruff, Vitest, Playwright; optional offline Ragas |
-| Operations | Docker Compose, Nginx, GitHub Actions |
+## Why ResearchAI?
 
-## Architecture
+Research papers contain dense methodologies, experiments, and specialized terminology. Generic AI chat interfaces can help explain them, but answers may lack traceable support from the original document. ResearchAI focuses on **source-grounded understanding**: users can upload a paper, read a consistent summary, ask questions, and open cited evidence directly in the PDF.
+
+## Key Features
+
+- **Five-part research summaries:** Title/authors/abstract, problem and motivation, methodology, results, and conclusions/future work.
+- **Hybrid RAG:** Voyage AI embeddings and MongoDB Atlas Vector Search combined with BM25 keyword retrieval through Reciprocal Rank Fusion (RRF).
+- **Evidence-aware answers:** Document-scoped retrieval, source-reference validation, and an abstention path when evidence is insufficient.
+- **Interactive citations:** Open the original PDF at the referenced page, with text/region highlighting when available and page-only fallback otherwise.
+- **Background processing:** RabbitMQ workers handle PDF parsing, chunking, embeddings, and summaries with retry and recovery mechanisms.
+- **Research workspace:** PDF upload, filename search, status tracking, filtering, sorting, deletion, and saved conversations.
+- **Offline RAG evaluation:** Ragas metrics and manual source reviews for answer and retrieval quality.
+
+## System Architecture
 
 ```mermaid
 flowchart TD
-    UI[React workspace] --> API[FastAPI gateway]
-    API --> STORE[MongoDB metadata and GridFS PDFs]
-    API --> OUTBOX[MongoDB job outbox]
-    OUTBOX --> DISPATCH[Job dispatcher]
-    DISPATCH --> MQ[RabbitMQ]
-    MQ --> WORKERS[Ingestion and summary workers]
-    WORKERS --> PARSE[LlamaParse pages and Markdown]
-    PARSE --> CHUNKS[LangChain Markdown-aware chunks]
-    CHUNKS --> EMB[Voyage document embeddings]
-    EMB --> SEARCH[Atlas vector and keyword indexes]
-    CHUNKS --> SUMMARY[LangGraph summary with OpenRouter]
-    SUMMARY --> STORE
-    API --> CHAT[Document-scoped chat with OpenRouter]
-    CHAT <--> SEARCH
-    CHAT --> SOURCES[Server-validated citations]
-    SOURCES --> UI
-    UI --> PDF[Optional original PDF viewer]
+    UI["React + TypeScript"] --> API["FastAPI Gateway"]
+    API --> DB[("MongoDB Atlas + GridFS")]
+    API --> JOB["Durable Processing Jobs"]
+    JOB --> MQ["RabbitMQ"]
+    MQ --> WORKER["Background Worker"]
+    WORKER --> PARSE["LlamaParse"]
+    PARSE --> CHUNK["Markdown-Aware Chunking"]
+    CHUNK --> EMBED["Voyage AI Embeddings"]
+    EMBED --> DB
+    WORKER --> SUM["LangGraph Summary"]
+    SUM --> DB
+    API --> RAG["Document-Scoped Hybrid RAG"]
+    RAG --> VECTOR["Atlas Vector Search"]
+    RAG --> KEYWORD["BM25 Keyword Search"]
+    VECTOR --> RRF["Reciprocal Rank Fusion"]
+    KEYWORD --> RRF
+    RRF --> LLM["LLM via OpenRouter"]
+    LLM --> CIT["Citation Validation"]
+    CIT --> API
 ```
 
-The gateway and workers share a Python codebase but run as separate processes.
-Workers perform slow document processing outside upload requests. Ragas evaluation
-is separate from normal summary and chat requests.
+### Document Processing
 
-The default chunking configuration uses Markdown-aware splitting with a maximum
-of 1,200 characters and a target overlap of 150 characters. Retrieval is scoped
-to the selected document and source generation. See the
-[architecture](docs/architecture.md), [chunking](docs/markdown-chunking.md), and
-[hybrid retrieval](docs/hybrid-rag.md) guides for implementation details.
+1. **Validate and store:** Check uploaded PDFs and identify exact duplicates using SHA-256; store originals in GridFS.
+2. **Extract:** Parse page-aware Markdown and source information using LlamaParse.
+3. **Chunk:** Split content with heading-aware LangChain splitters while retaining page/source references.
+4. **Embed:** Generate Voyage AI vectors and store versioned retrieval artifacts in MongoDB Atlas.
+5. **Summarize:** Use LangGraph to generate and validate five structured sections.
+6. **Answer questions:** Retrieve relevant passages through vector and BM25 search, fuse rankings, generate an answer, and validate citations.
+
+Processing jobs run independently of normal HTTP requests. Completed intermediate artifacts can be reused in supported retries.
+
+## Technology Stack
+
+| Area | Technology | Purpose |
+|---|---|---|
+| Frontend | React, TypeScript, Vite, Tailwind CSS | Research dashboard and PDF workspace |
+| Backend | Python, FastAPI, Pydantic | API endpoints and validation |
+| PDF processing | LlamaParse, LangChain | Page-aware extraction and chunking |
+| Embeddings | Voyage AI | Semantic representations |
+| Storage and retrieval | MongoDB Atlas, GridFS, Vector Search, BM25 | PDFs, metadata, and hybrid search |
+| AI orchestration | LangGraph, LangChain, OpenRouter | Summarization and question answering |
+| Asynchronous processing | RabbitMQ | Background jobs and retries |
+| Evaluation | Ragas, manual source review | Retrieval and answer-quality checks |
+| Quality and deployment | pytest, Vitest, Playwright, Docker Compose, GitHub Actions | Testing and development workflows |
+
+## Repository Structure
+
+```text
+Research-Assistant-for-PDFs/
+├── frontend/                      # React application
+├── backend/
+│   ├── gateway/                   # FastAPI routes
+│   ├── services/
+│   │   ├── document_processor/    # Parsing, chunking, embeddings
+│   │   ├── summary_service/       # LangGraph summaries
+│   │   ├── rag_service/           # Retrieval and grounded QA
+│   │   └── jobs/                  # Background processing
+│   ├── shared/                    # Configuration and data models
+│   └── tests/                     # Backend tests
+├── evaluation/                    # Ragas datasets and reports
+├── docs/                          # Architecture and setup guides
+├── docker-compose.yml
+├── .env.example
+└── README.md
+```
 
 ## Prerequisites
 
@@ -332,7 +358,25 @@ Processing failures and interrupted jobs have different retry rules. Follow
 [background job recovery](docs/background-jobs.md) rather than manually editing
 job records or repeatedly starting additional workers.
 
-## Testing and evaluation
+## API Overview
+
+| Method | Route | Purpose |
+|---|---|---|
+| `POST` | `/api/v1/documents` | Upload a PDF |
+| `GET` | `/api/v1/documents/{id}/summary` | Read the saved summary |
+| `GET` | `/api/v1/documents/{id}/chunks` | Read processed chunks |
+| `POST` | `/api/v1/documents/{id}/chat` | Ask a paper-specific question |
+| `GET` | `/api/v1/documents/{id}/chat/{conversation_id}` | Load conversation history |
+| `DELETE` | `/api/v1/documents/{id}` | Delete a paper and associated records |
+
+See the [API Guide](backend/gateway/README.md) for complete request and response contracts.
+
+## Evaluation and Testing
+
+RAG quality is evaluated **offline**, separately from user-facing chat, using a source-grounded benchmark that includes answerable and unanswerable questions. The evaluation considers **Context Precision, Context Recall, Faithfulness, Answer Relevancy, and Factual Correctness**. Semantic-only and hybrid retrieval can be compared, with manual checks for unsupported claims, citation quality, and false abstentions.
+
+The results are not represented as a universal accuracy percentage. Published reports include failure cases and metric limitations; successful integration checks alone do not prove answer correctness across all research papers. See [Evaluation Methodology](evaluation/README.md) and the [QA Evaluation Report](evaluation/reports/2026-11-13-final-qa/README.md).
+
 
 ### Backend
 
@@ -380,53 +424,31 @@ the [published results](evaluation/reports/README.md) with their coverage and
 failure notes. Assistant source reviews are identified as such and do not
 constitute independent human approval.
 
-## Project structure
+## Key Engineering Decisions
 
-```text
-backend/gateway/                  FastAPI routes and HTTP contracts
-backend/services/                 document processing, jobs, summaries, and RAG
-backend/shared/                   configuration, storage, and provider clients
-backend/tests/                    unit and opt-in integration/provider tests
-frontend/src/                     React application and unit tests
-frontend/e2e/                     browser tests
-evaluation/                      offline Ragas tooling, datasets, and reports
-docs/                            architecture, setup, operations, and QA evidence
-scripts/compose_smoke.py          isolated container smoke check
-.github/workflows/ci.yml          continuous integration
-```
+| Choice | Reason |
+|---|---|
+| Hybrid search with RRF | Balance semantic matching and precise technical terms |
+| Document-scoped retrieval | Keep evidence tied to the selected paper |
+| GridFS with MongoDB Atlas | Store original PDFs alongside document metadata |
+| LangGraph summaries | Coordinate stateful, validated generation |
+| RabbitMQ workers | Keep expensive AI processing outside request handling |
+| Versioned artifacts | Reuse completed processing and support recovery |
+| Citation validation | Reduce unsupported source references |
+| Offline Ragas evaluation | Measure quality without increasing live chat latency |
+
 
 ## Documentation
 
-| Topic | Guide |
-| --- | --- |
-| Architecture and implementation status | [Architecture](docs/architecture.md), [roadmap](docs/development-roadmap.md) |
-| Atlas and providers | [Atlas setup](docs/atlas-setup.md), [provider configuration](docs/provider-configuration.md) |
-| Processing and retrieval | [Background jobs](docs/background-jobs.md), [summaries](docs/structured-summary.md), [hybrid RAG](docs/hybrid-rag.md) |
-| Citations and PDF navigation | [PDF citations](docs/pdf-citations.md) |
-| Operations and QA | [Docker](docs/deployment.md), [CI](docs/ci.md), [browser QA](docs/browser-qa.md) |
-| Demo and verification | [Demo guide](docs/demo-guide.md), [submission review](docs/submission-review.md), [interface QA records](docs/screenshots.md) |
+Start with the [documentation index](docs/README.md) for current guides and dated verification records.
 
-The [documentation index](docs/README.md) distinguishes current technical guides
-from dated design and verification records. QA reports state
-their scope; they are not a guarantee that every paper or provider call succeeds.
+[Architecture](docs/architecture.md) · [Atlas Setup](docs/atlas-setup.md) · [Hybrid RAG](docs/hybrid-rag.md) · [Summarization](docs/structured-summary.md) · [PDF Citations](docs/pdf-citations.md) · [Background Jobs](docs/background-jobs.md) · [Evaluation](evaluation/README.md)
+## Author
 
-## Current limitations
+**Aravinthan Arrathikasarma**
+AI Undergraduate — University of Moratuwa, Sri Lanka
+[GitHub](https://github.com/arrathikan) · [LinkedIn](https://www.linkedin.com/in/aravinthan-arrathikasarma/)
 
-- This is a local/demo application without authentication, authorization, or a
-  public TLS deployment.
-- Provider quota, model/schema support, latency, Atlas network access, and index
-  readiness affect availability.
-- Full-paper summaries can fail strict quote validation. Citation provenance
-  checks do not guarantee scientific correctness; important findings need review.
-- Passage highlighting depends on reliable text or geometry and can fall back
-  to page navigation.
-- The library is session-based, not an account-based, cross-device library.
-- Existing dependency advisories require remediation; see the submission review.
-- Evaluation coverage is limited and includes incomplete runs. No universal
-  accuracy score or general hybrid-over-semantic advantage is claimed.
+---
 
-## Maintainer
-
-Maintained by [arrathikan](https://github.com/arrathikan). Existing contribution
-history and public-paper attribution are preserved in the repository and its
-evaluation documentation.
+*ResearchAI — Turning complex research papers into structured, source-grounded knowledge.*
