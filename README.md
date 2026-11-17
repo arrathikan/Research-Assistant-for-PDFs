@@ -13,7 +13,7 @@ Built with **React, FastAPI, LangGraph, Hybrid RAG, MongoDB Atlas, and RabbitMQ*
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/atlas)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 
-**[Repository](https://github.com/arrathikan/Research-Assistant-for-PDFs)** · **[Architecture](docs/architecture.md)** · **[Demo Guide](docs/demo-guide.md)** · **[Evaluation](evaluation/README.md)**
+**[Repository](https://github.com/arrathikan/Research-Assistant-for-PDFs)** · **[Architecture](docs/architecture.md)** ·  · **[Evaluation](evaluation/README.md)**
 
 ---
 
@@ -458,40 +458,6 @@ docker compose stop rabbitmq
 
 ---
 
-### Troubleshooting
-
-| Problem | Recommended Solution |
-|---|---|
-| `backend/requirements.txt` not found | Run the command from the repository root, not the `frontend/` directory. |
-| Port 8000 is already in use | Stop the existing backend process before starting another one. |
-| Port 3000 or 5173 is already in use | Stop the conflicting frontend process. |
-| Docker backend cannot connect to MongoDB | Verify the Atlas URI, credentials, and Network Access settings. |
-| Worker is unhealthy | Inspect worker and RabbitMQ logs. |
-| PDF processing remains pending | Check RabbitMQ, worker connectivity, provider credentials, and processing errors. |
-| API health works but RAG fails | Verify Atlas search indexes, embedding configuration, API keys, and provider credits. |
-| Frontend cannot connect to the backend | Check the frontend API URL and confirm FastAPI is running. |
-| Docker Compose fails to start | Run `docker compose config -q`, `docker compose ps`, and inspect logs. |
-
-Useful troubleshooting commands:
-
-```bash
-# View running containers
-docker compose ps
-
-# View recent logs
-docker compose logs --tail=100
-
-# View gateway logs
-docker compose logs --tail=100 gateway
-
-# View worker logs
-docker compose logs --tail=100 workers
-
-# Check FastAPI health
-curl http://localhost:8000/health
-```
-
----
 
 ## API Overview
 
@@ -615,28 +581,6 @@ The [Final QA Report](docs/final-qa.md) documents test coverage, live integratio
 | Offline Ragas evaluation | Measure retrieval and generation quality without increasing normal chat latency |
 
 These decisions prioritize maintainability, traceability, reliability, and the ability to evaluate system behavior.
-
----
-
-## Current Limitations
-
-ResearchAI is an actively developed engineering project.
-
-Its architecture and workflows have been exercised through automated tests and selected live provider integrations, but additional validation is required before public production deployment.
-
-Current areas for improvement include:
-
-- Strengthening the completeness and factual consistency of generated summaries
-- Improving citation support and reducing unsupported research answers
-- Expanding benchmarks across different document formats and research domains
-- Completing provider-specific compatibility and live end-to-end checks
-- Addressing remaining deployment hardening and dependency advisories
-
-Provider limitations, unsupported document content, and model failures may prevent successful summary generation.
-
-The system does not guarantee that every answer or citation is correct; users should verify important research claims against the original paper.
-
-See [Latest Live QA](docs/live-e2e-qa-2026-11-14.md) for verified results and outstanding issues.
 
 ---
 
